@@ -30,7 +30,7 @@
 - 版本：升至 `1.1.53+112`，并同步 Windows 安装器显示版本，避免 CI 的跨配置版本一致性检查失败。
 - 验证：`flutter analyze` 无 issues，`flutter test` 全量 228 项通过；Android APK 的 package name 为 `org.localsend.localsend_app`、versionCode 为 `112`、签名证书 SHA-256 保持为 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
 - macOS：DMG 通过 `hdiutil verify`，包内 `Flux.app` 为 `1.1.53+112`，`codesign --verify --deep --strict` 与蓝牙 entitlement 均通过。
-- 产物：Android SHA-256 为 `bffe07b8f307a0331223ef3840b885569fd87b63acd71bc750fba95437a3e1a9`；macOS SHA-256 为 `6c15757758f55dc5ffba35075af4e2c11fcd1ff2d9fdde836aecbe3b3101e7f6`；两者及 `SHA256SUMS.txt` 已归档至 `releases/history/v1.1.53/`，待上传 GitHub Release。
+- 产物：Android SHA-256 为 `bffe07b8f307a0331223ef3840b885569fd87b63acd71bc750fba95437a3e1a9`；macOS SHA-256 为 `6c15757758f55dc5ffba35075af4e2c11fcd1ff2d9fdde836aecbe3b3101e7f6`；两者及 `SHA256SUMS.txt` 已归档至 `releases/history/v1.1.53/`，并已发布到 GitHub Release `v1.1.53`。
 
 ## 已完成修复
 
