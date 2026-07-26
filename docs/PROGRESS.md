@@ -1,17 +1,17 @@
 # Flux 进度与交接记录
 
-> 这份文档用于接手：记录本轮目标、已修复内容、验证证据、打包产物和后续重点。更新日期：2026-07-26。
+> 这份文档用于接手：记录本轮目标、已修复内容、验证证据、打包产物和后续重点。更新日期：2026-07-27。
 
 ## 当前发布
 
 | 项目 | 状态 |
 |------|------|
 | 应用名 | Flux |
-| 当前版本 | 1.1.52+111 |
+| 当前版本 | 1.1.53+112 |
 | Android applicationId | `org.localsend.localsend_app`（必须保持不变，保证覆盖安装） |
 | Android 签名 | 既有私有 JKS；文件、别名和密码仅存于密码管理器与离线备份，绝不进入公开仓库 |
 | macOS 应用名 | `Flux.app` |
-| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v1.1.52/Flux-v1.1.52-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v1.1.52/Flux-v1.1.52-macOS.dmg` |
+| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v1.1.53/Flux-v1.1.53-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v1.1.53/Flux-v1.1.53-macOS.dmg` |
 
 ## 本轮目标
 
@@ -27,7 +27,10 @@
 - 安全处理：根目录新增对 Android JKS、`key.properties`、本机配置与 `releases/history/` 的忽略规则；重写开发手册，移除历史签名密码明文，私钥与密码仅保留在本机安全存储中。
 - 工程化：新增安全策略、发布检查表、贡献指南、行为准则、GitHub Issue 联系入口和开源项目 README；Release 二进制仅上传 GitHub Releases，不进入源码历史。
 - 更新能力：新增可测试的 GitHub stable-release 客户端；设置页“检查更新”仅在用户点击后访问 GitHub，Android 打开 APK、macOS 打开 DMG，不提供静默下载或安装。
-- 验证：新增更新解析与版本比较单测；后续需在下一个递增版本安装包中验证真实设置页交互。
+- 版本：升至 `1.1.53+112`，并同步 Windows 安装器显示版本，避免 CI 的跨配置版本一致性检查失败。
+- 验证：`flutter analyze` 无 issues，`flutter test` 全量 228 项通过；Android APK 的 package name 为 `org.localsend.localsend_app`、versionCode 为 `112`、签名证书 SHA-256 保持为 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
+- macOS：DMG 通过 `hdiutil verify`，包内 `Flux.app` 为 `1.1.53+112`，`codesign --verify --deep --strict` 与蓝牙 entitlement 均通过。
+- 产物：Android SHA-256 为 `bffe07b8f307a0331223ef3840b885569fd87b63acd71bc750fba95437a3e1a9`；macOS SHA-256 为 `6c15757758f55dc5ffba35075af4e2c11fcd1ff2d9fdde836aecbe3b3101e7f6`；两者及 `SHA256SUMS.txt` 已归档至 `releases/history/v1.1.53/`，待上传 GitHub Release。
 
 ## 已完成修复
 

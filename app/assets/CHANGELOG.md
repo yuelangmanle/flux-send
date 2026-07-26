@@ -1,4 +1,4 @@
-## unreleased
+## Flux 1.1.53 (2026-07-27)
 
 - feat(update): 在设置页新增“检查更新”，主动读取 Flux GitHub Releases 的稳定版信息，并按当前平台打开 APK、DMG 或发布页。
 - test(update): 覆盖 GitHub Release 解析、稳定版校验、语义化版本比较和安装包平台匹配。

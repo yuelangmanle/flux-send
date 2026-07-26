@@ -6,7 +6,7 @@ Flux 是基于 [LocalSend](https://github.com/localsend/localsend) 的 Apache-2.
 
 | 项目 | 值 |
 | --- | --- |
-| 当前正式版本 | `1.1.52+111` |
+| 当前正式版本 | `1.1.53+112` |
 | Android applicationId | `org.localsend.localsend_app` |
 | Android 发布密钥 | 现有私有 JKS，**不在仓库中** |
 | 上游基线 | LocalSend 1.17.0 |
