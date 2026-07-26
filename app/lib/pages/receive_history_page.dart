@@ -42,8 +42,20 @@ enum _EntryOption {
 const _optionsAll = _EntryOption.values;
 final _optionsWithoutOpen = [_EntryOption.info, _EntryOption.delete];
 
-class ReceiveHistoryPage extends StatelessWidget {
+enum _HistoryGrouping {
+  day,
+  type,
+}
+
+class ReceiveHistoryPage extends StatefulWidget {
   const ReceiveHistoryPage({super.key});
+
+  @override
+  State<ReceiveHistoryPage> createState() => _ReceiveHistoryPageState();
+}
+
+class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
+  _HistoryGrouping _grouping = _HistoryGrouping.day;
 
   Future<void> _openFile(
     BuildContext context,
@@ -63,6 +75,7 @@ class ReceiveHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entries = context.watch(receiveHistoryProvider);
+    final groups = _grouping == _HistoryGrouping.day ? groupReceiveHistoryByDay(entries) : groupReceiveHistoryByType(entries);
     return Scaffold(
       appBar: basicLocalSendAppbar(t.receiveHistoryPage.title),
       body: ResponsiveListView(
@@ -112,6 +125,33 @@ class ReceiveHistoryPage extends StatelessWidget {
               ],
             ),
           ),
+          if (entries.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: SegmentedButton<_HistoryGrouping>(
+                showSelectedIcon: false,
+                selected: {_grouping},
+                onSelectionChanged: (selection) {
+                  setState(() {
+                    _grouping = selection.first;
+                  });
+                },
+                segments: const [
+                  ButtonSegment(
+                    value: _HistoryGrouping.day,
+                    icon: Icon(Icons.calendar_month_rounded),
+                    label: Text('按日期'),
+                  ),
+                  ButtonSegment(
+                    value: _HistoryGrouping.type,
+                    icon: Icon(Icons.category_rounded),
+                    label: Text('按类型'),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           if (entries.isEmpty)
             Padding(
@@ -119,121 +159,135 @@ class ReceiveHistoryPage extends StatelessWidget {
               child: Center(child: Text(t.receiveHistoryPage.empty, style: Theme.of(context).textTheme.headlineMedium)),
             )
           else
-            ...entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                child: InkWell(
-                  splashColor: Colors.transparent,
-                  splashFactory: NoSplash.splashFactory,
-                  highlightColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  onTap: entry.path != null || entry.isMessage
-                      ? () async {
-                          if (entry.isMessage) {
-                            final vm = ViewProvider((ref) {
-                              return ReceivePageVm(
-                                status: SessionStatus.waiting,
-                                sender: Device(
-                                  signalingId: null,
-                                  ip: '0.0.0.0',
-                                  version: '1.0.0',
-                                  port: 8080,
-                                  https: false,
-                                  fingerprint: 'fingerprint',
-                                  alias: entry.senderAlias,
-                                  deviceModel: 'deviceModel',
-                                  deviceType: DeviceType.web,
-                                  download: true,
-                                  discoveryMethods: const {},
-                                ),
-                                showSenderInfo: false,
-                                files: [],
-                                message: entry.fileName,
-                                onAccept: () {},
-                                onDecline: () {},
-                                onClose: () {},
-                              );
-                            });
-
-                            // ignore: unawaited_futures
-                            context.push(() => ReceivePage(vm));
-                            return;
-                          }
-
-                          await _openFile(context, entry, context.redux(receiveHistoryProvider));
-                        }
-                      : null,
+            ...groups.expand((group) {
+              return [
+                Padding(
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 4),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FilePathThumbnail(
-                        path: entry.path,
-                        fileType: entry.fileType,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 3),
-                            Text(
-                              entry.fileName,
-                              style: const TextStyle(fontSize: 16),
-                              maxLines: 1,
-                              overflow: TextOverflow.fade,
-                              softWrap: false,
-                            ),
-                            Text(
-                              '${entry.timestampString} - ${entry.fileSize.asReadableFileSize} - ${entry.senderAlias}',
-                              maxLines: 1,
-                              overflow: TextOverflow.fade,
-                              softWrap: false,
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      PopupMenuButton<_EntryOption>(
-                        onSelected: (_EntryOption item) async {
-                          switch (item) {
-                            case _EntryOption.open:
-                              await _openFile(context, entry, context.redux(receiveHistoryProvider));
-                              break;
-                            case _EntryOption.showInFolder:
-                              if (entry.path != null) {
-                                await openFolder(
-                                  folderPath: File(entry.path!).parent.path,
-                                  fileName: path.basename(entry.path!),
-                                );
-                              }
-                              break;
-                            case _EntryOption.info:
-                              // ignore: use_build_context_synchronously
-                              await showDialog(
-                                context: context,
-                                builder: (_) => FileInfoDialog(entry: entry),
-                              );
-                              break;
-                            case _EntryOption.delete:
-                              // ignore: use_build_context_synchronously
-                              await context.redux(receiveHistoryProvider).dispatchAsync(RemoveHistoryEntryAction(entry.id));
-                              break;
-                          }
-                        },
-                        itemBuilder: (BuildContext context) {
-                          return (entry.path != null ? _optionsAll : _optionsWithoutOpen).map((e) {
-                            return PopupMenuItem<_EntryOption>(
-                              value: e,
-                              child: Text(e.label),
-                            );
-                          }).toList();
-                        },
-                      ),
+                      Text(group.label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                      const SizedBox(width: 8),
+                      Text('${group.entries.length} 项', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
                     ],
                   ),
                 ),
-              );
+                ...group.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                    child: InkWell(
+                      splashColor: Colors.transparent,
+                      splashFactory: NoSplash.splashFactory,
+                      highlightColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      onTap: entry.path != null || entry.isMessage
+                          ? () async {
+                              if (entry.isMessage) {
+                                final vm = ViewProvider((ref) {
+                                  return ReceivePageVm(
+                                    status: SessionStatus.waiting,
+                                    sender: Device(
+                                      signalingId: null,
+                                      ip: '0.0.0.0',
+                                      version: '1.0.0',
+                                      port: 8080,
+                                      https: false,
+                                      fingerprint: 'fingerprint',
+                                      alias: entry.senderAlias,
+                                      deviceModel: 'deviceModel',
+                                      deviceType: DeviceType.web,
+                                      download: true,
+                                      discoveryMethods: const {},
+                                    ),
+                                    showSenderInfo: false,
+                                    files: [],
+                                    message: entry.fileName,
+                                    onAccept: () {},
+                                    onDecline: () {},
+                                    onClose: () {},
+                                  );
+                                });
+
+                                // ignore: unawaited_futures
+                                context.push(() => ReceivePage(vm));
+                                return;
+                              }
+
+                              await _openFile(context, entry, context.redux(receiveHistoryProvider));
+                            }
+                          : null,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FilePathThumbnail(
+                            path: entry.path,
+                            fileType: entry.fileType,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 3),
+                                Text(
+                                  entry.fileName,
+                                  style: const TextStyle(fontSize: 16),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.fade,
+                                  softWrap: false,
+                                ),
+                                Text(
+                                  '${entry.timestampString} - ${entry.fileSize.asReadableFileSize} - ${entry.senderAlias}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.fade,
+                                  softWrap: false,
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          PopupMenuButton<_EntryOption>(
+                            onSelected: (_EntryOption item) async {
+                              switch (item) {
+                                case _EntryOption.open:
+                                  await _openFile(context, entry, context.redux(receiveHistoryProvider));
+                                  break;
+                                case _EntryOption.showInFolder:
+                                  if (entry.path != null) {
+                                    await openFolder(
+                                      folderPath: File(entry.path!).parent.path,
+                                      fileName: path.basename(entry.path!),
+                                    );
+                                  }
+                                  break;
+                                case _EntryOption.info:
+                                  // ignore: use_build_context_synchronously
+                                  await showDialog(
+                                    context: context,
+                                    builder: (_) => FileInfoDialog(entry: entry),
+                                  );
+                                  break;
+                                case _EntryOption.delete:
+                                  // ignore: use_build_context_synchronously
+                                  await context.redux(receiveHistoryProvider).dispatchAsync(RemoveHistoryEntryAction(entry.id));
+                                  break;
+                              }
+                            },
+                            itemBuilder: (BuildContext context) {
+                              return (entry.path != null ? _optionsAll : _optionsWithoutOpen).map((e) {
+                                return PopupMenuItem<_EntryOption>(
+                                  value: e,
+                                  child: Text(e.label),
+                                );
+                              }).toList();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ];
             }),
         ],
       ),

@@ -42,7 +42,7 @@ class TranslationsPtBr extends Translations {
   @override
   String get locale => 'Português (Brasil)';
   @override
-  String get appName => 'LocalSend';
+  String get appName => 'Flux';
   @override
   late final _TranslationsGeneralPtBr general = _TranslationsGeneralPtBr._(_root);
   @override
@@ -328,11 +328,8 @@ class _TranslationsReceivePagePtBr extends TranslationsReceivePageEn {
 
   // Translations
   @override
-  String subTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(
-    n,
-    one: 'quer te enviar um arquivo',
-    other: 'quer te enviar ${n} arquivos',
-  );
+  String subTitle({required num n}) =>
+      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('pt'))(n, one: 'quer te enviar um arquivo', other: 'quer te enviar ${n} arquivos');
   @override
   String get subTitleMessage => 'te enviou uma mensagem:';
   @override
@@ -353,7 +350,7 @@ class _TranslationsReceiveOptionsPagePtBr extends TranslationsReceiveOptionsPage
   @override
   String get destination => _root.settingsTab.receive.destination;
   @override
-  String get appDirectory => '(pasta do LocalSend)';
+  String get appDirectory => '(pasta do Flux)';
   @override
   String get saveToGallery => _root.settingsTab.receive.saveToGallery;
   @override
@@ -430,7 +427,7 @@ class _TranslationsWebSharePagePtBr extends TranslationsWebSharePageEn {
   @override
   String pinHint({required Object pin}) => 'O PIN é "${pin}"';
   @override
-  String get encryptionHint => 'O LocalSend utiliza um certificado autoassinado. Você precisa aceitá-lo no seu navegador.';
+  String get encryptionHint => 'O Flux utiliza um certificado autoassinado. Você precisa aceitá-lo no seu navegador.';
   @override
   String pendingRequests({required Object n}) => 'Solicitações pendentes: ${n}';
 }
@@ -443,10 +440,10 @@ class _TranslationsAboutPagePtBr extends TranslationsAboutPageEn {
 
   // Translations
   @override
-  String get title => 'Sobre o LocalSend';
+  String get title => 'Sobre o Flux';
   @override
   List<String> get description => [
-    'O LocalSend é um aplicativo gratuito, de código aberto, que permite compartilhar arquivos e mensagens com dispositivos próximos através da sua rede local, sem a necessidade de uma conexão à internet.',
+    'O Flux é um aplicativo gratuito, de código aberto, que permite compartilhar arquivos e mensagens com dispositivos próximos através da sua rede local, sem a necessidade de uma conexão à internet.',
     'Este aplicativo está disponível para Android, iOS, macOS, Windows e Linux. Você pode encontrar todas as opções de download na página oficial.',
   ];
   @override
@@ -470,7 +467,7 @@ class _TranslationsDonationPagePtBr extends TranslationsDonationPageEn {
   String get title => 'Doe';
   @override
   String get info =>
-      'O LocalSend é gratuito, de código aberto e não tem anúncios. Se tu curte o app, então pense em apoiar o desenvolvimento com uma doação.';
+      'O Flux é gratuito, de código aberto e não tem anúncios. Se tu curte o app, então pense em apoiar o desenvolvimento com uma doação.';
   @override
   String donate({required Object amount}) => 'Doar ${amount}';
   @override
@@ -646,7 +643,7 @@ class _TranslationsTrayPtBr extends TranslationsTrayEn {
   @override
   String get open => _root.general.open;
   @override
-  String get close => 'Sair do LocalSend';
+  String get close => 'Sair do Flux';
   @override
   String get closeWindows => 'Sair';
 }
@@ -755,7 +752,7 @@ class _TranslationsNetworkInterfacesPagePtBr extends TranslationsNetworkInterfac
   String get blacklist => 'Lista de bloqueio';
   @override
   String get info =>
-      'Por padrão, o LocalSend utiliza todas as interfaces de rede disponíveis. Você pode excluir as redes indesejadas aqui. É necessário reiniciar o servidor para aplicar as alterações.';
+      'Por padrão, o Flux utiliza todas as interfaces de rede disponíveis. Você pode excluir as redes indesejadas aqui. É necessário reiniciar o servidor para aplicar as alterações.';
   @override
   String get preview => 'Pré-visualização';
   @override
@@ -875,7 +872,7 @@ class _TranslationsSettingsTabGeneralPtBr extends TranslationsSettingsTabGeneral
   @override
   String get launchMinimized => 'Início automático: Abrir minimizado';
   @override
-  String get showInContextMenu => 'Mostrar LocalSend no menu de contexto';
+  String get showInContextMenu => 'Mostrar Flux no menu de contexto';
   @override
   String get animations => 'Animações';
 }
@@ -973,7 +970,7 @@ class _TranslationsSettingsTabOtherPtBr extends TranslationsSettingsTabOtherEn {
   @override
   String get title => 'Outras';
   @override
-  String get support => 'Apoiar o LocalSend';
+  String get support => 'Apoiar o Flux';
   @override
   String get donate => 'Doar';
   @override
@@ -1282,7 +1279,7 @@ class _TranslationsDialogsLocalNetworkUnauthorizedPtBr extends TranslationsDialo
   String get title => _root.dialogs.noPermission.title;
   @override
   String get description =>
-      'O LocalSend não consegue encontrar outros dispositivos sem ter a permissão para escanear a rede local. Conceda esta permissão nas configurações.';
+      'O Flux não consegue encontrar outros dispositivos sem ter a permissão para escanear a rede local. Conceda esta permissão nas configurações.';
   @override
   String get gotoSettings => 'Configurações';
 }
@@ -1427,8 +1424,7 @@ class _TranslationsDialogsSendModeHelpPtBr extends TranslationsDialogsSendModeHe
   @override
   String get multiple => 'Envia arquivos para vários destinatários. A seleção não será apagada.';
   @override
-  String get link =>
-      'Os destinatários que não têm o LocalSend instalado podem baixar os arquivos selecionados abrindo o link fornecido no navegador.';
+  String get link => 'Os destinatários que não têm o Flux instalado podem baixar os arquivos selecionados abrindo o link fornecido no navegador.';
 }
 
 // Path: dialogs.zoom

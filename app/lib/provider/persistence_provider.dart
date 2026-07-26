@@ -90,6 +90,7 @@ const _deviceType = 'ls_device_type';
 const _deviceModel = 'ls_device_model';
 const _shareViaLinkAutoAccept = 'ls_share_via_link_auto_accept';
 const _advancedSettingsKey = 'ls_advanced_settings';
+const _fluxConnectionModeKey = 'flux_connection_mode';
 
 final persistenceProvider = Provider<PersistenceService>((ref) {
   throw Exception('persistenceProvider not initialized');
@@ -101,6 +102,9 @@ class PersistenceService {
   final bool isFirstAppStart;
 
   PersistenceService._(this._prefs, this.isFirstAppStart);
+
+  @visibleForTesting
+  PersistenceService.forTesting(this._prefs, {this.isFirstAppStart = false});
 
   static Future<PersistenceService> initialize({
     required bool supportsDynamicColors,
@@ -469,6 +473,14 @@ class PersistenceService {
 
   Future<void> setSendMode(SendMode mode) async {
     await _prefs.setString(_sendMode, mode.name);
+  }
+
+  String? getFluxConnectionModeName() {
+    return _prefs.getString(_fluxConnectionModeKey);
+  }
+
+  Future<void> setFluxConnectionModeName(String mode) async {
+    await _prefs.setString(_fluxConnectionModeKey, mode);
   }
 
   Future<void> setWindowOffsetX(double x) async {

@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:common/constants.dart';
 import 'package:common/isolate.dart';
 import 'package:common/model/dto/multicast_dto.dart';
+import 'package:common/model/stored_security_context.dart';
 import 'package:localsend_app/model/cross_file.dart';
 import 'package:localsend_app/model/state/server/server_state.dart';
+import 'package:localsend_app/provider/clipboard_sync_provider.dart';
 import 'package:localsend_app/provider/network/server/controller/receive_controller.dart';
 import 'package:localsend_app/provider/network/server/controller/send_controller.dart';
 import 'package:localsend_app/provider/network/server/server_utils.dart';
@@ -17,6 +20,8 @@ import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 final _logger = Logger('Server');
+const _minFallbackPort = 1024;
+const _serverPortFallbackCount = 20;
 
 /// This provider runs the server and provides the current server state.
 /// It is a singleton provider, so only one server can be running at a time.
@@ -26,7 +31,7 @@ final serverProvider = NotifierProvider<ServerService, ServerState?>(
   (ref) {
     return ServerService();
   },
-  onChanged: (_, next, ref) {
+  onChanged: (previous, next, ref) {
     final settings = ref.read(settingsProvider);
     final syncState = ref.read(parentIsolateProvider).syncState;
     final syncStatePrev = (syncState.alias, syncState.port, syncState.protocol, syncState.serverRunning, syncState.download);
@@ -53,6 +58,10 @@ final serverProvider = NotifierProvider<ServerService, ServerState?>(
             download: syncStateNext.$5,
           ),
         );
+
+    if (shouldRestartMulticastListener(previousPort: previous?.port, nextPort: next?.port)) {
+      ref.redux(parentIsolateProvider).dispatch(IsolateSendMulticastRestartListenerAction());
+    }
   },
 );
 
@@ -104,12 +113,25 @@ class ServerService extends Notifier<ServerState?> {
       port = defaultPort;
     }
 
+    _logger.info('Starting server...');
+    final httpServer = await bindHttpServerWithFallback(
+      preferredPort: port,
+      https: https,
+      secureContext: https ? ref.read(securityProvider) : null,
+    );
+    final actualPort = httpServer.port;
+    final fallbackMessage = describeServerPortFallback(preferredPort: port, actualPort: actualPort);
+    if (fallbackMessage != null) {
+      _logger.warning(fallbackMessage);
+    }
+    _logger.info('Server started. (Port: $actualPort, ${https ? 'HTTPS only' : 'HTTP only'})');
+
     final router = SimpleServerRouteBuilder();
     final fingerprint = ref.read(securityProvider).certificateHash;
     _receiveController.installRoutes(
       router: router,
       alias: alias,
-      port: port,
+      port: actualPort,
       https: https,
       fingerprint: fingerprint,
       showToken: ref.read(settingsProvider).showToken,
@@ -120,33 +142,35 @@ class ServerService extends Notifier<ServerState?> {
       fingerprint: fingerprint,
     );
 
-    _logger.info('Starting server...');
-
-    final HttpServer httpServer;
-    if (https) {
-      final securityContext = ref.read(securityProvider);
-      httpServer = await HttpServer.bindSecure(
-        '0.0.0.0',
-        port,
-        SecurityContext()
-          ..usePrivateKeyBytes(securityContext.privateKey.codeUnits)
-          ..useCertificateChainBytes(securityContext.certificate.codeUnits),
-      );
-      _logger.info('Server started. (Port: $port, HTTPS only)');
-    } else {
-      httpServer = await HttpServer.bind(
-        '0.0.0.0',
-        port,
-      );
-      _logger.info('Server started. (Port: $port, HTTP only)');
-    }
+    // Flux: Clipboard sync route
+    router.post('/api/clipboard', (HttpRequest request) async {
+      try {
+        final body = await utf8.decoder.bind(request).join();
+        final text = extractClipboardTextFromRequestBody(
+          body: body,
+          contentType: request.headers.contentType?.toString() ?? request.headers.value(HttpHeaders.contentTypeHeader),
+        );
+        if (text != null && text.isNotEmpty) {
+          final updated = await ref.notifier(clipboardSyncProvider).handleIncomingClipboard(text);
+          if (!updated) {
+            final clipboardError = ref.read(clipboardSyncProvider).lastError;
+            return await request.respondJson(HttpStatus.internalServerError, message: clipboardError ?? 'clipboard write failed');
+          }
+          return await request.respondJson(HttpStatus.ok, body: {'status': 'ok'});
+        } else {
+          return await request.respondJson(HttpStatus.badRequest, message: 'missing text');
+        }
+      } catch (e) {
+        return await request.respondJson(HttpStatus.internalServerError, message: e.toString());
+      }
+    });
 
     final server = SimpleServer.start(server: httpServer, routes: router);
 
     final newServerState = ServerState(
       httpServer: server,
       alias: alias,
-      port: port,
+      port: actualPort,
       https: https,
       session: null,
       webSendState: null,
@@ -239,6 +263,88 @@ class ServerService extends Notifier<ServerState?> {
 // Below is a first prototype of mTLS (mutual TLS).
 // Problem:
 // - we cannot request client certificates while ignoring errors
+
+Future<HttpServer> bindHttpServerWithFallback({
+  required int preferredPort,
+  required bool https,
+  required StoredSecurityContext? secureContext,
+}) async {
+  Object? lastError;
+
+  for (final port in serverPortCandidates(preferredPort, fallbackCount: _serverPortFallbackCount)) {
+    try {
+      if (https) {
+        if (secureContext == null) {
+          throw StateError('HTTPS server requires a security context.');
+        }
+        return await HttpServer.bindSecure(
+          '0.0.0.0',
+          port,
+          SecurityContext()
+            ..usePrivateKeyBytes(secureContext.privateKey.codeUnits)
+            ..useCertificateChainBytes(secureContext.certificate.codeUnits),
+        );
+      }
+
+      return await HttpServer.bind('0.0.0.0', port);
+    } catch (e) {
+      lastError = e;
+      if (!isAddressAlreadyInUse(e)) {
+        rethrow;
+      }
+      _logger.warning('Server port $port is already in use, trying next candidate.');
+    }
+  }
+
+  throw lastError ?? const SocketException('No available server port.');
+}
+
+List<int> serverPortCandidates(int preferredPort, {required int fallbackCount}) {
+  final normalizedPort = preferredPort < 0 || preferredPort > 65535 ? defaultPort : preferredPort;
+  final candidates = <int>[];
+
+  for (var offset = 0; offset <= fallbackCount; offset++) {
+    final candidate = normalizedPort + offset;
+    final port = candidate <= 65535 ? candidate : _minFallbackPort + candidate - 65536;
+    if (!candidates.contains(port)) {
+      candidates.add(port);
+    }
+  }
+
+  return candidates;
+}
+
+bool isAddressAlreadyInUse(Object error) {
+  if (error is! SocketException) {
+    return false;
+  }
+
+  final code = error.osError?.errorCode;
+  if (code == 48 || code == 98 || code == 10048) {
+    return true;
+  }
+
+  final message = error.toString().toLowerCase();
+  return message.contains('address already in use') || message.contains('only one usage of each socket address');
+}
+
+String? describeServerPortFallback({
+  required int preferredPort,
+  required int actualPort,
+}) {
+  if (preferredPort == actualPort) {
+    return null;
+  }
+
+  return '默认端口 $preferredPort 被占用，Flux 已自动切换到 $actualPort。';
+}
+
+bool shouldRestartMulticastListener({
+  required int? previousPort,
+  required int? nextPort,
+}) {
+  return previousPort != null && nextPort != null && previousPort != nextPort;
+}
 
 // Future<HttpServer> _startServer({
 //   required Router router,

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:common/constants.dart';
 import 'package:common/model/device.dart';
@@ -14,9 +16,13 @@ import 'package:localsend_app/pages/donation/donation_page.dart';
 import 'package:localsend_app/pages/language_page.dart';
 import 'package:localsend_app/pages/settings/network_interfaces_page.dart';
 import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
+import 'package:localsend_app/provider/clipboard_sync_provider.dart';
+import 'package:localsend_app/provider/connection_mode_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/provider/update_provider.dart';
 import 'package:localsend_app/provider/version_provider.dart';
 import 'package:localsend_app/util/alias_generator.dart';
+import 'package:localsend_app/util/destination_display_label.dart';
 import 'package:localsend_app/util/device_type_ext.dart';
 import 'package:localsend_app/util/native/macos_channel.dart';
 import 'package:localsend_app/util/native/pick_directory_path.dart';
@@ -35,13 +41,23 @@ import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SettingsTab extends StatelessWidget {
+class SettingsTab extends StatefulWidget {
   const SettingsTab();
+
+  @override
+  State<SettingsTab> createState() => _SettingsTabState();
+}
+
+class _SettingsTabState extends State<SettingsTab> {
+  int _settingsReloadKey = 0;
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder(
+      key: ValueKey(_settingsReloadKey),
       provider: (ref) => settingsTabControllerProvider,
+      loadingBuilder: _buildSettingsLoading,
+      errorBuilder: _buildSettingsError,
       builder: (context, vm) {
         final ref = context.ref;
         return Stack(
@@ -74,7 +90,12 @@ class SettingsTab extends StatelessWidget {
                       _SettingsEntry(
                         label: t.settingsTab.general.color,
                         child: CustomDropdownButton<ColorMode>(
-                          value: vm.settings.colorMode,
+                          value:
+                              resolveDropdownValue(
+                                value: vm.settings.colorMode,
+                                items: vm.colorModes,
+                              ) ??
+                              vm.colorModes.first,
                           items: vm.colorModes.map((colorMode) {
                             return DropdownMenuItem(
                               value: colorMode,
@@ -149,6 +170,8 @@ class SettingsTab extends StatelessWidget {
                       ),
                     ],
                   ),
+                  _ConnectionModeSection(),
+                  const _ClipboardSyncSettingsSection(),
                   _SettingsSection(
                     title: t.settingsTab.receive.title,
                     children: [
@@ -224,7 +247,14 @@ class SettingsTab extends StatelessWidget {
                             },
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 5),
-                              child: Text(vm.settings.destination ?? t.settingsTab.receive.downloads, style: Theme.of(context).textTheme.titleMedium),
+                              child: Text(
+                                describeDestinationDisplayLabel(
+                                  destination: vm.settings.destination,
+                                  defaultDownloadsLabel: t.settingsTab.receive.downloads,
+                                  isAndroid: defaultTargetPlatform == TargetPlatform.android,
+                                ),
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                             ),
                           ),
                         ),
@@ -493,6 +523,11 @@ class SettingsTab extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 0),
                     children: [
                       _ButtonEntry(
+                        label: '检查更新',
+                        buttonLabel: '检查',
+                        onTap: () => _checkForUpdates(context),
+                      ),
+                      _ButtonEntry(
                         label: t.aboutPage.title,
                         buttonLabel: t.general.open,
                         onTap: () async {
@@ -576,32 +611,409 @@ class SettingsTab extends StatelessWidget {
                 ],
               ),
             ),
-            // a pseudo appbar that is draggable for the settings page
-            SizedBox(
-              height: 50 + MediaQuery.of(context).padding.top,
-              child: ClipRRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 20.0,
-                    sigmaY: 20.0,
-                  ),
-                  child: MoveWindow(
-                    child: SafeArea(
-                      child: Container(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Text(t.settingsTab.title, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            const _SettingsAppBar(),
           ],
         );
       },
+    );
+  }
+
+  Future<void> _checkForUpdates(BuildContext context) async {
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Expanded(child: Text('正在检查 GitHub 最新版本…')),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final updateCheck = await checkFluxUpdate();
+      if (!context.mounted) {
+        return;
+      }
+      Navigator.of(context, rootNavigator: true).pop();
+      await _showUpdateResult(context, updateCheck);
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      Navigator.of(context, rootNavigator: true).pop();
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('检查更新失败'),
+          content: Text('无法连接 GitHub 获取更新信息。请确认网络后重试。\n\n$error'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('知道了'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> _showUpdateResult(BuildContext context, FluxUpdateCheck updateCheck) async {
+    if (!updateCheck.isUpdateAvailable) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('已是最新版本'),
+          content: Text('当前版本 ${updateCheck.installedVersion} 已是 GitHub 上的最新正式版。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('完成'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final asset = updateCheck.installAsset;
+    final target = asset?.downloadUri ?? updateCheck.release.releasePageUri;
+    final installMessage = asset == null ? '此平台暂未提供匹配的安装包。将为你打开 GitHub 发布页。' : '将打开浏览器下载 ${asset.name}。下载后请按系统提示完成安装。';
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('发现新版本 ${updateCheck.release.version}'),
+        content: Text('$installMessage\n\n当前版本：${updateCheck.installedVersion}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('暂不更新'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              final launched = await launchUrl(target, mode: LaunchMode.externalApplication);
+              if (!launched && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('无法打开下载页面，请稍后重试。')),
+                );
+              }
+            },
+            child: Text(asset == null ? '打开发布页' : '下载更新'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsError(BuildContext context, Object error, StackTrace stackTrace) {
+    return _buildSettingsErrorScaffold(
+      context,
+      error,
+      stackTrace,
+      onRetry: () {
+        if (mounted) {
+          setState(() => _settingsReloadKey++);
+        }
+      },
+    );
+  }
+}
+
+Widget _buildSettingsLoading(BuildContext context) {
+  return const Stack(
+    children: [
+      Center(child: CircularProgressIndicator()),
+      _SettingsAppBar(),
+    ],
+  );
+}
+
+Widget _buildSettingsErrorScaffold(
+  BuildContext context,
+  Object error,
+  StackTrace stackTrace, {
+  required VoidCallback onRetry,
+}) {
+  return Stack(
+    children: [
+      _SettingsFallback(
+        error: error,
+        onRetry: onRetry,
+      ),
+      const _SettingsAppBar(),
+    ],
+  );
+}
+
+class _SettingsAppBar extends StatelessWidget {
+  const _SettingsAppBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final title = SafeArea(
+      child: Container(
+        alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: Text(
+            t.settingsTab.title,
+            style: Theme.of(context).textTheme.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+
+    return SizedBox(
+      height: 50 + MediaQuery.of(context).padding.top,
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: 20.0,
+            sigmaY: 20.0,
+          ),
+          child: checkPlatformIsDesktop() ? MoveWindow(child: title) : title,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsFallback extends StatelessWidget {
+  final Object error;
+  final VoidCallback onRetry;
+
+  const _SettingsFallback({
+    required this.error,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20 + MediaQuery.of(context).padding.right,
+        top: 90 + MediaQuery.of(context).padding.top,
+        bottom: 20 + MediaQuery.of(context).padding.bottom,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.error_outline_rounded, color: theme.colorScheme.error),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '设置页加载失败',
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Flux 已拦截本次异常，没有让页面继续白屏。请点重试重新加载设置页；如果仍失败，把下面这段错误反馈给我。',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  SelectableText(
+                    error.toString(),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: FilledButton.icon(
+                      onPressed: onRetry,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('重试'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ConnectionModeSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final ref = context.ref;
+    final mode = ref.watch(connectionModeProvider);
+    final clipboard = ref.watch(clipboardSyncProvider);
+    final details = describeFluxConnectionMode(
+      mode,
+      onlineDeviceCount: clipboard.onlineDeviceCount,
+      clipboardEnabled: clipboard.enabled,
+    );
+    final theme = Theme.of(context);
+
+    return _SettingsSection(
+      title: '连接模式',
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return SegmentedButton<FluxConnectionMode>(
+              showSelectedIcon: false,
+              selected: {mode},
+              onSelectionChanged: (selection) async {
+                final selectedMode = selection.first;
+                final selectedDetails = await switchFluxConnectionMode(
+                  ref,
+                  selectedMode,
+                  onlineDeviceCount: ref.read(clipboardSyncProvider).onlineDeviceCount,
+                  clipboardEnabled: ref.read(clipboardSyncProvider).enabled,
+                );
+                if (context.mounted) {
+                  if (!selectedDetails.activationSucceeded) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(selectedDetails.failureMessage ?? '连接模式切换失败，已回到上一种模式。')),
+                    );
+                    return;
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('已切换到${selectedDetails.title}：${selectedDetails.subtitle}')),
+                  );
+                }
+              },
+              segments: const [
+                ButtonSegment(
+                  value: FluxConnectionMode.localNetwork,
+                  icon: Icon(Icons.router_rounded),
+                  label: Text('局域网'),
+                ),
+                ButtonSegment(
+                  value: FluxConnectionMode.hotspot,
+                  icon: Icon(Icons.wifi_tethering_rounded),
+                  label: Text('热点'),
+                ),
+                ButtonSegment(
+                  value: FluxConnectionMode.classicBluetooth,
+                  icon: Icon(Icons.bluetooth_connected_rounded),
+                  label: Text('蓝牙'),
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: details.clipboardAvailableNow ? theme.colorScheme.primary.withValues(alpha: 0.35) : theme.colorScheme.outlineVariant,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      details.bluetoothPairingRequired ? Icons.bluetooth_searching_rounded : Icons.check_circle_rounded,
+                      color: details.clipboardAvailableNow ? theme.colorScheme.primary : theme.colorScheme.secondary,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${details.title} · ${details.subtitle}',
+                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(details.status, style: theme.textTheme.bodySmall),
+                const SizedBox(height: 6),
+                Text(details.actionHint, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.secondary)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ClipboardSyncSettingsSection extends StatelessWidget {
+  const _ClipboardSyncSettingsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final clipboard = context.ref.watch(clipboardSyncProvider);
+
+    return _SettingsSection(
+      title: '剪切板同步',
+      children: [
+        _BooleanEntry(
+          label: '常驻同步剪切板',
+          value: clipboard.enabled,
+          onChanged: (_) => context.ref.notifier(clipboardSyncProvider).toggle(),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            clipboard.statusMessage,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            '可同步设备：${clipboard.onlineDeviceCount} 台',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        if (clipboard.lastSyncedText case final text?)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              '最近同步：${text.length > 50 ? text.substring(0, 50) : text}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        if (clipboard.syncCount > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              '累计同步：${clipboard.syncCount} 次',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        if (clipboard.lastError case final error?)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              '错误：$error',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+      ],
     );
   }
 }

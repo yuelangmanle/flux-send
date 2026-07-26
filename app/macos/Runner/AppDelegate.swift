@@ -18,6 +18,7 @@ class AppDelegate: FlutterAppDelegate {
     private var pendingFilesObservation: Defaults.Observation?
     private var pendingStringsObservation: Defaults.Observation?
     private var isLaunchedAsLoginItem: Bool?
+    private let classicBluetoothBridge = ClassicBluetoothBridge()
     
     override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
@@ -32,6 +33,10 @@ class AppDelegate: FlutterAppDelegate {
         let controller = mainFlutterWindow?.contentViewController as! FlutterViewController
         channel = FlutterMethodChannel(name: "main-delegate-channel", binaryMessenger: controller.engine.binaryMessenger)
         channel?.setMethodCallHandler(handleFlutterCall)
+        FlutterEventChannel(
+            name: "org.localsend.localsend_app/classic_bluetooth_events",
+            binaryMessenger: controller.engine.binaryMessenger
+        ).setStreamHandler(classicBluetoothBridge)
         
         NSApplication.shared.servicesProvider = self
         
@@ -138,6 +143,10 @@ class AppDelegate: FlutterAppDelegate {
     
     // START: handle opened files
     @MainActor private func handleFlutterCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        if classicBluetoothBridge.handle(call, result: result) {
+            return
+        }
+
         switch call.method {
         case "methodChannelInitialized":
             /// Any call to the channel is dropped until methodChannelInitialized is called from Flutter

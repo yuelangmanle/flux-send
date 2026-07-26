@@ -6,8 +6,8 @@ import 'package:path_provider/path_provider.dart' as path;
 Future<String> getDefaultDestinationDirectory() async {
   switch (defaultTargetPlatform) {
     case TargetPlatform.android:
-      final dir = await path.getDownloadsDirectory();
-      return dir?.path ?? '/storage/emulated/0/Download';
+      final dir = await path.getExternalStorageDirectory();
+      return dir?.path ?? (await path.getApplicationDocumentsDirectory()).path;
     case TargetPlatform.iOS:
       return (await path.getApplicationDocumentsDirectory()).path;
     case TargetPlatform.linux:

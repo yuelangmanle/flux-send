@@ -6,12 +6,15 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/provider/clipboard_sync_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
 import 'package:localsend_app/provider/last_devices.provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
+import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/rust/api/model.dart';
+import 'package:localsend_app/util/address_input_parser.dart';
 import 'package:localsend_app/util/rust.dart';
 import 'package:localsend_app/widget/dialogs/error_dialog.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -46,18 +49,36 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
   String? _error;
 
   Future<void> _submit(List<String> localIps, int port, [String? candidate]) async {
-    final List<String> candidates;
-    final String input = _input.trim();
+    if (_fetching) {
+      return;
+    }
+
+    final List<AddressInputTarget> candidates;
+    final String input = (candidate ?? _input).trim();
+    if (input.isEmpty) {
+      setState(() {
+        _error = '请输入 IP 地址或识别码';
+      });
+      return;
+    }
+
     if (candidate != null) {
-      candidates = [candidate];
-    } else if (_mode == _InputMode.ip) {
-      candidates = [input];
+      candidates = [parseAddressInput(input, fallbackPort: port)];
+    } else if (_mode == _InputMode.ip || looksLikeFullAddressInput(input)) {
+      candidates = [parseAddressInput(input, fallbackPort: port)];
     } else {
-      candidates = localIps.map((ip) => '${ip.ipPrefix}.$input').toList();
+      if (localIps.isEmpty) {
+        setState(() {
+          _error = '未获取到本机 IP，请切换到 IP 模式输入完整地址';
+        });
+        return;
+      }
+      candidates = localIps.map((ip) => AddressInputTarget(host: '${ip.ipPrefix}.$input', port: port)).toList();
     }
 
     setState(() {
       _fetching = true;
+      _error = null;
     });
 
     final https = ref.read(settingsProvider).https;
@@ -69,7 +90,7 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
     final payload = ref.read(deviceFullInfoProvider).toRegisterDto();
 
     final List<Future<void>> futures = [
-      for (final ip in candidates)
+      for (final target in candidates)
         () async {
           try {
             final response = await ref
@@ -77,13 +98,15 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
                 .v2
                 .register(
                   protocol: https ? ProtocolType.https : ProtocolType.http,
-                  ip: ip,
-                  port: port,
+                  ip: target.host,
+                  port: target.port,
                   payload: payload,
                 );
 
-            foundDevice = response.body.toDevice(ip, port, https, HttpDiscovery(ip: ip));
-            deviceCompleter.complete();
+            foundDevice ??= response.body.toDevice(target.host, target.port, https, HttpDiscovery(ip: target.host));
+            if (!deviceCompleter.isCompleted) {
+              deviceCompleter.complete();
+            }
           } catch (e) {
             error = e.toString();
             rethrow;
@@ -106,7 +129,12 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
     }
 
     if (foundDevice != null) {
+      await ref.redux(nearbyDevicesProvider).dispatchAsync(RegisterDeviceAction(foundDevice!));
+      ref.notifier(clipboardSyncProvider).notifyDeviceRegistered();
       ref.redux(lastDevicesProvider).dispatch(AddLastDeviceAction(foundDevice!));
+      if (!mounted) {
+        return;
+      }
       context.pop(foundDevice);
     } else {
       setState(() {

@@ -42,7 +42,7 @@ class TranslationsCa extends Translations {
   @override
   String get locale => 'Català';
   @override
-  String get appName => 'LocalSend';
+  String get appName => 'Flux';
   @override
   late final _TranslationsGeneralCa general = _TranslationsGeneralCa._(_root);
   @override
@@ -328,11 +328,8 @@ class _TranslationsReceivePageCa extends TranslationsReceivePageEn {
 
   // Translations
   @override
-  String subTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ca'))(
-    n,
-    one: 'vol enviar-vos un fitxer',
-    other: 'vol enviar-vos ${n} fitxers',
-  );
+  String subTitle({required num n}) =>
+      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ca'))(n, one: 'vol enviar-vos un fitxer', other: 'vol enviar-vos ${n} fitxers');
   @override
   String get subTitleMessage => 'us ha enviat un missatge:';
   @override
@@ -353,7 +350,7 @@ class _TranslationsReceiveOptionsPageCa extends TranslationsReceiveOptionsPageEn
   @override
   String get destination => _root.settingsTab.receive.destination;
   @override
-  String get appDirectory => '(Carpeta LocalSend)';
+  String get appDirectory => '(Carpeta Flux)';
   @override
   String get saveToGallery => _root.settingsTab.receive.saveToGallery;
   @override
@@ -428,7 +425,7 @@ class _TranslationsWebSharePageCa extends TranslationsWebSharePageEn {
   @override
   String pinHint({required Object pin}) => 'El PIN és «${pin}»';
   @override
-  String get encryptionHint => 'El LocalSend utilitza un certificat auto-signat. Cal que l\'accepteu al navegador.';
+  String get encryptionHint => 'El Flux utilitza un certificat auto-signat. Cal que l\'accepteu al navegador.';
   @override
   String pendingRequests({required Object n}) => 'Peticions pendents: ${n}';
 }
@@ -441,10 +438,10 @@ class _TranslationsAboutPageCa extends TranslationsAboutPageEn {
 
   // Translations
   @override
-  String get title => 'Quant al LocalSend';
+  String get title => 'Quant al Flux';
   @override
   List<String> get description => [
-    'El LocalSend és una aplicació gratuïta i de codi obert que us permet compartir fitxers i missatges de manera segura amb dispositius propers a la vostra xarxa local sense necessitat de connexió a Internet.',
+    'El Flux és una aplicació gratuïta i de codi obert que us permet compartir fitxers i missatges de manera segura amb dispositius propers a la vostra xarxa local sense necessitat de connexió a Internet.',
     'Aquesta aplicació està disponible per a Android, iOS, macOS, Windows i Linux. Podeu trobar totes les opcions de baixada a la pàgina d\'inici oficial.',
   ];
   @override
@@ -468,7 +465,7 @@ class _TranslationsDonationPageCa extends TranslationsDonationPageEn {
   String get title => 'Donació';
   @override
   String get info =>
-      'El LocalSend és gratuït, de codi obert i sense anuncis. Si us agrada l\'aplicació, podeu donar suport al desenvolupament amb una donació.';
+      'El Flux és gratuït, de codi obert i sense anuncis. Si us agrada l\'aplicació, podeu donar suport al desenvolupament amb una donació.';
   @override
   String donate({required Object amount}) => 'Donació: ${amount}';
   @override
@@ -655,7 +652,7 @@ class _TranslationsTrayCa extends TranslationsTrayEn {
   @override
   String get open => _root.general.open;
   @override
-  String get close => 'Surt del LocalSend';
+  String get close => 'Surt del Flux';
   @override
   String get closeWindows => 'Surt';
 }
@@ -762,7 +759,7 @@ class _TranslationsNetworkInterfacesPageCa extends TranslationsNetworkInterfaces
   String get title => 'Interfícies de xarxa';
   @override
   String get info =>
-      'De manera predefinida, el LocalSend utilitza totes les interfícies de xarxa disponibles. Podeu excloure les xarxes no desitjades aquí. Cal que reinicieu el servidor per a aplicar els canvis.';
+      'De manera predefinida, el Flux utilitza totes les interfícies de xarxa disponibles. Podeu excloure les xarxes no desitjades aquí. Cal que reinicieu el servidor per a aplicar els canvis.';
   @override
   String get preview => 'Previsualitza';
   @override
@@ -884,7 +881,7 @@ class _TranslationsSettingsTabGeneralCa extends TranslationsSettingsTabGeneralEn
   @override
   String get launchMinimized => 'Inici automàtic: Inici minimitzat';
   @override
-  String get showInContextMenu => 'Mostra el LocalSend al menú contextual';
+  String get showInContextMenu => 'Mostra el Flux al menú contextual';
   @override
   String get animations => 'Animacions';
 }
@@ -982,7 +979,7 @@ class _TranslationsSettingsTabOtherCa extends TranslationsSettingsTabOtherEn {
   @override
   String get title => 'Altres';
   @override
-  String get support => 'Doneu suport al LocalSend';
+  String get support => 'Doneu suport al Flux';
   @override
   String get donate => 'Donació';
   @override
@@ -1256,7 +1253,7 @@ class _TranslationsDialogsLocalNetworkUnauthorizedCa extends TranslationsDialogs
   String get title => _root.dialogs.noPermission.title;
   @override
   String get description =>
-      'El LocalSend no pot trobar altres dispositius sense tenir permís per a escanejar la xarxa local. Concediu aquest permís a la configuració.';
+      'El Flux no pot trobar altres dispositius sense tenir permís per a escanejar la xarxa local. Concediu aquest permís a la configuració.';
   @override
   String get gotoSettings => 'Configuració';
 }
@@ -1401,8 +1398,7 @@ class _TranslationsDialogsSendModeHelpCa extends TranslationsDialogsSendModeHelp
   @override
   String get multiple => 'Envia fitxers a diversos destinataris. La selecció no s\'esborrarà en finalitzar la trasferència.';
   @override
-  String get link =>
-      'Els destinataris que no tinguin el LocalSend instal·lat poden baixar els fitxers seleccionats obrint l\'enllaç al seu navegador.';
+  String get link => 'Els destinataris que no tinguin el Flux instal·lat poden baixar els fitxers seleccionats obrint l\'enllaç al seu navegador.';
 }
 
 // Path: dialogs.zoom

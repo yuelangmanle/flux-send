@@ -44,6 +44,14 @@ Future<bool> getSystemAnimationsStatusAndroid() async {
   return await _methodChannel.invokeMethod('isAnimationsEnabled') ?? true;
 }
 
+Future<bool> acquireMulticastLockAndroid() async {
+  return await _methodChannel.invokeMethod<bool>('acquireMulticastLock') ?? false;
+}
+
+Future<void> releaseMulticastLockAndroid() async {
+  await _methodChannel.invokeMethod('releaseMulticastLock');
+}
+
 Future<void> createDirectory({
   required String documentUri,
   required String directoryName,

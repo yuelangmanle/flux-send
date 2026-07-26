@@ -11,6 +11,7 @@ import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/widget/animations/initial_fade_transition.dart';
 import 'package:localsend_app/widget/column_list_view.dart';
 import 'package:localsend_app/widget/custom_icon_button.dart';
+import 'package:localsend_app/widget/flux_connection_status_card.dart';
 import 'package:localsend_app/widget/local_send_logo.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:localsend_app/widget/rotating_widget.dart';
@@ -43,6 +44,8 @@ class ReceiveTab extends StatelessWidget {
               child: ColumnListView(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const FluxConnectionStatusCard(compact: true),
+                  const SizedBox(height: 12),
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

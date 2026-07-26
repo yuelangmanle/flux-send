@@ -1,5 +1,434 @@
 ## unreleased
 
+- feat(update): 在设置页新增“检查更新”，主动读取 Flux GitHub Releases 的稳定版信息，并按当前平台打开 APK、DMG 或发布页。
+- test(update): 覆盖 GitHub Release 解析、稳定版校验、语义化版本比较和安装包平台匹配。
+- docs(oss): 建立公开仓库主页、发布检查表、安全策略、贡献规范和 Issue 流程；发布凭据从文档中脱敏。
+
+## Flux 1.1.52 (2026-07-26)
+
+- fix(settings): isolate clipboard-sync provider reads to their own settings section, so a provider initialization failure no longer replaces the entire Android settings page with a blank error surface.
+- fix(ui): register a global Chinese runtime error fallback before application initialization, replacing opaque Flutter error boxes with a visible recovery message and error summary.
+- test(settings): add a regression test requiring the global runtime error fallback; verified red before implementation and green after implementation.
+- chore(release): bump Android/macOS package version to 1.1.52+111 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts under `releases/history/v1.1.52/` with SHA-256 checksums.
+- test(macos): verify the new release app starts visibly, persists local-network mode, opens a TCP listener, and produces no crash report during a 12-second smoke test.
+
+## Flux 1.1.51 (2026-06-09)
+
+- fix(android): keep the settings tab away from desktop-only window chrome and desktop startup checks, reducing Android settings white-screen risk.
+- fix(ui): add a Chinese settings-page loading and error fallback with a real retry path instead of leaving a blank page when initialization fails.
+- test(settings): add regression coverage for stale dropdown values, Android-safe settings app bar, error fallback, and inert Android desktop-state loading.
+- chore(release): bump Android/macOS package version to 1.1.51+110 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.50 (2026-06-09)
+
+- fix(bluetooth): add real Classic Bluetooth file transfer frames for begin/chunk/end over the RFCOMM resident link, so Bluetooth file sending no longer falls back to LAN/hotspot devices.
+- fix(send): block manual IP, favorite-device, and LAN scan entry points while Classic Bluetooth mode is selected, preventing false “Bluetooth worked” results when Wi‑Fi is actually carrying the transfer.
+- fix(clipboard): send clipboard HTTP payloads as `text/plain` and keep legacy JSON receive compatibility, avoiding Android writing `{"text":"..."}` into the system clipboard.
+- fix(ui): make settings dropdowns resilient to stale persisted values and extend receive-history grouping by date/type for handoff visibility.
+- test(bluetooth): add regression coverage for RFCOMM file frames, Bluetooth-only send behavior, clipboard payload format, receive history grouping, and settings resilience.
+- chore(release): bump Android/macOS package version to 1.1.50+109 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts under `releases/history/v1.1.50/`.
+- docs(release): record v1.1.50 signing, Android real-device install smoke, macOS launch smoke, SHA-256 checksums, and the new `releases/history/` archive policy.
+
+## Flux 1.1.49 (2026-06-08)
+
+- fix(connection): only persist Classic Bluetooth mode after the native RFCOMM listener confirms startup; if Bluetooth startup fails, Flux rolls back to the previous mode instead of leaving macOS trapped in a saved Bluetooth mode.
+- fix(ui): show a failure snackbar when Classic Bluetooth activation fails, rather than saying the mode switched successfully.
+- test(release): extend macOS smoke coverage to local network, hotspot, and Classic Bluetooth modes with visible-window, TCP listener, persisted-mode, and crash-log checks.
+- chore(release): bump Android/macOS package version to 1.1.49+108 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.49.
+- docs(release): record Android real-device install smoke, macOS three-mode smoke, signing, DMG, APK, and SHA-256 verification results.
+
+## Flux 1.1.48 (2026-06-08)
+
+- fix(ui): make the no-permission dialog scrollable so the longer Android file-picker and receive-folder recovery guidance remains readable on small phone screens.
+- test(ui): extend no-permission dialog coverage to require scrollable long guidance.
+- chore(release): bump Android/macOS package version to 1.1.48+107 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.48.
+- docs(release): record v1.1.48 permission-dialog, signing, entitlement, launch-smoke, DMG, APK, and SHA-256 verification results.
+
+## Flux 1.1.47 (2026-06-08)
+
+- fix(android): replace the generic no-permission dialog with actionable guidance for Android file sending and receive-folder recovery, telling users to reselect via the system picker or choose the Download folder instead of hunting for unnecessary “All files access”.
+- test(i18n): add regression coverage for Chinese and English no-permission guidance across source and generated localization files.
+- chore(release): bump Android/macOS package version to 1.1.47+106 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.47.
+- docs(release): record v1.1.47 permission-guidance, signing, launch-smoke, DMG, APK, and SHA-256 verification results.
+
+## Flux 1.1.46 (2026-06-08)
+
+- fix(macos): prevent Classic Bluetooth status initialization from auto-touching native Bluetooth hardware on app startup, so a saved Bluetooth mode cannot trap Flux in a crash-on-launch loop.
+- fix(macos): guard every native IOBluetooth entry point with a runtime `NSBluetoothAlwaysUsageDescription` self-check and return an actionable Flux error instead of letting macOS TCC kill the process if a future package is misbuilt.
+- test(bluetooth): add regression coverage for lazy Classic Bluetooth provider startup and macOS privacy-guard checks.
+- chore(release): bump Android/macOS package version to 1.1.46+105 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.46.
+- docs(release): record v1.1.46 TCC crash evidence, signing, entitlement, launch-smoke, DMG, APK, and SHA-256 verification results.
+
+## Flux 1.1.45 (2026-06-08)
+
+- fix(send): show an actionable Chinese message when a file upload fails with an empty HTTP error body, instead of displaying a blank status like `[500] `.
+- test(send): add regression coverage for empty upload failure responses.
+- chore(release): bump Android/macOS package version to 1.1.45+104 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.44 (2026-06-08)
+
+- fix(clipboard): stop UDP multicast and TCP subnet clipboard discovery while Classic Bluetooth mode is selected, so Bluetooth mode uses the RFCOMM resident link instead of silently mixing in LAN/hotspot scanning.
+- fix(build): repair release script version parsing so Android/macOS package scripts can derive `1.1.44` from `pubspec.yaml` without requiring manual `VERSION=...`.
+- fix(build): replace obsolete LocalSend packaging scripts with Flux release archive scripts that preserve macOS Bluetooth entitlements.
+- test(clipboard): add regression coverage for the clipboard discovery mode gate.
+- test(build): add regression coverage for Android/macOS release packaging scripts, archive naming, and default pubspec version parsing.
+- docs(build): document the entitlement-preserving macOS signing workflow for future handoff.
+- chore(release): bump Android/macOS package version to 1.1.44+103 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.44.
+
+## Flux 1.1.43 (2026-06-08)
+
+- fix(macos): add the App Sandbox Bluetooth device entitlement to release and debug macOS bundles so Classic Bluetooth can access the Bluetooth stack after the privacy prompt is declared.
+- fix(build): preserve macOS entitlements when re-signing the release app before DMG packaging.
+- test(macos): add regression coverage that both macOS entitlements files include `com.apple.security.device.bluetooth`.
+- chore(release): bump Android/macOS package version to 1.1.43+102 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.43.
+- docs(release): record v1.1.43 signing, entitlement, launch-smoke, DMG-mount, and SHA-256 verification evidence.
+
+## Flux 1.1.42 (2026-06-08)
+
+- fix(android): reject stale Classic Bluetooth RFCOMM socket attach callbacks after stop, mode switch, or replacement connect so old client/server threads cannot re-own the active socket.
+- fix(android): suppress stale Bluetooth connect errors after a newer generation starts, avoiding misleading failure messages after the user has already stopped or switched modes.
+- test(bluetooth): add regression coverage for Android Classic Bluetooth generation guards around stop and replacement connects.
+- chore(release): bump Android/macOS package version to 1.1.42+101 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.42.
+- docs(release): record v1.1.42 signing, launch-smoke, DMG-mount, and SHA-256 verification evidence.
+
+## Flux 1.1.41 (2026-06-08)
+
+- fix(macos): reject stale Classic Bluetooth RFCOMM attach callbacks after stop, mode switch, or replacement connect so old background connections cannot re-own the active channel.
+- fix(macos): close stale RFCOMM channels that complete after a newer generation has started, preventing ghost connected state after Bluetooth is stopped.
+- test(bluetooth): add regression coverage for macOS Classic Bluetooth generation guards around stop and replacement connects.
+- chore(release): bump Android/macOS package version to 1.1.41+100 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.41.
+
+## Flux 1.1.40 (2026-06-08)
+
+- fix(macos): serialize Classic Bluetooth RFCOMM attach, data, and close callbacks onto the main thread, reducing race risk when reconnecting or replacing channels.
+- fix(macos): ignore stale RFCOMM data from a replaced channel so old callbacks cannot mutate the active receive buffer.
+- test(bluetooth): add regression coverage for macOS RFCOMM callback main-thread serialization and stale channel guards.
+- chore(release): bump Android/macOS package version to 1.1.40+99 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.40.
+
+## Flux 1.1.39 (2026-06-08)
+
+- fix(macos): add `NSBluetoothAlwaysUsageDescription` to the macOS app bundle so selecting Classic Bluetooth no longer triggers a TCC privacy crash.
+- test(macos): add regression coverage that the macOS `Info.plist` declares the Bluetooth privacy usage text before any RFCOMM access.
+- chore(release): bump Android/macOS package version to 1.1.39+98 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.39.
+
+## Flux 1.1.38 (2026-06-08)
+
+- fix(branding): generate new self-signed device certificates with `Flux User` as the subject CN instead of `LocalSend User`.
+- fix(windows): rename the Windows autostart registry value and SendTo shortcut filename from `LocalSend` to `Flux`.
+- test(flux): add regression coverage for certificate subject branding, Windows autostart branding, and Windows SendTo context-menu branding.
+- chore(release): bump Android/macOS package version to 1.1.38+97 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.38.
+
+## Flux 1.1.37 (2026-06-08)
+
+- fix(ui): localize the copyable-text snackbar from English to Chinese so copied IPs / paths no longer show `Copied ... to clipboard!`.
+- fix(branding): replace remaining user-facing `LocalSend: Error` startup-error branding with Flux and Chinese error labels.
+- fix(ui): correct the language page title from the send-selection title to the actual language setting, and replace the locale-loading fallback with Chinese text.
+- fix(windows): rename troubleshoot firewall-rule commands from `LocalSend` to `Flux`.
+- test(flux): add regression coverage for copy feedback localization, Flux startup-error branding, troubleshoot firewall command naming, and language page localization.
+- chore(release): bump Android/macOS package version to 1.1.37+96 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.37.
+
+## Flux 1.1.36 (2026-06-08)
+
+- fix(manual-connect): detect IPv6 manual addresses in the default hashtag mode so `[IPv6]:port` and bare IPv6 inputs are not mis-expanded as local shortcode suffixes.
+- test(flux): add regression coverage for IPv6 manual address parsing and full-address detection.
+- chore(release): bump Android/macOS package version to 1.1.36+95 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.36.
+
+## Flux 1.1.35 (2026-06-08)
+
+- fix(clipboard): build `/api/clipboard` send URLs with Dart `Uri` instead of string concatenation, keeping IPv4, hostnames, and IPv6 addresses valid.
+- test(flux): add regression coverage for clipboard sync URI construction across IPv4, `.local` hostnames, and IPv6.
+- chore(release): bump Android/macOS package version to 1.1.35+94 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.35.
+
+## Flux 1.1.34 (2026-06-08)
+
+- fix(clipboard): accept repeated incoming remote clipboard text when the local clipboard has diverged since the previous remote write, preventing valid remote resends from being silently ignored.
+- test(flux): add regression coverage for incoming clipboard de-duplication that considers both the last remote text and the current local-side clipboard state.
+- chore(release): bump Android/macOS package version to 1.1.34+93 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.34.
+
+## Flux 1.1.33 (2026-06-08)
+
+- fix(clipboard): clear stale remote-clipboard echo suppression as soon as the next local clipboard value differs from the last remote text, preventing later same-text local copies from being swallowed.
+- fix(bluetooth): treat native Classic Bluetooth negative send results such as `经典蓝牙发送未确认` as real disconnects so stale connected state is cleared and bounded auto-reconnect starts immediately.
+- test(flux): add regression coverage for clipboard echo-suppression cleanup and Classic Bluetooth negative-send disconnect handling.
+- chore(release): bump Android/macOS package version to 1.1.33+92 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.33.
+
+## Flux 1.1.32 (2026-06-08)
+
+- fix(discovery): localize the remaining UDP discovery and incoming `/register` discovery logs to Chinese, removing English status-card fragments such as `[DISCOVER/UDP]` and `Received "/register" HTTP request`.
+- test(flux): add regression coverage that UDP-discovered devices and incoming register requests produce Chinese user-facing discovery log lines.
+- chore(release): bump Android/macOS package version to 1.1.32+91 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.32.
+
+## Flux 1.1.31 (2026-06-08)
+
+- fix(bluetooth): remember the last Classic Bluetooth peer and automatically reconnect after unexpected disconnects, socket-send disconnects, connection timeouts, or method-channel connection failures with bounded 2s/5s/10s/15s retry backoff.
+- fix(discovery): make TCP discovery logs fully actionable in Chinese, including scan start, found-device, scan-complete, no-device, and scan-failed states so the status card no longer appears stuck after manual refreshes.
+- test(flux): add regression coverage for Classic Bluetooth auto-reconnect gating/backoff/timeout queueing and TCP discovery completion/failure messages.
+- chore(release): bump Android/macOS package version to 1.1.31+90 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.31.
+
+## Flux 1.1.30 (2026-06-08)
+
+- fix(android): close newly created Classic Bluetooth RFCOMM client sockets when outbound `connect()` fails, reducing half-open socket leaks and flaky reconnects after failed pairing/link attempts.
+- test(flux): add regression coverage that Android outbound Bluetooth connection failures call `closeQuietly(nextSocket)` while successful attaches clear the temporary socket reference first.
+- chore(release): bump Android/macOS package version to 1.1.30+89 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.30.
+
+## Flux 1.1.29 (2026-06-08)
+
+- fix(android): send Android Classic Bluetooth clipboard payloads in bounded 8KB RFCOMM chunks instead of one large socket write, matching the macOS stability fix for longer clipboard text.
+- test(flux): add regression coverage that Android RFCOMM clipboard writes loop through bounded chunks and never fall back to one-shot `payload.toByteArray(...)` writes.
+- chore(release): bump Android/macOS package version to 1.1.29+88 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.29.
+
+## Flux 1.1.28 (2026-06-08)
+
+- fix(bluetooth): send macOS Classic Bluetooth clipboard payloads in bounded RFCOMM chunks instead of one large `writeSync`, improving long clipboard reliability and removing the 64KB single-write ceiling.
+- test(flux): add regression coverage that macOS RFCOMM writes loop through bounded chunks and no longer reject payloads solely because they exceed a single `UInt16` write length.
+- chore(release): bump Android/macOS package version to 1.1.28+87 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.28.
+
+## Flux 1.1.27 (2026-06-08)
+
+- fix(manual-connect): treat pasted full IP / URL inputs as direct addresses even when the dialog is still in hashtag mode, preventing `10.x.x.x:port` from being mis-expanded as a local shortcode.
+- fix(bluetooth): clear stale Classic Bluetooth connected state immediately when clipboard send failures indicate a broken socket, so the UI no longer keeps a fake “connected” link after send errors.
+- fix(receive): drain failed upload request bodies before responding with the receiver save error, reducing stuck “receiving” states and blank sender-side errors after Android/macOS save failures.
+- test(flux): add regressions for direct manual-address detection, Bluetooth send-failure state collapse, and receiver upload-failure draining.
+- chore(release): bump Android/macOS package version to 1.1.27+86 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.27.
+
+## Flux 1.1.26 (2026-06-08)
+
+- fix(android): request `BLUETOOTH_ADVERTISE` at startup and verify it before starting the Android 12+ Classic Bluetooth RFCOMM server, so Bluetooth listening no longer silently fails on newer Android devices.
+- fix(bluetooth): classify socket-closed, broken-pipe, connection-reset, connection-refused, not-connected, and macOS numeric send failures as real disconnects, preventing stale “connected” states after the link is already broken.
+- test(flux): add regression coverage for runtime Bluetooth advertise permission requests, Android native listener permission checks, and Bluetooth socket-error disconnect classification.
+- chore(release): bump Android/macOS package version to 1.1.26+85 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.26.
+
+## Flux 1.1.25 (2026-06-08)
+
+- fix(clipboard): wake pending clipboard delivery immediately when LAN / hotspot discovery registers or updates a reachable peer endpoint, instead of waiting for the next 5-second retry tick.
+- fix(discovery): treat peer endpoint changes such as fallback-port updates as clipboard-relevant, while avoiding retry wakeups when a manual refresh merely clears the old device list.
+- test(flux): add regression coverage for discovery-driven clipboard wakeups, endpoint updates, and refresh clearing behavior.
+- chore(release): bump Android/macOS package version to 1.1.25+84 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.25.
+
+## Flux 1.1.24 (2026-06-08)
+
+- fix(clipboard): keep pending clipboard text when only some LAN / hotspot targets receive it, so temporarily unreachable devices retry on the next discovery tick instead of missing the copied content forever.
+- fix(clipboard): avoid immediate tight retry loops for the same failed clipboard payload; same-text retries now wait for the normal discovery timer unless a newer clipboard value or device-registration wakeup arrives.
+- fix(bluetooth): wake the clipboard sync service immediately when Classic Bluetooth reports a connected RFCOMM link, so pending clipboard text sends as soon as the link becomes real.
+- test(flux): add regression coverage for partial clipboard delivery, retry gating, and Bluetooth connected-event wakeups.
+- chore(release): bump Android/macOS package version to 1.1.24+83 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.24.
+
+## Flux 1.1.23 (2026-06-08)
+
+- fix(clipboard): keep per-device receiver error details when LAN / hotspot clipboard sync fails, so the UI shows which peer failed and why instead of only saying no device synced.
+- fix(connection): route both the status card and settings page through the same real connection-mode switcher, ensuring LAN / hotspot switches trigger UDP + TCP discovery and Bluetooth switches start RFCOMM setup.
+- fix(bluetooth): stop the native Classic Bluetooth RFCOMM listener when switching away from Bluetooth mode, reducing stale background sockets and confusing disconnected states.
+- test(flux): add regression coverage for detailed clipboard failure summaries and shared connection-mode side effects.
+- chore(release): bump Android/macOS package version to 1.1.23+82 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.23.
+
+## Flux 1.1.22 (2026-06-08)
+
+- fix(send): show the Android receive-folder guidance from prepare-upload failures directly, without prefixing it with noisy HTTP status text such as `[409]`.
+- test(flux): add sender-side regression coverage for missing Android receive folder guidance.
+- chore(release): bump Android/macOS package version to 1.1.22+81 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+- build(release): publish verified Android APK and macOS DMG artifacts for v1.1.22.
+
+## Flux 1.1.21 (2026-06-08)
+
+- fix(android): reject non-gallery receive requests when no explicit SAF receive folder is selected, preventing files from being silently saved into an app-private directory that users cannot find.
+- fix(receive): return an actionable Chinese error telling the receiver to choose Download/下载目录 before retrying.
+- test(flux): add receive-destination policy coverage and verify the receive controller checks the policy before falling back to the default directory.
+- chore(release): bump Android/macOS package version to 1.1.21+80 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.20 (2026-06-08)
+
+- fix(android): make the receive-folder setting honest on Android; the unset state now asks the user to choose a Download folder instead of implying Flux already has public Downloads access.
+- fix(android): show readable SAF folder names such as `Download/Flux` instead of raw `content://...` URIs after picking a receive directory.
+- test(flux): add regression coverage for Android receive-destination display labels and keep SAF permission/error guidance tests green.
+- chore(release): bump Android/macOS package version to 1.1.20+79 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.19 (2026-06-08)
+
+- fix(clipboard): queue an immediate retry when a new device is registered while a clipboard send is already in progress, preventing the wakeup from being swallowed by the `_syncing` guard.
+- fix(clipboard): show explicit feedback that the newly discovered device will be retried after the current sync finishes.
+- test(flux): add regression coverage for device-registration wakeups that arrive during an active clipboard sync.
+- chore(release): bump Android/macOS package version to 1.1.19+78 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.18 (2026-06-08)
+
+- fix(clipboard): wake the always-on clipboard sync service immediately after a manual IP connection registers a reachable device, so pending clipboard text retries without waiting for the next timer tick.
+- fix(clipboard): wake clipboard sync after favorite-device connection and after receiving a peer `/register` request, improving the bidirectional “phone connects desktop / desktop sees phone” path.
+- test(flux): add regression coverage for manual IP, favorite-device, and incoming-register clipboard wakeups.
+- chore(release): bump Android/macOS package version to 1.1.18+77 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.17 (2026-06-08)
+
+- fix(discovery): filter self devices by local IP as well as fingerprint, preventing desktop scans and clipboard target lists from showing/syncing to the current device after certificate changes or loopback discovery.
+- fix(discovery): add visible TCP/favorite scan-start logs so refresh actions leave immediate feedback even before any peer is found.
+- fix(receive): translate common Android/SAF save permission failures into actionable Chinese guidance for both receiver and sender error screens.
+- test(flux): add regression coverage for local-IP self filtering, scan feedback logs, and receiver permission error translation.
+- chore(release): bump Android/macOS package version to 1.1.17+76 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.16 (2026-06-08)
+
+- fix(clipboard): reject duplicate incoming clipboard payloads while local sync is paused, instead of letting the duplicate shortcut return a false success.
+- test(flux): add regression coverage for paused duplicate incoming clipboard writes so sender retry state is not cleared incorrectly.
+- chore(release): bump Android/macOS package version to 1.1.16+75 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.15 (2026-06-08)
+
+- fix(clipboard): reject incoming clipboard writes when local clipboard sync is paused instead of returning false success to the sender.
+- fix(clipboard): include the receiver-side clipboard error message in non-success HTTP responses, so senders can show and retry paused/failed receiver states.
+- fix(bluetooth): wait for the clipboard write result before showing Classic Bluetooth incoming clipboard success; paused or failed writes now show a rejected state.
+- test(flux): add regression coverage for paused incoming clipboard rejection, receiver error propagation, and Bluetooth incoming clipboard status accuracy.
+- chore(release): bump Android/macOS package version to 1.1.15+74 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.14 (2026-06-08)
+
+- fix(clipboard): stop retrying pending clipboard text after clipboard sync is paused, including sends finishing after the pause action.
+- fix(android): close any active Classic Bluetooth RFCOMM socket before starting a new outbound connection to reduce stale-link reconnect failures.
+- fix(macos): run outbound Classic Bluetooth RFCOMM connection attempts off the Flutter method channel thread so the desktop UI does not wait on synchronous Bluetooth calls.
+- fix(macos): ignore stale RFCOMM close callbacks and replace the active channel before closing the previous one, preventing old disconnect events from clearing a fresh connection.
+- test(flux): add regression coverage for paused clipboard retries and Classic Bluetooth reconnect race conditions.
+- chore(release): bump Android/macOS package version to 1.1.14+73 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.13 (2026-06-08)
+
+- fix(bluetooth): prevent late native disconnect events from restarting the Classic Bluetooth listener after the user stops Bluetooth or the provider is disposed.
+- fix(manual-connect): accept Chinese colon and accidental spaces in manually entered `IP:port` addresses, avoiding malformed hostnames during direct connection.
+- fix(receive): return receiver-side save failure details to the sender instead of a generic empty/unclear upload error.
+- security(webrtc): remove debug logging of generated WebRTC private keys.
+- test(flux): add regression coverage for Bluetooth manual stop, private-key log prevention, manual-address normalization, and receive-save failure messages.
+- chore(release): bump Android/macOS package version to 1.1.13+72 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.12 (2026-06-08)
+
+- fix(macos): treat RFCOMM notification registration failure as a real Classic Bluetooth listener startup failure, removing the temporary SPP service and returning false instead of showing a false listening state.
+- docs(flux): clean the remaining historical Bluetooth wording that still suggested the RFCOMM data path was only in development, while preserving the release-history context.
+- test(flux): extend Classic Bluetooth bridge regression coverage to require macOS notification startup acknowledgement before reporting listener success.
+- chore(release): bump Android/macOS package version to 1.1.12+71 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.11 (2026-06-08)
+
+- fix(bluetooth): make Classic Bluetooth server startup return a real native `bool`, so the UI no longer says it is listening when Android permissions, adapter state, or RFCOMM socket creation failed.
+- fix(macos): stop reporting RFCOMM listening when SPP service publication fails, keeping Bluetooth mode feedback honest instead of looking ready while no service exists.
+- fix(android): mark the RFCOMM server as running immediately after socket creation to avoid duplicate listener startup during rapid refreshes.
+- fix(server): return HTTP 405 for unsupported methods instead of letting unknown method probes throw through the request handler.
+- docs(flux): remove stale handoff text that still claimed the RFCOMM data channel was unfinished, and record this repair loop in the progress log.
+- test(flux): add regression coverage for Bluetooth listener startup truthfulness, listener-error state cleanup, and unsupported HTTP method handling.
+- chore(release): bump Android/macOS package version to 1.1.11+70 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.10 (2026-06-08)
+
+- fix(bluetooth): keep Classic Bluetooth connection attempts in a real pending state until the native `connected`, `error`, `disconnected`, or timeout result arrives.
+- fix(bluetooth): add an 18-second connection timeout that stays active even while native RFCOMM connect calls are still waiting, so the UI no longer looks stuck.
+- fix(bluetooth): preserve existing link state when a send ACK fails; send errors now report retryable clipboard failure instead of pretending the Bluetooth link disconnected.
+- fix(bluetooth): include remote device address/name/role in Android and macOS `connected` events so the receiving side can mark the actual paired device as connected.
+- test(flux): add regression coverage for connection timeout state, native terminal-event races, send-error link preservation, and connected-device identity feedback.
+- docs(flux): record this handoff in the development/progress docs and bump release metadata to 1.1.10+69 without changing `applicationId` or the existing `flux-release-key.jks` signing key.
+
+## Flux 1.1.9 (2026-06-08)
+
+- fix(bluetooth): make Android and macOS Classic Bluetooth clipboard sends return a real native ACK, so Flux no longer marks clipboard sync successful when the RFCOMM write failed.
+- fix(bluetooth): make the Dart clipboard sync provider respect the native ACK and keep pending clipboard text for automatic retry when Bluetooth send is not confirmed.
+- fix(macos): buffer RFCOMM chunks by newline and parse complete JSON frames, preventing partial or coalesced Bluetooth packets from breaking incoming clipboard sync.
+- fix(macos): reject oversized single-frame Bluetooth clipboard payloads with a clear error instead of silently failing the `UInt16` RFCOMM write length.
+- fix(android): report clean Bluetooth disconnects once and clear the active socket consistently after the read loop ends.
+- test(flux): expand Bluetooth regression coverage and rerun full `flutter test` plus `flutter analyze`.
+- chore(release): bump Android/macOS package version to 1.1.9+68 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.8 (2026-06-07)
+
+- feat(bluetooth): wire Classic Bluetooth into a real RFCOMM always-on clipboard path on Android and macOS, with paired-device listing, connect actions, server listening state, and Chinese status feedback.
+- fix(macos): update the IOBluetooth bridge for the current macOS SDK by publishing an SPP service, resolving the RFCOMM channel via SDP, and using the renamed Swift APIs so release builds compile cleanly.
+- fix(flux): mark async Bluetooth lifecycle cleanup explicitly, preventing analyzer warnings and making event-stream shutdown/restart behavior easier to audit.
+- docs(flux): record the release handoff, verification commands, known Bluetooth pairing requirement, and Android signing key details for future maintainers.
+- test(flux): verify connection mode, clipboard routing, classic Bluetooth bridge coverage, `flutter analyze`, Android release build, and macOS release build.
+- chore(release): bump Android/macOS package version to 1.1.8+67 while keeping `applicationId` and the existing `flux-release-key.jks` signing key unchanged.
+
+## Flux 1.1.7 (2026-06-07)
+
+- fix(flux): keep the newest reachable IP/port when the same device fingerprint is rediscovered, preventing clipboard sync and file sends from targeting stale addresses after Wi‑Fi/hotspot changes.
+- fix(macos): probe the bounded fallback port range when a second Flux instance starts, so an existing app that moved away from the default port is shown instead of launching a competing instance.
+- fix(flux): store the receiver's remote session id separately from the local send-session key, preventing v2 file uploads from losing the real remote session after prepare-upload.
+- test(flux): add regression coverage for stale-device merge behavior, desktop single-instance fallback probing, and send-session remote id handling.
+- chore(release): bump Android/macOS package version to 1.1.7+66 while keeping the existing release signing key.
+
+## Flux 1.1.6 (2026-06-07)
+
+- fix(flux): restart the UDP multicast listener when the server has to move to a fallback port, so discovery no longer advertises/listens on a stale port after `Address already in use`.
+- fix(flux): filter loopback and VPN-like local addresses from automatic discovery candidates while preserving hotspot gateway addresses such as `172.20.10.1`.
+- fix(android): declare and request LAN/hotspot discovery permissions, nearby Wi‑Fi permission, and classic Bluetooth runtime permissions before discovery starts.
+- test(flux): add regression coverage for multicast listener restart, Android LAN/Bluetooth permissions, and network-interface candidate filtering.
+- chore(release): bump Android/macOS package version to 1.1.6+65 while keeping the existing release signing key.
+
+## Flux 1.1.5 (2026-06-07)
+
+- fix(flux): auto-recover when the preferred HTTP port is already in use by trying bounded fallback ports instead of leaving the server offline.
+- fix(flux): install receive/register routes with the actual bound port, so discovery, file receive, and clipboard sync advertise the reachable endpoint.
+- fix(flux): scan the default port plus nearby fallback ports, improving discovery when either side had to move away from the default port.
+- fix(flux): return a real `/api/clipboard` failure when the receiver cannot write the system clipboard, and keep retry eligibility for failed incoming clipboard writes.
+- test(flux): add regression coverage for port fallback, multi-port discovery, clipboard false-success prevention, and incoming clipboard retry ordering.
+- chore(release): bump Android/macOS package version to 1.1.5+64 while keeping the existing release signing key.
+
+## Flux 1.1.4 (2026-06-07)
+
+- fix(flux): wait for incoming clipboard writes before returning `/api/clipboard`, so senders no longer get false success while the receiver failed to update the system clipboard.
+- fix(flux): clear TCP/favorite scanning indicators even when the discovery isolate errors, preventing the UI from getting stuck in a permanent scanning state.
+- test(flux): add regression coverage for discovery-scan failure cleanup and keep the clipboard/manual-connect/device-discovery checks green.
+- chore(release): bump Android/macOS package version to 1.1.4+63 while keeping the existing release signing key.
+
+## Flux 1.1.3 (2026-06-07)
+
+- feat(flux): add a shared connection status card on Send and Receive tabs with LAN, hotspot, Bluetooth, server, IP, scan, and clipboard status.
+- fix(android): acquire a multicast lock on startup so UDP discovery is not silently blocked on Wi-Fi.
+- fix(flux): register manually entered IP devices into the nearby-device pool so clipboard sync has a real target after manual connect.
+- fix(android): persist SAF directory write permission for receive destinations.
+- chore(release): bump Android/macOS package version to 1.1.3+62 while keeping the existing release signing key.
+
+## Flux 1.1.2 (2026-06-06)
+
+- feat(flux): add a visible connection mode section with Local Network, Hotspot Direct, and Classic Bluetooth choices.
+- feat(flux): show honest end-to-end status for each mode, including UDP multicast / HTTP-TCP behavior for LAN and hotspot direct.
+- feat(flux): add Classic Bluetooth UI with pairing guidance and explicit RFCOMM in-progress status instead of hiding Bluetooth or pretending it is already connected.
+- test(flux): add connection mode status coverage so Bluetooth UI and pairing guidance cannot disappear again.
+
+## Flux 1.1.1 (2026-06-06)
+
+- fix(macos): launch Flux as a normal foreground app so double-clicking the app visibly opens the main window instead of behaving like a menu-bar-only background app.
+- chore(release): bump Android/macOS package version to 1.1.1+60 for the rebuilt installers.
+
+## Flux 1.1.0 (2026-06-06)
+
+- feat(flux): add always-on clipboard sync with background discovery, retry, Chinese status feedback, and self-device filtering.
+- fix(flux): disable the default public LocalSend WebRTC signaling/STUN servers to stop unrelated reconnect loops.
+- fix(flux): support manual addresses with `host:port` or pasted URLs instead of treating `10.x.x.x:25565` as a hostname.
+- fix(flux): trust local self-signed HTTPS certificates for clipboard sync requests and report non-2xx responses as failures.
+- chore(flux): rename visible app labels, tray/app titles, Android label, and macOS menus to Flux while keeping the Android `applicationId` unchanged for update compatibility.
+
 - feat(windows): add LocalSend to Windows Share Sheet (@chenxdust, https://github.com/localsend/localsend/pull/2555)
 - feat: enable starting text share via command line using `--text` or `-t` flags (@guilhermetiscoski, https://github.com/localsend/localsend/pull/2661)
 - feat(android): add quick settings tile for instant app launch (@Voltra, https://github.com/localsend/localsend/pull/2676)

@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:localsend_app/config/theme.dart';
 
+T? resolveDropdownValue<T>({
+  required T value,
+  required Iterable<T> items,
+}) {
+  return items.contains(value) ? value : null;
+}
+
 /// A [DropdownButton] with a custom theme.
 /// Currently, there is no easy way to apply color and border radius to all [DropdownButton].
 class CustomDropdownButton<T> extends StatelessWidget {
@@ -18,11 +25,15 @@ class CustomDropdownButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedValue = resolveDropdownValue(
+      value: value,
+      items: items.map((item) => item.value).whereType<T>(),
+    );
     return Material(
       color: Theme.of(context).inputDecorationTheme.fillColor,
       shape: RoundedRectangleBorder(borderRadius: Theme.of(context).inputDecorationTheme.borderRadius),
       child: DropdownButton<T>(
-        value: value,
+        value: resolvedValue,
         isExpanded: expanded,
         underline: Container(),
         borderRadius: Theme.of(context).inputDecorationTheme.borderRadius,

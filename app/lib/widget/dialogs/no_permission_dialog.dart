@@ -8,6 +8,7 @@ class NoPermissionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: Text(t.dialogs.noPermission.title),
       content: Text(t.dialogs.noPermission.content),
       actions: [

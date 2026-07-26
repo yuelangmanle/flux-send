@@ -19,6 +19,7 @@ import 'package:localsend_app/pages/home_page.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/provider/animation_provider.dart';
 import 'package:localsend_app/provider/app_arguments_provider.dart';
+import 'package:localsend_app/provider/clipboard_sync_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
@@ -38,6 +39,7 @@ import 'package:localsend_app/rust/frb_generated.dart';
 import 'package:localsend_app/util/i18n.dart';
 import 'package:localsend_app/util/native/autostart_helper.dart';
 import 'package:localsend_app/util/native/cache_helper.dart';
+import 'package:localsend_app/util/native/channel/android_channel.dart' as android_channel;
 import 'package:localsend_app/util/native/content_uri_helper.dart';
 import 'package:localsend_app/util/native/context_menu_helper.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
@@ -49,6 +51,7 @@ import 'package:localsend_app/util/rhttp.dart';
 import 'package:localsend_app/util/ui/dynamic_colors.dart';
 import 'package:localsend_app/util/ui/snackbar.dart';
 import 'package:logging/logging.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:rhttp/rhttp.dart';
 import 'package:share_handler/share_handler.dart';
@@ -94,23 +97,25 @@ Future<RefenaContainer> preInit(List<String> args) async {
 
     final client = createRhttpClient(const Duration(milliseconds: 100), persistenceService.getSecurityContext());
 
-    try {
-      await client.post(
-        ApiRoute.show.targetRaw(
-          '127.0.0.1',
-          persistenceService.getPort(),
-          persistenceService.isHttps(),
-          peerProtocolVersion,
-        ),
-        query: {
-          'token': persistenceService.getShowToken(),
-        },
-        body: HttpBody.json({
-          'args': args,
-        }),
-      );
-      exit(0); // Another instance does exist because no error is thrown
-    } catch (_) {}
+    for (final port in fluxDesktopShowProbePorts(persistenceService.getPort())) {
+      try {
+        await client.post(
+          ApiRoute.show.targetRaw(
+            '127.0.0.1',
+            port,
+            persistenceService.isHttps(),
+            peerProtocolVersion,
+          ),
+          query: {
+            'token': persistenceService.getShowToken(),
+          },
+          body: HttpBody.json({
+            'args': args,
+          }),
+        );
+        exit(0); // Another instance does exist because no error is thrown
+      } catch (_) {}
+    }
 
     // initialize tray AFTER i18n has been initialized
     try {
@@ -209,6 +214,17 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
     } catch (e) {
       _logger.warning('Setting high refresh rate failed', e);
     }
+
+    await requestAndroidNetworkPermissions();
+
+    try {
+      final lockAcquired = await android_channel.acquireMulticastLockAndroid();
+      if (!lockAcquired) {
+        _logger.warning('Android multicast lock was not acquired; UDP discovery may be unreliable.');
+      }
+    } catch (e) {
+      _logger.warning('Acquiring Android multicast lock failed', e);
+    }
   }
 
   try {
@@ -225,7 +241,12 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
     _logger.warning('Starting multicast listener failed', e);
   }
 
-  ref.redux(signalingProvider).dispatch(SetupSignalingConnection());
+  final signalingState = ref.read(signalingProvider);
+  if (shouldStartSignalingConnection(signalingState)) {
+    ref.redux(signalingProvider).dispatch(SetupSignalingConnection());
+  }
+
+  ref.notifier(clipboardSyncProvider).enable();
 
   if (appStart) {
     if (defaultTargetPlatform == TargetPlatform.macOS) {
@@ -297,6 +318,41 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
     ref.redux(purchaseProvider).dispatchAsync(InitPurchaseStream());
   }
   // [FOSS_REMOVE_END]
+}
+
+Future<void> requestAndroidNetworkPermissions() async {
+  try {
+    await Permission.nearbyWifiDevices.request();
+  } catch (e) {
+    _logger.warning('Requesting nearby Wi-Fi permission failed', e);
+  }
+
+  try {
+    await Permission.locationWhenInUse.request();
+  } catch (e) {
+    _logger.warning('Requesting location permission failed', e);
+  }
+
+  try {
+    await Permission.bluetoothConnect.request();
+    await Permission.bluetoothScan.request();
+    await Permission.bluetoothAdvertise.request();
+  } catch (e) {
+    _logger.warning('Requesting Bluetooth permission failed', e);
+  }
+}
+
+List<int> fluxDesktopShowProbePorts(int preferredPort) {
+  const fallbackCount = 20;
+  final normalizedPort = preferredPort < 0 || preferredPort > 65535 ? defaultPort : preferredPort;
+  final ports = <int>[
+    for (var offset = 0; offset <= fallbackCount; offset++)
+      normalizedPort + offset <= 65535 ? normalizedPort + offset : 1024 + normalizedPort + offset - 65536,
+  ];
+  if (!ports.contains(defaultPort)) {
+    ports.add(defaultPort);
+  }
+  return ports.toSet().toList(growable: false);
 }
 
 class _HandleShareIntentAction extends AsyncGlobalAction {

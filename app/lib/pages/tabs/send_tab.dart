@@ -10,6 +10,7 @@ import 'package:localsend_app/pages/selected_files_page.dart';
 import 'package:localsend_app/pages/tabs/send_tab_vm.dart';
 import 'package:localsend_app/pages/troubleshoot_page.dart';
 import 'package:localsend_app/provider/animation_provider.dart';
+import 'package:localsend_app/provider/connection_mode_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/scan_facade.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
@@ -25,6 +26,7 @@ import 'package:localsend_app/widget/custom_icon_button.dart';
 import 'package:localsend_app/widget/dialogs/add_file_dialog.dart';
 import 'package:localsend_app/widget/dialogs/send_mode_help_dialog.dart';
 import 'package:localsend_app/widget/file_thumbnail.dart';
+import 'package:localsend_app/widget/flux_connection_status_card.dart';
 import 'package:localsend_app/widget/list_tile/device_list_tile.dart';
 import 'package:localsend_app/widget/list_tile/device_placeholder_list_tile.dart';
 import 'package:localsend_app/widget/opacity_slideshow.dart';
@@ -56,6 +58,11 @@ class SendTab extends StatelessWidget {
               padding: EdgeInsets.zero,
               children: [
                 const SizedBox(height: 20),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: _horizontalPadding),
+                  child: FluxConnectionStatusCard(),
+                ),
+                const SizedBox(height: 14),
                 if (vm.selectedFiles.isEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
@@ -308,7 +315,7 @@ class _CircularPopupButton<T> extends StatelessWidget {
         type: MaterialType.transparency,
         child: DividerTheme(
           data: DividerThemeData(
-            color: Theme.of(context).brightness == Brightness.light ? Colors.teal.shade100 : Colors.grey.shade700,
+            color: Theme.of(context).brightness == Brightness.light ? Colors.lightBlue.shade100 : Colors.grey.shade700,
           ),
           child: PopupMenuButton(
             offset: const Offset(0, 40),
@@ -348,6 +355,12 @@ class _ScanButton extends StatelessWidget {
           reverse: true,
           child: CustomIconButton(
             onPressed: () async {
+              if (context.ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('经典蓝牙模式不会启动局域网扫描。请用上方「刷新蓝牙设备」和「通过蓝牙发送」。')),
+                );
+                return;
+              }
               context.redux(nearbyDevicesProvider).dispatch(ClearFoundDevicesAction());
               await context.global.dispatchAsync(StartSmartScan(forceLegacy: true));
             },
@@ -360,6 +373,12 @@ class _ScanButton extends StatelessWidget {
     return _CircularPopupButton(
       tooltip: t.sendTab.scan,
       onSelected: (ip) async {
+        if (context.ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('经典蓝牙模式不会启动局域网扫描。请用上方「刷新蓝牙设备」和「通过蓝牙发送」。')),
+          );
+          return;
+        }
         context.redux(nearbyDevicesProvider).dispatch(ClearFoundDevicesAction());
         await context.global.dispatchAsync(StartLegacySubnetScan(subnets: [ip]));
       },

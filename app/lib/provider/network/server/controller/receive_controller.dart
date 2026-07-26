@@ -14,9 +14,7 @@ import 'package:common/model/dto/register_dto.dart';
 import 'package:common/model/file_status.dart';
 import 'package:common/model/file_type.dart';
 import 'package:common/model/session_status.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:localsend_app/model/state/send/send_session_state.dart';
 import 'package:localsend_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_app/model/state/server/receiving_file.dart';
@@ -24,6 +22,7 @@ import 'package:localsend_app/pages/home_page.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/receive_page.dart';
+import 'package:localsend_app/provider/clipboard_sync_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
@@ -42,11 +41,12 @@ import 'package:localsend_app/util/native/directories.dart';
 import 'package:localsend_app/util/native/file_saver.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/native/tray_helper.dart';
+import 'package:localsend_app/util/receive_destination_policy.dart';
+import 'package:localsend_app/util/receive_error_message.dart';
 import 'package:localsend_app/util/rust.dart';
 import 'package:localsend_app/util/simple_server.dart';
 import 'package:localsend_app/widget/dialogs/open_file_dialog.dart';
 import 'package:logging/logging.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 import 'package:uuid/uuid.dart';
@@ -170,7 +170,8 @@ class ReceiveController {
     await server.ref
         .redux(nearbyDevicesProvider)
         .dispatchAsync(RegisterDeviceAction(requestDto.toDevice(request.ip, port, https, HttpDiscovery(ip: request.ip))));
-    server.ref.notifier(discoveryLoggerProvider).addLog('[DISCOVER/TCP] Received "/register" HTTP request: ${requestDto.alias} (${request.ip})');
+    server.ref.notifier(clipboardSyncProvider).notifyDeviceRegistered();
+    server.ref.notifier(discoveryLoggerProvider).addLog(describeRegisterRequestReceived(alias: requestDto.alias, ip: request.ip));
 
     final deviceInfo = server.ref.read(deviceInfoProvider);
 
@@ -221,6 +222,15 @@ class ReceiveController {
     }
 
     final settings = server.ref.read(settingsProvider);
+    if (shouldRequireExplicitReceiveDirectory(
+      isAndroid: checkPlatform([TargetPlatform.android]),
+      destination: settings.destination,
+      saveToGallery: settings.saveToGallery,
+      files: dto.files.values,
+    )) {
+      return await request.respondJson(409, message: describeMissingReceiveDirectoryForAndroid());
+    }
+
     final destinationDir = settings.destination ?? await getDefaultDestinationDirectory();
     final cacheDir = await getCacheDirectory();
     final sessionId = _uuid.v4();
@@ -407,23 +417,6 @@ class ReceiveController {
       for (final file in server.getState().session!.files.values.where((f) => f.token != null)) file.file.id: file.token,
     };
 
-    if (checkPlatform([TargetPlatform.android, TargetPlatform.iOS])) {
-      if (checkPlatform([TargetPlatform.android]) && !server.getState().session!.destinationDirectory.startsWith('/storage/emulated/0/Download')) {
-        // Android requires more permission to save files outside of the Download directory
-        try {
-          final result = await Permission.storage.request();
-          _logger.info('storage permission: $result');
-        } catch (e) {
-          _logger.warning('Could not request storage permission', e);
-        }
-      }
-      try {
-        await Permission.storage.request();
-      } catch (e) {
-        _logger.warning('Could not request storage permission', e);
-      }
-    }
-
     if (v2) {
       return await request.respondJson(
         200,
@@ -571,6 +564,9 @@ class ReceiveController {
         ),
       );
       _logger.severe('Failed to save file', e, st);
+      try {
+        await request.drain<void>().timeout(const Duration(seconds: 2));
+      } catch (_) {}
     }
 
     server.ref
@@ -630,9 +626,10 @@ class ReceiveController {
       _logger.info('Received all files.');
     }
 
-    return server.getState().session?.files[fileId]?.status == FileStatus.finished
+    final finalFileState = server.getState().session?.files[fileId];
+    return finalFileState?.status == FileStatus.finished
         ? await request.respondJson(200)
-        : await request.respondJson(500, message: 'Could not save file. Check receiving device for more information.');
+        : await request.respondJson(500, message: describeReceiveUploadFailure(finalFileState?.errorMessage));
   }
 
   Future<void> _cancelHandler({

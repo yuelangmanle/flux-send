@@ -15,6 +15,9 @@ analyzer:
   exclude:
     - lib/**.g.dart
     - lib/**.freezed.dart
+    - lib/rust/**
+    - build/**
+    - rust_builder/**
     - submodules/**
 
 formatter:

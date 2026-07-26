@@ -24,6 +24,7 @@ import 'package:localsend_app/provider/selection/selected_sending_files_provider
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/rust/api/http.dart' as rust_http;
 import 'package:localsend_app/rust/api/model.dart' as rust_model;
+import 'package:localsend_app/util/receive_error_message.dart';
 import 'package:localsend_app/util/rust.dart';
 import 'package:localsend_app/widget/dialogs/pin_dialog.dart';
 import 'package:logging/logging.dart';
@@ -242,11 +243,11 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
     } else {
       try {
         fileMap = response.response!.files;
-        final sessionId = response.response!.sessionId;
+        final remoteSessionId = response.response!.sessionId;
         state = state.updateSession(
           sessionId: sessionId,
           state: (s) => s?.copyWith(
-            remoteSessionId: sessionId,
+            remoteSessionId: remoteSessionId,
           ),
         );
       } catch (e) {
@@ -641,11 +642,42 @@ extension on Object {
     };
 
     if (statusCode != null && message != null) {
-      return '[$statusCode] $message';
+      return describeSendFailure(message, statusCode: statusCode);
     }
 
-    return e.toString();
+    return describeSendFailure(e.toString());
   }
+}
+
+String describeSendFailure(String message, {int? statusCode}) {
+  final normalized = message.trim();
+  if (normalized.isEmpty) {
+    final fallback = '对方没有返回错误详情；请检查接收端 Flux 的保存目录、权限和剩余空间。';
+    return statusCode == null ? fallback : '[$statusCode] $fallback';
+  }
+
+  final translated = describeReceiveUploadFailure(normalized);
+  final looksLikeReceiverSaveFailure =
+      normalized.contains('接收端保存失败') ||
+      normalized.toLowerCase().contains('permission denied') ||
+      normalized.toLowerCase().contains('eacces') ||
+      normalized.toLowerCase().contains('tree uri') ||
+      normalized.toLowerCase().contains('content://') ||
+      normalized.toLowerCase().contains('saf');
+
+  if (looksLikeReceiverSaveFailure) {
+    return translated;
+  }
+
+  if (normalized.contains('请先在接收端 Flux') && normalized.contains('保存目录')) {
+    return normalized;
+  }
+
+  if (statusCode != null) {
+    return '[$statusCode] $normalized';
+  }
+
+  return normalized;
 }
 
 String? _parseErrorMessage(Object? body) {

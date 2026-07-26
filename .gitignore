@@ -1,4 +1,5 @@
 .idea
+.DS_Store
 
 # Linux AppImage
 /app/AppDir
@@ -7,6 +8,22 @@
 .refena_inspector/
 
 /secrets
+
+# Local signing credentials and machine-specific Android configuration.
+# Keep these outside Git; the release key must never enter a public repository.
+/app/android/key.properties
+/app/android/local.properties
+/app/android/app/*.jks
+/app/android/app/*.keystore
+
+# Release binaries belong in GitHub Releases. Keep the local historical archive
+# for reproducibility without bloating the source repository.
+/releases/history/
+
+# Flutter and native build output
+/app/.dart_tool/
+/app/build/
+/app/.packages
 
 # FVM Version Cache
 .fvm/

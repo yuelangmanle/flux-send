@@ -1,31 +1,39 @@
-# This apk script is written in a way to conform with "Reproducible Builds" by F-Droid
-# The Android SDK should be installed with sdkmanager (apt install sdkmanager)
-# By default, it will install everything to "/opt/android-sdk". This path is important!
-# Furthermore, the Flutter version from the submodule is used.
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Check Build ID via "readelf --wide --notes libapp.so"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+APP_DIR="$PROJECT_DIR/app"
+FLUTTER_BIN="${FLUTTER_BIN:-flutter}"
+VERSION="${VERSION:-$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+$/\1/p' "$APP_DIR/pubspec.yaml" | head -n 1)}"
 
-# REQUIREMENTS
-# (1) sudo apt install openjdk-11-jdk sdkmanager
-# (2) sudo chown -R <user> /opt/android-sdk
-# (3) sdkmanager "platform-tools" "platforms;android-33"
-# (4) sdkmanager --licenses
+if [[ -z "$VERSION" ]]; then
+  echo "无法从 $APP_DIR/pubspec.yaml 解析版本号；也可以通过 VERSION=1.2.3 指定。" >&2
+  exit 1
+fi
 
-# UNCOMMENT THESE LINES TO BUILD FROM LATEST COMMIT
-# git reset --hard origin/main
-# git pull
+RELEASE_DIR="$PROJECT_DIR/releases/history/v$VERSION"
+APK_SOURCE="$APP_DIR/build/app/outputs/flutter-apk/app-release.apk"
+APK_OUT="$RELEASE_DIR/Flux-v$VERSION-android.apk"
 
-cd ..
-rm -rf /tmp/build
-cp localsend /tmp/build -r
-pushd /tmp/build
+if [[ "${DRY_RUN:-0}" == "1" ]]; then
+  cat <<EOF
+DRY_RUN=1
+VERSION=$VERSION
+RELEASE_DIR=$RELEASE_DIR
+APK_SOURCE=$APK_SOURCE
+APK_OUT=$APK_OUT
+EOF
+  exit 0
+fi
 
-git submodule update --init
-alias flutter='submodules/flutter/bin/flutter'
-flutter config --no-analytics
-flutter pub get
-dart run build_runner build -d
-flutter build apk
+mkdir -p "$RELEASE_DIR"
 
-popd
-cd localsend
+cd "$APP_DIR"
+echo "Building Flux Android release APK..."
+RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://rsproxy.cn}" \
+RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://rsproxy.cn/rustup}" \
+  "$FLUTTER_BIN" build apk --release
+
+cp "$APK_SOURCE" "$APK_OUT"
+echo "Android APK ready: $APK_OUT"

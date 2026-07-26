@@ -6,6 +6,7 @@ import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
+import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -69,14 +70,41 @@ class StartLegacySubnetScan extends AsyncGlobalAction {
   @override
   Future<void> reduce() async {
     final settings = ref.read(settingsProvider);
-    final port = settings.port;
+    final ports = resolveDiscoveryPorts(
+      settingsPort: settings.port,
+      runningServerPort: ref.read(serverProvider)?.port,
+    );
     final https = settings.https;
 
     // send announcement in parallel
     ref.redux(nearbyDevicesProvider).dispatch(StartMulticastScan());
 
-    await Future.wait<void>([
-      for (final subnet in subnets) ref.redux(nearbyDevicesProvider).dispatchAsync(StartLegacyScan(port: port, localIp: subnet, https: https)),
-    ]);
+    for (final port in ports) {
+      await Future.wait<void>([
+        for (final subnet in subnets) ref.redux(nearbyDevicesProvider).dispatchAsync(StartLegacyScan(port: port, localIp: subnet, https: https)),
+      ]);
+    }
   }
+}
+
+int resolveDiscoveryPort({
+  required int settingsPort,
+  required int? runningServerPort,
+}) {
+  return runningServerPort ?? settingsPort;
+}
+
+List<int> resolveDiscoveryPorts({
+  required int settingsPort,
+  required int? runningServerPort,
+}) {
+  final firstPort = resolveDiscoveryPort(settingsPort: settingsPort, runningServerPort: runningServerPort);
+  final candidates = <int>[
+    settingsPort,
+    ...serverPortCandidates(settingsPort, fallbackCount: 3),
+    if (runningServerPort != null) runningServerPort,
+    ...serverPortCandidates(firstPort, fallbackCount: 1),
+  ];
+
+  return candidates.where((port) => port >= 0 && port <= 65535).toSet().toList(growable: false);
 }

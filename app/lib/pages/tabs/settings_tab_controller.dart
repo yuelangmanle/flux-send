@@ -12,6 +12,7 @@ import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/util/native/autostart_helper.dart';
 import 'package:localsend_app/util/native/context_menu_helper.dart';
+import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/ui/dynamic_colors.dart';
 import 'package:localsend_app/util/ui/snackbar.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -69,7 +70,10 @@ class SettingsTabController extends ReduxNotifier<SettingsTabVm> {
       settings: _settingsService.state,
       serverState: _serverService.state,
       deviceInfo: _initialDeviceInfo,
-      colorModes: _supportsDynamicColors ? ColorMode.values : ColorMode.values.where((e) => e != ColorMode.system).toList(),
+      colorModes: resolveAvailableColorModes(
+        supportsDynamicColors: _supportsDynamicColors,
+        current: _settingsService.state.colorMode,
+      ),
       autoStart: false,
       autoStartLaunchHidden: false,
       showInContextMenu: false,
@@ -170,19 +174,40 @@ class SettingsTabController extends ReduxNotifier<SettingsTabVm> {
   }
 }
 
+List<ColorMode> resolveAvailableColorModes({
+  required bool supportsDynamicColors,
+  required ColorMode current,
+}) {
+  final modes = supportsDynamicColors ? ColorMode.values.toList() : ColorMode.values.where((mode) => mode != ColorMode.system).toList();
+  if (modes.contains(current)) {
+    return modes;
+  }
+  return [current, ...modes];
+}
+
 class _SettingsTabInitAction extends AsyncReduxAction<SettingsTabController, SettingsTabVm> {
   @override
   Future<SettingsTabVm> reduce() async {
     dispatch(_SettingsTabWatchAction());
-    final autoStartEnabled = await isAutoStartEnabled();
-    final autoStartHidden = await isAutoStartHidden();
-    final showInContextMenu = await isContextMenuEnabled();
+    final desktopState = await loadDesktopSettingsTabState();
     return state.copyWith(
-      autoStart: autoStartEnabled,
-      autoStartLaunchHidden: autoStartHidden,
-      showInContextMenu: showInContextMenu,
+      autoStart: desktopState.autoStart,
+      autoStartLaunchHidden: desktopState.autoStartHidden,
+      showInContextMenu: desktopState.showInContextMenu,
     );
   }
+}
+
+Future<({bool autoStart, bool autoStartHidden, bool showInContextMenu})> loadDesktopSettingsTabState() async {
+  if (!checkPlatformIsDesktop()) {
+    return (autoStart: false, autoStartHidden: false, showInContextMenu: false);
+  }
+
+  return (
+    autoStart: await isAutoStartEnabled(),
+    autoStartHidden: await isAutoStartHidden(),
+    showInContextMenu: await isContextMenuEnabled(),
+  );
 }
 
 class _SettingsTabWatchAction extends WatchAction<SettingsTabController, SettingsTabVm> {

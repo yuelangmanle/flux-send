@@ -6,21 +6,27 @@ import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.provider.DocumentsContract
 import android.provider.Settings
+import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 
 private const val CHANNEL = "org.localsend.localsend_app/localsend"
+private const val CLASSIC_BLUETOOTH_EVENTS_CHANNEL = "org.localsend.localsend_app/classic_bluetooth_events"
 private const val REQUEST_CODE_PICK_DIRECTORY = 1
 private const val REQUEST_CODE_PICK_DIRECTORY_PATH = 2
 private const val REQUEST_CODE_PICK_FILE = 3
 
 class MainActivity : FlutterActivity() {
     private var pendingResult: MethodChannel.Result? = null
+    private var multicastLock: WifiManager.MulticastLock? = null
+    private lateinit var classicBluetoothBridge: ClassicBluetoothBridge
 
     // Overriding the static methods we need from the Java class, as described
     // in the documentation of `FlutterActivity.NewEngineIntentBuilder`
@@ -36,10 +42,19 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        classicBluetoothBridge = ClassicBluetoothBridge(this)
+        EventChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            CLASSIC_BLUETOOTH_EVENTS_CHANNEL
+        ).setStreamHandler(classicBluetoothBridge)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL
         ).setMethodCallHandler { call, result ->
+            if (classicBluetoothBridge.handleMethodCall(call, result)) {
+                return@setMethodCallHandler
+            }
+
             when (call.method) {
                 "pickDirectory" -> {
                     pendingResult = result
@@ -72,9 +87,26 @@ class MainActivity : FlutterActivity() {
                     result.success(isAnimationsEnabled())
                 }
 
+                "acquireMulticastLock" -> {
+                    result.success(acquireMulticastLock())
+                }
+
+                "releaseMulticastLock" -> {
+                    releaseMulticastLock()
+                    result.success(null)
+                }
+
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onDestroy() {
+        if (::classicBluetoothBridge.isInitialized) {
+            classicBluetoothBridge.stop()
+        }
+        releaseMulticastLock()
+        super.onDestroy()
     }
 
     private fun isAnimationsEnabled() : Boolean {
@@ -82,9 +114,41 @@ class MainActivity : FlutterActivity() {
             Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f) != 0.0f;
     }
 
+    private fun acquireMulticastLock(): Boolean {
+        return try {
+            val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val lock = multicastLock ?: wifiManager.createMulticastLock("FluxMulticastLock").also {
+                it.setReferenceCounted(false)
+                multicastLock = it
+            }
+            if (!lock.isHeld) {
+                lock.acquire()
+            }
+            true
+        } catch (e: Exception) {
+            Log.w("FluxMulticast", "Could not acquire multicast lock", e)
+            false
+        }
+    }
+
+    private fun releaseMulticastLock() {
+        try {
+            val lock = multicastLock
+            if (lock?.isHeld == true) {
+                lock.release()
+            }
+        } catch (e: Exception) {
+            Log.w("FluxMulticast", "Could not release multicast lock", e)
+        }
+    }
+
     private fun openDirectoryPicker(onlyPath: Boolean) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        intent.addFlags(
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+        )
         startActivityForResult(
             intent,
             if (onlyPath) REQUEST_CODE_PICK_DIRECTORY_PATH else REQUEST_CODE_PICK_DIRECTORY
@@ -124,7 +188,7 @@ class MainActivity : FlutterActivity() {
                 val takeFlags: Int =
                     data.flags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 if (uri != null) {
-                    contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    takePersistableDirectoryPermission(uri, takeFlags)
 
                     val files = mutableListOf<FileInfo>()
                     listFiles(uri, files)
@@ -142,7 +206,7 @@ class MainActivity : FlutterActivity() {
                 val takeFlags: Int =
                     data.flags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 if (uri != null) {
-                    contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    takePersistableDirectoryPermission(uri, takeFlags)
                     pendingResult?.success(uri.toString())
                     pendingResult = null
                 } else {
@@ -174,7 +238,7 @@ class MainActivity : FlutterActivity() {
 
                 val resultList = mutableListOf<FileInfo>()
                 for (uri in uriList) {
-                    contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    takePersistableReadPermission(uri, takeFlags)
                     val documentFile = FastDocumentFile.fromDocumentUri(this, uri)
                     if (documentFile == null) {
                         pendingResult?.error("Error", "Failed to access file", null)
@@ -270,6 +334,30 @@ class MainActivity : FlutterActivity() {
         intent.action = Intent.ACTION_VIEW
         intent.type = "image/*"
         startActivity(intent)
+    }
+
+    private fun takePersistableReadPermission(uri: Uri, flags: Int) {
+        val readFlags = flags and Intent.FLAG_GRANT_READ_URI_PERMISSION
+        if (readFlags == 0) {
+            return
+        }
+        try {
+            contentResolver.takePersistableUriPermission(uri, readFlags)
+        } catch (e: SecurityException) {
+            Log.w("FluxFilePicker", "Could not persist URI permission for $uri", e)
+        }
+    }
+
+    private fun takePersistableDirectoryPermission(uri: Uri, flags: Int) {
+        val persistFlags = flags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        if (persistFlags == 0) {
+            return
+        }
+        try {
+            contentResolver.takePersistableUriPermission(uri, persistFlags)
+        } catch (e: SecurityException) {
+            Log.w("FluxFilePicker", "Could not persist directory URI permission for $uri", e)
+        }
     }
 }
 

@@ -1,16 +1,16 @@
 import 'package:localsend_app/model/persistence/favorite_device.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
-import 'package:mockito/mockito.dart';
+import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test/test.dart';
 
-import '../../mocks.mocks.dart';
-
 void main() {
-  late MockPersistenceService persistenceService;
+  late PersistenceService persistenceService;
 
-  setUp(() {
-    persistenceService = MockPersistenceService();
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    persistenceService = PersistenceService.forTesting(await SharedPreferences.getInstance());
   });
 
   test('Should add a favorite device', () async {
@@ -25,7 +25,7 @@ void main() {
     await service.dispatchAsync(AddFavoriteAction(device));
 
     expect(service.state, [device]);
-    verify(persistenceService.setFavorites([device]));
+    expect(persistenceService.getFavorites(), [device]);
   });
 
   test('Should update a favorite device', () async {
@@ -35,7 +35,6 @@ void main() {
       initialState: [initialDevice],
     );
 
-    // Sanity check
     expect(service.state, [initialDevice]);
     expect(service.state.first.alias, 'A');
 
@@ -44,7 +43,7 @@ void main() {
 
     expect(service.state, [updatedDevice]);
     expect(service.state.first.alias, 'B');
-    verify(persistenceService.setFavorites([updatedDevice]));
+    expect(persistenceService.getFavorites(), [updatedDevice]);
   });
 
   test('Should not update a favorite device if unknown id', () async {
@@ -54,7 +53,6 @@ void main() {
       initialState: [initialDevice],
     );
 
-    // Sanity check
     expect(service.state, [initialDevice]);
     expect(service.state.first.alias, 'A');
 
@@ -63,7 +61,7 @@ void main() {
 
     expect(service.state, [initialDevice]);
     expect(service.state.first.alias, 'A');
-    verifyNever(persistenceService.setFavorites(any));
+    expect(persistenceService.getFavorites(), isEmpty);
   });
 
   test('Should delete favorite device', () async {
@@ -73,13 +71,12 @@ void main() {
       initialState: [initialDevice],
     );
 
-    // Sanity check
     expect(service.state, [initialDevice]);
 
     await service.dispatchAsync(RemoveFavoriteAction(deviceFingerprint: '111'));
 
     expect(service.state, []);
-    verify(persistenceService.setFavorites([]));
+    expect(persistenceService.getFavorites(), []);
   });
 
   test('Should not delete favorite device if unknown fingerprint', () async {
@@ -89,13 +86,12 @@ void main() {
       initialState: [initialDevice],
     );
 
-    // Sanity check
     expect(service.state, [initialDevice]);
 
     await service.dispatchAsync(RemoveFavoriteAction(deviceFingerprint: '222'));
 
     expect(service.state, [initialDevice]);
-    verifyNever(persistenceService.setFavorites(any));
+    expect(persistenceService.getFavorites(), isEmpty);
   });
 }
 

@@ -22,35 +22,60 @@ class NearbyDevicesState with NearbyDevicesStateMappable {
   });
 
   Map<String, Device> get allDevices {
-    final Map<String, Device> allDevices = {};
-    allDevices.addAll(devices);
+    final byFingerprint = <String, Device>{};
+    final withoutFingerprint = <String, Device>{};
+
+    for (final device in devices.values) {
+      if (device.fingerprint.isEmpty) {
+        withoutFingerprint[device.ip ?? device.signalingId ?? device.alias] = device;
+        continue;
+      }
+
+      byFingerprint.update(
+        device.fingerprint,
+        (current) => current.merge(device),
+        ifAbsent: () => device,
+      );
+    }
+
     for (final devices in signalingDevices.values) {
       for (final device in devices) {
-        final currentDevice = allDevices[device.fingerprint];
-        if (currentDevice != null && currentDevice.alias == device.alias) {
-          allDevices[device.fingerprint] = currentDevice.merge(device);
-        } else {
-          allDevices[device.fingerprint] = device;
+        if (device.fingerprint.isEmpty) {
+          withoutFingerprint[device.ip ?? device.signalingId ?? device.alias] = device;
+          continue;
         }
+
+        byFingerprint.update(
+          device.fingerprint,
+          (current) => current.merge(device),
+          ifAbsent: () => device,
+        );
       }
     }
-    return allDevices;
+
+    return {
+      ...withoutFingerprint,
+      for (final device in byFingerprint.values) device.ip ?? device.signalingId ?? device.fingerprint: device,
+    };
   }
 }
 
 extension on Device {
   Device merge(Device other) {
+    final primary = other.ip != null ? other : (ip != null ? this : other);
+    final secondary = primary == this ? other : this;
+
     return Device(
-      signalingId: signalingId ?? other.signalingId,
-      ip: ip ?? other.ip,
-      version: version,
-      port: port,
-      https: https,
-      fingerprint: fingerprint,
-      alias: alias,
-      deviceModel: deviceModel,
-      deviceType: deviceType,
-      download: download,
+      signalingId: primary.signalingId ?? secondary.signalingId,
+      ip: primary.ip ?? secondary.ip,
+      version: primary.version.isNotEmpty ? primary.version : secondary.version,
+      port: primary.port >= 0 ? primary.port : secondary.port,
+      https: primary.https,
+      fingerprint: primary.fingerprint.isNotEmpty ? primary.fingerprint : secondary.fingerprint,
+      alias: primary.alias.isNotEmpty ? primary.alias : secondary.alias,
+      deviceModel: primary.deviceModel ?? secondary.deviceModel,
+      deviceType: primary.deviceType,
+      download: primary.download || secondary.download,
       discoveryMethods: {
         ...discoveryMethods,
         ...other.discoveryMethods,

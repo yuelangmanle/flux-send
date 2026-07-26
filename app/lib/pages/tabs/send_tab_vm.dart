@@ -8,6 +8,7 @@ import 'package:localsend_app/model/send_mode.dart';
 import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/send_page.dart';
 import 'package:localsend_app/pages/web_send_page.dart';
+import 'package:localsend_app/provider/connection_mode_provider.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
@@ -16,6 +17,7 @@ import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/util/favorites.dart';
+import 'package:localsend_app/util/ui/snackbar.dart';
 import 'package:localsend_app/widget/dialogs/address_input_dialog.dart';
 import 'package:localsend_app/widget/dialogs/favorite_delete_dialog.dart';
 import 'package:localsend_app/widget/dialogs/favorite_dialog.dart';
@@ -56,8 +58,10 @@ final sendTabVmProvider = ViewProvider((ref) {
   final sendMode = ref.watch(settingsProvider.select((s) => s.sendMode));
   final selectedFiles = ref.watch(selectedSendingFilesProvider);
   final localIps = ref.watch(localIpProvider).localIps;
-  final nearbyDevices = ref.watch(nearbyDevicesProvider).allDevices.values;
-  final favoriteDevices = ref.watch(favoritesProvider);
+  final connectionMode = ref.watch(connectionModeProvider);
+  final usingClassicBluetooth = connectionMode == FluxConnectionMode.classicBluetooth;
+  final nearbyDevices = usingClassicBluetooth ? const <Device>[] : ref.watch(nearbyDevicesProvider).allDevices.values;
+  final favoriteDevices = usingClassicBluetooth ? const <FavoriteDevice>[] : ref.watch(favoritesProvider);
 
   return SendTabVm(
     sendMode: sendMode,
@@ -66,16 +70,16 @@ final sendTabVmProvider = ViewProvider((ref) {
     nearbyDevices: nearbyDevices,
     favoriteDevices: favoriteDevices,
     onTapAddress: (context) async {
-      final files = ref.read(selectedSendingFilesProvider);
-      if (files.isEmpty) {
-        await context.pushBottomSheet(() => const NoFilesDialog());
+      if (ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
+        context.showSnackBar('经典蓝牙模式不会使用手动 IP。请在上方蓝牙设备列表连接后，使用「通过蓝牙发送」。');
         return;
       }
       final device = await showDialog<Device?>(
         context: context,
         builder: (_) => const AddressInputDialog(),
       );
-      if (device != null && context.mounted) {
+      final files = ref.read(selectedSendingFilesProvider);
+      if (device != null && files.isNotEmpty && context.mounted) {
         await ref
             .notifier(sendProvider)
             .startSession(
@@ -83,9 +87,15 @@ final sendTabVmProvider = ViewProvider((ref) {
               files: files,
               background: false,
             );
+      } else if (device != null && context.mounted) {
+        context.showSnackBar('已加入设备，可用于剪切板自动同步；选择文件后也可以直接发送。');
       }
     },
     onTapFavorite: (context) async {
+      if (ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
+        context.showSnackBar('经典蓝牙模式不会使用收藏的局域网设备。请连接已配对蓝牙设备后再发送。');
+        return;
+      }
       final device = await showDialog<Device?>(
         context: context,
         builder: (_) => const FavoritesDialog(),
@@ -93,7 +103,7 @@ final sendTabVmProvider = ViewProvider((ref) {
       if (device != null && context.mounted) {
         final files = ref.read(selectedSendingFilesProvider);
         if (files.isEmpty) {
-          await context.pushBottomSheet(() => const NoFilesDialog());
+          context.showSnackBar('已加入收藏设备，可用于剪切板自动同步；选择文件后也可以直接发送。');
           return;
         }
 
@@ -140,8 +150,12 @@ final sendTabVmProvider = ViewProvider((ref) {
       }
     },
     onTapDevice: (context, device) async {
+      if (ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
+        context.showSnackBar('经典蓝牙模式不会通过局域网设备发送。请使用上方「通过蓝牙发送」。');
+        return;
+      }
       if (selectedFiles.isEmpty) {
-        await context.pushBottomSheet(() => const NoFilesDialog());
+        context.showSnackBar('设备在线，可用于剪切板自动同步；选择文件后也可以直接发送。');
         return;
       }
 
@@ -154,6 +168,10 @@ final sendTabVmProvider = ViewProvider((ref) {
           );
     },
     onTapDeviceMultiSend: (context, device) async {
+      if (ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
+        context.showSnackBar('经典蓝牙模式不会通过局域网设备发送。请使用上方「通过蓝牙发送」。');
+        return;
+      }
       final session = ref.read(sendProvider).values.firstWhereOrNull((s) => s.target.ip == device.ip);
       if (session != null) {
         if (session.status == SessionStatus.waiting) {
@@ -174,7 +192,7 @@ final sendTabVmProvider = ViewProvider((ref) {
 
       final files = ref.read(selectedSendingFilesProvider);
       if (files.isEmpty) {
-        await context.pushBottomSheet(() => const NoFilesDialog());
+        context.showSnackBar('设备在线，可用于剪切板自动同步；选择文件后也可以直接发送。');
         return;
       }
 
@@ -201,6 +219,9 @@ class SendTabInitAction extends AsyncGlobalAction {
 
   @override
   Future<void> reduce() async {
+    if (ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
+      return;
+    }
     final devices = ref.read(nearbyDevicesProvider).devices;
     if (devices.isEmpty) {
       await dispatchAsync(StartSmartScan(forceLegacy: false));

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:localsend_app/config/init.dart';
 import 'package:localsend_app/config/init_error.dart';
+import 'package:localsend_app/config/runtime_error_widget.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
@@ -18,6 +19,8 @@ import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
 Future<void> main(List<String> args) async {
+  ErrorWidget.builder = buildFluxRuntimeErrorWidget;
+
   final RefenaContainer container;
   try {
     container = await preInit(args);

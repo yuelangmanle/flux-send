@@ -2,14 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>LSUIElement</key>
-	<true/>
     <key>AppIdentifierPrefix</key>
 	<string>$(AppIdentifierPrefix)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-    <string>LocalSend</string>
+    <string>Flux</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconFile</key>
@@ -108,6 +106,8 @@
     <string>The app requires the local IP to communicate.</string>
     <key>NSLocalNetworkUsageDescription</key>
     <string>The app uses the local network to find and connect to nearby devices.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Flux 使用经典蓝牙连接已配对设备，用于无 Wi‑Fi 场景下的剪切板同步。</string>
     <key>NSBonjourServices</key>
     <array>
         <string>_http._tcp</string>
@@ -142,12 +142,12 @@
             <key>NSMenuItem</key>
             <dict>
                 <key>default</key>
-                <string>Send to LocalSend</string>
+                <string>Send to Flux</string>
             </dict>
             <key>NSMessage</key>
             <string>handleSendTextService</string>
             <key>NSPortName</key>
-            <string>LocalSend</string>
+            <string>Flux</string>
             <key>NSSendTypes</key>
             <array>
                 <string>public.plain-text</string>

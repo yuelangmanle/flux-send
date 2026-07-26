@@ -1,31 +1,31 @@
-name: Feature request
-description: Suggest an idea for this project
+name: 功能建议
+description: 提出一个能改善 Flux 的具体想法。
 title: "fr: "
 labels: ["enhancement"]
 body:
   - type: checkboxes
     id: confirm
     attributes:
-      label: Read [this](https://github.com/localsend/localsend/issues/528) before anything
+      label: 提交前确认
       options:
-        - label: I have read it.
-        - label: Issues not fitting are closed.
+        - label: 我已确认这不是安全漏洞或重复问题。
+          required: true
 
   - type: checkboxes
     id: duplication
     attributes:
-      label: "Make sure about:"
+      label: 请确认
       options:
-        - label: This issue is not duplicated with any other open or closed issues.
+        - label: 我已搜索过现有 Issue。
           required: true
-        - label: This issue is a feature request, not a bug report.
+        - label: 这是功能建议，不是可复现的 Bug。
           required: true
 
   - type: textarea
     id: reason
     attributes:
-      label: Reason of the change
-      description: Why the things need to be changed? Inconvenient or logical wrong?
+      label: 需求与使用场景
+      description: 说明当前流程的痛点及希望改善的原因。
       placeholder: |
         Because if I want to ..., I'll need to ...
         It's not very ... to do so ...
@@ -35,8 +35,8 @@ body:
   - type: textarea
     id: solution
     attributes:
-      label: Description of the change
-      description: What should we change or add, to make it better?
+      label: 建议方案
+      description: 说明希望新增或改变什么。
       placeholder: |
         If there's a choice like ..., it will be more ...
     validations:
@@ -45,15 +45,15 @@ body:
   - type: textarea
     id: alternatives
     attributes:
-      label: The alternatives you've considered
-      description: If we are unable to do that above, any other solution?
+      label: 已考虑的替代方案
+      description: 若不能采用上述方案，是否还有替代方式？
       placeholder: |
         Add a ... also helps ...
 
   - type: textarea
     id: additional
     attributes:
-      label: Additional context
-      description: Add any other context or screenshots about the request here
+      label: 补充信息
+      description: 其他有帮助的背景或截图。
       placeholder: |
         Related app, website, system, or a design. Anything helpful can be here.

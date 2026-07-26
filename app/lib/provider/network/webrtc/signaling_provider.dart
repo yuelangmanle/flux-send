@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:common/constants.dart';
 import 'package:common/model/device.dart';
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
@@ -17,6 +16,8 @@ import 'package:localsend_app/rust/api/webrtc.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 part 'signaling_provider.mapper.dart';
+
+const _legacyPublicSignalingServer = 'wss://public.localsend.org/v1/ws';
 
 @MappableClass()
 class SignalingState with SignalingStateMappable {
@@ -47,11 +48,34 @@ class SignalingService extends ReduxNotifier<SignalingState> {
   @override
   SignalingState init() {
     return SignalingState(
-      signalingServers: _persistence.getSignalingServers() ?? ['wss://public.localsend.org/v1/ws'],
-      stunServers: _persistence.getStunServers() ?? ['stun:stun.localsend.org:5349'],
+      signalingServers: normalizeFluxSignalingServers(_persistence.getSignalingServers()),
+      stunServers: normalizeFluxStunServers(_persistence.getStunServers(), _persistence.getSignalingServers()),
       connections: {},
     );
   }
+}
+
+List<String> normalizeFluxSignalingServers(List<String>? storedServers) {
+  if (storedServers == null) {
+    return const [];
+  }
+
+  return storedServers
+      .map((server) => server.trim())
+      .where((server) => server.isNotEmpty && server != _legacyPublicSignalingServer)
+      .toList(growable: false);
+}
+
+List<String> normalizeFluxStunServers(List<String>? storedServers, List<String>? storedSignalingServers) {
+  if (normalizeFluxSignalingServers(storedSignalingServers).isEmpty) {
+    return const [];
+  }
+
+  return storedServers?.map((server) => server.trim()).where((server) => server.isNotEmpty).toList(growable: false) ?? const [];
+}
+
+bool shouldStartSignalingConnection(SignalingState state) {
+  return state.signalingServers.isNotEmpty;
 }
 
 class SetupSignalingConnection extends ReduxAction<SignalingService, SignalingState> with GlobalActions {
@@ -78,13 +102,10 @@ class _SetupSignalingConnection extends AsyncGlobalAction {
 
     // TODO: Use persistent key
     final key = await crypto.generateKeyPair();
-    if (kDebugMode) {
-      print('private key: ${key.privateKey}');
-    }
 
     LsSignalingConnection? connection;
     final stream = connect(
-      uri: 'wss://public.localsend.org/v1/ws',
+      uri: signalingServer,
       info: ProposingClientInfo(
         alias: settings.alias,
         version: protocolVersion,

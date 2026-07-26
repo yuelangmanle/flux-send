@@ -28,7 +28,7 @@ class _LanguagePageState extends State<LanguagePage> {
     final t = Translations.of(context);
     final activeLocale = context.ref.watch(settingsProvider.select((s) => s.locale));
     return Scaffold(
-      appBar: basicLocalSendAppbar(t.sendTab.selection.title),
+      appBar: basicLocalSendAppbar(t.settingsTab.general.language),
       body: ResponsiveListView(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
         children: [
@@ -66,6 +66,6 @@ class _LanguagePageState extends State<LanguagePage> {
 
 extension AppLocaleExt on AppLocale {
   String get humanName {
-    return LocaleSettings.instance.translationMap[this]?.locale ?? 'Loading';
+    return LocaleSettings.instance.translationMap[this]?.locale ?? '加载中';
   }
 }

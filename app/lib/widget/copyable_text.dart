@@ -21,7 +21,7 @@ class CopyableText extends StatelessWidget {
           : () async {
               await Clipboard.setData(ClipboardData(text: value!));
               if (context.mounted) {
-                context.showSnackBar('Copied $name to clipboard!');
+                context.showSnackBar('已复制 $name 到剪切板');
               }
             },
       child: Text.rich(

@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:localsend_app/util/user_agent_analyzer.dart';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('SimpleServer');
 
 /// A very light layer on top of the HttpServer class.
 class SimpleServer {
@@ -13,14 +17,31 @@ class SimpleServer {
     required SimpleServerRouteBuilder routes,
   }) : _server = server {
     _server.listen((request) async {
+      final method = HttpMethod.fromMethodName(request.method);
+      if (method == null) {
+        request.response.statusCode = HttpStatus.methodNotAllowed;
+        request.response.write('Method not allowed');
+        await request.response.close();
+        return;
+      }
+
       final handler =
           routes._routes[Route(
-            HttpMethod.values.firstWhere((e) => e.methodName == request.method),
+            method,
             request.uri.path,
           )];
 
       if (handler != null) {
-        handler.call(request);
+        try {
+          await handler.call(request);
+        } catch (e, st) {
+          _logger.severe('Unhandled route error: ${request.method} ${request.uri.path}', e, st);
+          try {
+            await request.respondJson(HttpStatus.internalServerError, message: e.toString());
+          } catch (_) {
+            await request.response.close();
+          }
+        }
       } else {
         request.response.statusCode = HttpStatus.notFound;
         request.response.write('Not found');
@@ -35,7 +56,7 @@ class SimpleServer {
   }
 }
 
-typedef HttpRequestHandler = void Function(HttpRequest request);
+typedef HttpRequestHandler = FutureOr<void> Function(HttpRequest request);
 
 enum HttpMethod {
   get('GET'),
@@ -44,6 +65,15 @@ enum HttpMethod {
   const HttpMethod(this.methodName);
 
   final String methodName;
+
+  static HttpMethod? fromMethodName(String methodName) {
+    for (final method in values) {
+      if (method.methodName == methodName) {
+        return method;
+      }
+    }
+    return null;
+  }
 }
 
 class Route {

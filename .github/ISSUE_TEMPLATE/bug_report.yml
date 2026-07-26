@@ -1,31 +1,31 @@
-name: Bug report
-description: Create a report to help us address issues you are facing
+name: Bug 报告
+description: 报告可稳定复现的问题，帮助我们修复 Flux。
 title: "bug: "
 labels: [bug]
 body:
   - type: checkboxes
     id: confirm
     attributes:
-      label: Read [this](https://github.com/localsend/localsend/issues/528) before anything
+      label: 提交前确认
       options:
-        - label: I have read it.
-        - label: Issues not fitting are closed.
+        - label: 我已移除密码、Token、个人文件、完整内网地址和其他敏感信息。
+          required: true
 
   - type: checkboxes
     id: duplication
     attributes:
-      label: "Make sure about:"
+      label: 请确认
       options:
-        - label: This issue is not duplicated with any other open or closed issues.
+        - label: 我已搜索过现有 Issue，确认没有重复报告。
           required: true
-        - label: I am using the latest version from the release.
+        - label: 我正在使用最新 GitHub Release，或已注明测试版本。
           required: true
 
   - type: textarea
     id: description
     attributes:
-      label: Describe the bug
-      description: A clear and concise description of what the bug is
+      label: 问题描述
+      description: 清楚简洁地说明实际发生了什么。
       placeholder: |
         App crashes on startup every time after changing settings.
         /
@@ -36,8 +36,8 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: Expected behavior
-      description: A clear and concise description of what you expected to happen
+      label: 预期行为
+      description: 说明你预期发生什么。
       placeholder: |
         App started normally, everything worked fine.
     validations:
@@ -46,8 +46,8 @@ body:
   - type: textarea
     id: reproduce
     attributes:
-      label: Reproduction
-      description: Steps to reproduce the bug
+      label: 复现步骤
+      description: 给出可重复的操作步骤。
       placeholder: |
         1. Turn on "..." in "... settings"
         2. Restart the app
@@ -62,8 +62,8 @@ body:
   - type: textarea
     id: environment
     attributes:
-      label: Device information
-      description: Provide details about your system environment
+      label: 设备与连接信息
+      description: 提供双方设备与网络/蓝牙模式信息，请勿填写完整 IP 或 MAC 地址。
       placeholder: |
         Device: (Pixel 9 Pro/Lenovo Yoga 9i)
         System: (Android 16 BP31.2505/Windows 11 24H2)
@@ -75,8 +75,8 @@ body:
   - type: textarea
     id: screenshots
     attributes:
-      label: Screenshots
-      description: If applicable, add screenshots to help explain your problem
+      label: 截图或脱敏日志
+      description: 如有需要可上传，注意移除个人信息。
       placeholder: |
         modified_setting_items.jpg
         files_to_send.jpg
@@ -87,8 +87,8 @@ body:
   - type: textarea
     id: additional
     attributes:
-      label: Additional context
-      description: Add any other context about the problem here
+      label: 补充信息
+      description: 其他有助于定位的信息。
       placeholder: |
         Crash report or any helpful information.
     validations:

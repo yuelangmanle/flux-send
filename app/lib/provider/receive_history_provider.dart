@@ -11,6 +11,54 @@ final receiveHistoryProvider = ReduxProvider<ReceiveHistoryService, List<Receive
   return ReceiveHistoryService(ref.read(persistenceProvider));
 });
 
+class ReceiveHistoryGroup {
+  final String label;
+  final List<ReceiveHistoryEntry> entries;
+
+  const ReceiveHistoryGroup({
+    required this.label,
+    required this.entries,
+  });
+}
+
+List<ReceiveHistoryGroup> groupReceiveHistoryByDay(List<ReceiveHistoryEntry> entries) {
+  final sorted = [...entries]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  final groups = <String, List<ReceiveHistoryEntry>>{};
+  for (final entry in sorted) {
+    final local = entry.timestamp.toLocal();
+    final label = '${local.year.toString().padLeft(4, '0')}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+    groups.putIfAbsent(label, () => []).add(entry);
+  }
+  return groups.entries.map((entry) => ReceiveHistoryGroup(label: entry.key, entries: entry.value)).toList(growable: false);
+}
+
+List<ReceiveHistoryGroup> groupReceiveHistoryByType(List<ReceiveHistoryEntry> entries) {
+  final sorted = [...entries]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  final groups = <FileType, List<ReceiveHistoryEntry>>{};
+  for (final entry in sorted) {
+    groups.putIfAbsent(entry.fileType, () => []).add(entry);
+  }
+  return groups.entries
+      .map(
+        (entry) => ReceiveHistoryGroup(
+          label: describeReceiveHistoryFileType(entry.key),
+          entries: entry.value,
+        ),
+      )
+      .toList(growable: false);
+}
+
+String describeReceiveHistoryFileType(FileType type) {
+  return switch (type) {
+    FileType.image => '图片',
+    FileType.video => '视频',
+    FileType.pdf => 'PDF',
+    FileType.text => '文本',
+    FileType.apk => '应用',
+    FileType.other => '其他',
+  };
+}
+
 class ReceiveHistoryService extends ReduxNotifier<List<ReceiveHistoryEntry>> {
   final PersistenceService _persistence;
 

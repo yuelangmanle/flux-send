@@ -42,7 +42,7 @@ class TranslationsZhCn extends Translations {
   @override
   String get locale => '简体中文';
   @override
-  String get appName => 'LocalSend';
+  String get appName => 'Flux';
   @override
   late final _TranslationsGeneralZhCn general = _TranslationsGeneralZhCn._(_root);
   @override
@@ -327,11 +327,8 @@ class _TranslationsReceivePageZhCn extends TranslationsReceivePageEn {
 
   // Translations
   @override
-  String subTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(
-    n,
-    one: '想要发送给你一个文件',
-    other: '想要发送给你 ${n} 个文件',
-  );
+  String subTitle({required num n}) =>
+      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(n, one: '想要发送给你一个文件', other: '想要发送给你 ${n} 个文件');
   @override
   String get subTitleMessage => '发送给你了一条消息：';
   @override
@@ -352,7 +349,7 @@ class _TranslationsReceiveOptionsPageZhCn extends TranslationsReceiveOptionsPage
   @override
   String get destination => _root.settingsTab.receive.destination;
   @override
-  String get appDirectory => '(LocalSend 文件夹)';
+  String get appDirectory => '(Flux 文件夹)';
   @override
   String get saveToGallery => _root.settingsTab.receive.saveToGallery;
   @override
@@ -411,11 +408,8 @@ class _TranslationsWebSharePageZhCn extends TranslationsWebSharePageEn {
   @override
   String get error => '在启动服务器过程中发生了错误。';
   @override
-  String openLink({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(
-    n,
-    one: '在浏览器中打开链接：',
-    other: '在浏览器中打开其中一个链接：',
-  );
+  String openLink({required num n}) =>
+      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(n, one: '在浏览器中打开链接：', other: '在浏览器中打开其中一个链接：');
   @override
   String get requests => '请求';
   @override
@@ -429,7 +423,7 @@ class _TranslationsWebSharePageZhCn extends TranslationsWebSharePageEn {
   @override
   String pinHint({required Object pin}) => 'PIN 为 “${pin}”';
   @override
-  String get encryptionHint => 'LocalSend 使用自签名证书。您需要在浏览器中允许它。';
+  String get encryptionHint => 'Flux 使用自签名证书。您需要在浏览器中允许它。';
   @override
   String pendingRequests({required Object n}) => '待处理请求：${n}';
 }
@@ -442,10 +436,10 @@ class _TranslationsAboutPageZhCn extends TranslationsAboutPageEn {
 
   // Translations
   @override
-  String get title => '关于 LocalSend';
+  String get title => '关于 Flux';
   @override
   List<String> get description => [
-    'LocalSend 是一款免费的开源应用程序，可让您通过本地网络与附近的设备安全地分享文件和信息，而无需互联网连接。',
+    'Flux 是一款免费的开源应用程序，可让您通过本地网络与附近的设备安全地分享文件和信息，而无需互联网连接。',
     '本程序可在 Android、iOS、macOS、Windows 和 Linux 上使用。您可以在官方主页找到所有下载选项。',
   ];
   @override
@@ -468,7 +462,7 @@ class _TranslationsDonationPageZhCn extends TranslationsDonationPageEn {
   @override
   String get title => '捐赠';
   @override
-  String get info => 'LocalSend 免费、开源、无广告。如果您喜欢这款应用程序，可以捐款支持开发。';
+  String get info => 'Flux 免费、开源、无广告。如果您喜欢这款应用程序，可以捐款支持开发。';
   @override
   String donate({required Object amount}) => '捐款 ${amount}';
   @override
@@ -652,7 +646,7 @@ class _TranslationsTrayZhCn extends TranslationsTrayEn {
   @override
   String get open => _root.general.open;
   @override
-  String get close => '退出 LocalSend';
+  String get close => '退出 Flux';
   @override
   String get closeWindows => '退出';
 }
@@ -757,7 +751,7 @@ class _TranslationsNetworkInterfacesPageZhCn extends TranslationsNetworkInterfac
   @override
   String get title => '网络接口';
   @override
-  String get info => '默认情况下，LocalSend 使用所有可用的网络接口。您可以在此处排除不需要的网络接口。您需要重新启动服务器以应用更改。';
+  String get info => '默认情况下，Flux 使用所有可用的网络接口。您可以在此处排除不需要的网络接口。您需要重新启动服务器以应用更改。';
   @override
   String get preview => '预览';
   @override
@@ -879,7 +873,7 @@ class _TranslationsSettingsTabGeneralZhCn extends TranslationsSettingsTabGeneral
   @override
   String get launchMinimized => '启动时最小化到任务栏';
   @override
-  String get showInContextMenu => '在“发送到...”文件菜单中显示 LocalSend';
+  String get showInContextMenu => '在“发送到...”文件菜单中显示 Flux';
   @override
   String get animations => '动画效果';
 }
@@ -975,7 +969,7 @@ class _TranslationsSettingsTabOtherZhCn extends TranslationsSettingsTabOtherEn {
   @override
   String get title => '其他';
   @override
-  String get support => '支持 LocalSend';
+  String get support => '支持 Flux';
   @override
   String get donate => '捐赠';
   @override
@@ -1280,7 +1274,7 @@ class _TranslationsDialogsLocalNetworkUnauthorizedZhCn extends TranslationsDialo
   @override
   String get title => _root.dialogs.noPermission.title;
   @override
-  String get description => 'LocalSend 在没有扫描本地网络的权限的情况下无法找到其他设备。请在设置中授予此权限。';
+  String get description => 'Flux 在没有扫描本地网络的权限的情况下无法找到其他设备。请在设置中授予此权限。';
   @override
   String get gotoSettings => '设置';
 }
@@ -1321,7 +1315,8 @@ class _TranslationsDialogsNoPermissionZhCn extends TranslationsDialogsNoPermissi
   @override
   String get title => '没有权限';
   @override
-  String get content => '您尚未授予必要的权限。请在设置中授予权限。';
+  String get content =>
+      'Flux 无法访问刚才选择的内容。如果是发送文件失败，请回到 Flux，用系统文件选择器重新选择文件或文件夹；如果是接收保存失败，请在「设置 > 接收 > 保存目录」重新选择 Download/下载目录并允许访问。Android 不需要“全部文件访问权限”，通常不用去系统设置里找这个权限。';
 }
 
 // Path: dialogs.notAvailableOnPlatform
@@ -1392,11 +1387,7 @@ class _TranslationsDialogsQuickSaveFromFavoritesNoticeZhCn extends TranslationsD
   @override
   String get title => _root.general.quickSaveFromFavorites;
   @override
-  List<String> get content => [
-    '当前会自动接受收藏夹中设备的文件请求。',
-    '警告：这目前并非绝对安全，知道您收藏夹列表中的设备指纹被黑客窃取，其仍可以向您发送文件。',
-    '但是，此选项比“允许任何设备”更安全。',
-  ];
+  List<String> get content => ['当前会自动接受收藏夹中设备的文件请求。', '警告：这目前并非绝对安全，知道您收藏夹列表中的设备指纹被黑客窃取，其仍可以向您发送文件。', '但是，此选项比“允许任何设备”更安全。'];
 }
 
 // Path: dialogs.pin
@@ -1424,7 +1415,7 @@ class _TranslationsDialogsSendModeHelpZhCn extends TranslationsDialogsSendModeHe
   @override
   String get multiple => '发送文件给多个接收者。已选择的文件在发送后不会取消选择。';
   @override
-  String get link => '未安装 LocalSend 的接收者可以在浏览器中打开链接以下载选中的文件。';
+  String get link => '未安装 Flux 的接收者可以在浏览器中打开链接以下载选中的文件。';
 }
 
 // Path: dialogs.zoom

@@ -101,7 +101,7 @@ Future<List<String>> _getIp({
           .where((ip) => !ip.contains(':')) // ignore IPv6 for now
           .toList();
 
-  final addresses = rankIpAddresses(nativeResult, ip);
+  final addresses = discoveryCandidateIps(rankIpAddresses(nativeResult, ip));
   _logger.info('Network state: $addresses');
   return addresses;
 }
@@ -120,6 +120,35 @@ List<String> rankIpAddresses(List<String> nativeResult, String? thirdPartyResult
     // merge but prefer result from third party library
     return {thirdPartyResult, ...nativeResult}.toList()._rankIpAddresses(thirdPartyResult);
   }
+}
+
+List<String> discoveryCandidateIps(List<String> addresses) {
+  final filtered = addresses.where(isDiscoveryCandidateIp).toList(growable: false);
+  return filtered.isEmpty ? addresses : filtered;
+}
+
+bool isDiscoveryCandidateIp(String address) {
+  final parts = address.split('.').map(int.tryParse).toList(growable: false);
+  if (parts.length != 4 || parts.any((part) => part == null || part < 0 || part > 255)) {
+    return false;
+  }
+
+  final first = parts[0]!;
+  final second = parts[1]!;
+
+  if (first == 0 || first == 127 || first >= 224) {
+    return false;
+  }
+
+  if (first == 169 && second == 254) {
+    return false;
+  }
+
+  if (first == 198 && (second == 18 || second == 19)) {
+    return false;
+  }
+
+  return true;
 }
 
 /// Sorts Ip addresses with first being the most likely primary local address
