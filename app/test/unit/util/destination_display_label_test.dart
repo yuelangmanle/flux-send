@@ -33,6 +33,48 @@ void main() {
     );
   });
 
+  test('keeps malformed Android SAF URI readable instead of throwing in settings', () {
+    const malformedUri = 'content://com.android.externalstorage.documents/tree/primary%broken';
+
+    expect(
+      () => describeDestinationDisplayLabel(
+        destination: malformedUri,
+        defaultDownloadsLabel: '(下载)',
+        isAndroid: true,
+      ),
+      returnsNormally,
+    );
+    expect(
+      describeDestinationDisplayLabel(
+        destination: malformedUri,
+        defaultDownloadsLabel: '(下载)',
+        isAndroid: true,
+      ),
+      malformedUri,
+    );
+  });
+
+  test('keeps truncated percent-encoded UTF-8 SAF URI readable instead of throwing', () {
+    const truncatedUri = 'content://com.android.externalstorage.documents/tree/primary%3ADownload%2F%E4%B8';
+
+    expect(
+      () => describeDestinationDisplayLabel(
+        destination: truncatedUri,
+        defaultDownloadsLabel: '(下载)',
+        isAndroid: true,
+      ),
+      returnsNormally,
+    );
+    expect(
+      describeDestinationDisplayLabel(
+        destination: truncatedUri,
+        defaultDownloadsLabel: '(下载)',
+        isAndroid: true,
+      ),
+      truncatedUri,
+    );
+  });
+
   test('keeps desktop defaults and paths unchanged', () {
     expect(
       describeDestinationDisplayLabel(

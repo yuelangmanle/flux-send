@@ -91,6 +91,7 @@ const _deviceModel = 'ls_device_model';
 const _shareViaLinkAutoAccept = 'ls_share_via_link_auto_accept';
 const _advancedSettingsKey = 'ls_advanced_settings';
 const _fluxConnectionModeKey = 'flux_connection_mode';
+const _clipboardSyncEnabled = 'ls_clipboard_sync_enabled';
 
 final persistenceProvider = Provider<PersistenceService>((ref) {
   throw Exception('persistenceProvider not initialized');
@@ -481,6 +482,15 @@ class PersistenceService {
 
   Future<void> setFluxConnectionModeName(String mode) async {
     await _prefs.setString(_fluxConnectionModeKey, mode);
+  }
+
+  /// 剪切板同步开关；默认开启，用户暂停后重启不再自动恢复同步。
+  bool isClipboardSyncEnabled() {
+    return _prefs.getBool(_clipboardSyncEnabled) ?? true;
+  }
+
+  Future<void> setClipboardSyncEnabled(bool enabled) async {
+    await _prefs.setBool(_clipboardSyncEnabled, enabled);
   }
 
   Future<void> setWindowOffsetX(double x) async {

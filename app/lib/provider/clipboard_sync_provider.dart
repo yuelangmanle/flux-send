@@ -10,6 +10,7 @@ import 'package:localsend_app/provider/connection_mode_provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/scan_facade.dart';
+import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:localsend_app/provider/security_provider.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -116,7 +117,24 @@ bool shouldWriteIncomingClipboard({
     return false;
   }
 
-  return incomingText != lastRemoteText || lastLocalText != lastRemoteText;
+  // 与上次已接收的远端文本相同：要么是重复内容，要么是失败重试——
+  // 用户本机可能已复制了新内容，重试不得把它洗掉，一律不再写入。
+  // 与本机当前文本相同：内容已就位，无需重复写入。
+  return incomingText != lastRemoteText && incomingText != lastLocalText;
+}
+
+const pendingClipboardRetryTtl = Duration(minutes: 2);
+
+bool shouldDropStalePendingClipboard({
+  required DateTime? pendingSince,
+  required DateTime now,
+  Duration ttl = pendingClipboardRetryTtl,
+}) {
+  final since = pendingSince;
+  if (since == null) {
+    return false;
+  }
+  return now.difference(since) > ttl;
 }
 
 String describeIncomingClipboardStatus(String text) {
@@ -254,6 +272,7 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
   // ignore: prefer_final_fields
   String _lastRemoteText = '';
   String _pendingText = '';
+  DateTime? _pendingSince;
   bool _suppressNext = false;
   bool _syncing = false;
   bool _retryAfterCurrentSync = false;
@@ -274,6 +293,7 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
 
   void enable() {
     if (state.enabled) return;
+    unawaited(_ref.read(persistenceProvider).setClipboardSyncEnabled(true));
     state = state.copyWith(
       enabled: true,
       statusMessage: '剪切板同步常驻运行中，正在发现附近设备',
@@ -286,15 +306,25 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
 
   void disable() {
     if (!state.enabled) return;
+    unawaited(_ref.read(persistenceProvider).setClipboardSyncEnabled(false));
     _stopPolling();
     _stopDiscovery();
     _pendingText = '';
+    _pendingSince = null;
     state = state.copyWith(
       enabled: false,
       statusMessage: '剪切板同步已关闭',
       lastError: null,
     );
     _logger.info('Clipboard sync disabled');
+  }
+
+  /// 启动时按持久化状态恢复“已暂停”，避免重启后静默恢复同步。
+  void markPausedOnStartup() {
+    if (state.enabled) return;
+    state = state.copyWith(
+      statusMessage: '剪切板同步已暂停，可在此重新开启',
+    );
   }
 
   void toggle() {
@@ -308,6 +338,9 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
 
     _refreshOnlineDeviceCount();
     if (_pendingText.isNotEmpty) {
+      if (_dropStalePendingIfNeeded()) {
+        return;
+      }
       if (_syncing) {
         _retryAfterCurrentSync = true;
         state = state.copyWith(
@@ -428,8 +461,29 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
     }
   }
 
+  /// 待同步文本超过 TTL 仍未成功时放弃自动重试，避免远端稍后被旧内容覆盖。
+  bool _dropStalePendingIfNeeded() {
+    if (_pendingText.isEmpty) {
+      return false;
+    }
+    if (!shouldDropStalePendingClipboard(pendingSince: _pendingSince, now: DateTime.now())) {
+      return false;
+    }
+    _pendingText = '';
+    _pendingSince = null;
+    state = state.copyWith(
+      statusMessage: '剪切板超过 2 分钟未同步成功，已放弃自动重试',
+      lastError: state.lastError,
+    );
+    _logger.info('Dropped stale pending clipboard text');
+    return true;
+  }
+
   void _retryPendingText() {
     if (_pendingText.isEmpty) {
+      return;
+    }
+    if (_dropStalePendingIfNeeded()) {
       return;
     }
     _sendToAllPeers(_pendingText); // ignore: discarded_futures
@@ -456,6 +510,7 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
 
       _lastLocalText = text;
       _pendingText = text;
+      _pendingSince = DateTime.now();
       _logger.info('Local clipboard changed, syncing...');
       await _sendToAllPeers(text);
     } catch (e) {
@@ -486,6 +541,9 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
             sentText: text,
             pendingText: _pendingText,
           );
+          if (_pendingText.isEmpty) {
+            _pendingSince = null;
+          }
           state = state.copyWith(
             lastSyncedText: text,
             lastSyncTime: DateTime.now(),
@@ -552,6 +610,9 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
           attemptedCount: devices.length,
           successCount: successCount,
         );
+        if (_pendingText.isEmpty) {
+          _pendingSince = null;
+        }
         state = state.copyWith(
           lastSyncedText: text,
           lastSyncTime: DateTime.now(),
@@ -578,12 +639,13 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
       _syncing = false;
       final retryQueuedDuringSend = _retryAfterCurrentSync;
       _retryAfterCurrentSync = false;
-      if (shouldRetryPendingClipboardAfterSend(
+      final retryDue = shouldRetryPendingClipboardAfterSend(
         enabled: state.enabled,
         pendingText: _pendingText,
         sentText: text,
         retryQueuedDuringSend: retryQueuedDuringSend,
-      )) {
+      );
+      if (retryDue && !_dropStalePendingIfNeeded()) {
         unawaited(_sendToAllPeers(_pendingText));
       }
     }

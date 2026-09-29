@@ -5,6 +5,8 @@ import IOBluetooth
 final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothRFCOMMChannelDelegate {
     private let serviceUuid = IOBluetoothSDPUUID(uuid16: 0x1101)
     private let fluxBluetoothMessage = "flux.bluetooth.message.v1"
+    private let fluxBluetoothHello = "flux.bluetooth.hello.v1"
+    private let fluxBluetoothHelloAck = "flux.bluetooth.hello.ack.v1"
     private let maxWriteChunkSize = 8192
     private var eventSink: FlutterEventSink?
     private var channel: IOBluetoothRFCOMMChannel?
@@ -13,6 +15,10 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
     private var serviceChannelID = BluetoothRFCOMMChannelID(1)
     private var receiveBuffer = ""
     private var connectionGeneration = 0
+    private var handshakeComplete = false
+    private var activeRole = ""
+    private var activeAddress = ""
+    private var activeName = ""
     private var hasBluetoothUsageDescription: Bool {
         guard let description = Bundle.main.object(forInfoDictionaryKey: "NSBluetoothAlwaysUsageDescription") as? String else {
             return false
@@ -163,19 +169,18 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         channel = newChannel
         previousChannel?.close()
         receiveBuffer = ""
+        handshakeComplete = false
+        activeRole = role
         newChannel.setDelegate(self)
         let device = newChannel.getDevice()
-        let address = device?.addressString ?? ""
-        let name = device?.nameOrAddress ?? address
-        emit(
-            type: "connected",
-            message: name.isEmpty ? "经典蓝牙已连接（\(role)）" : "经典蓝牙已连接：\(name)（\(role)）",
-            extras: [
-                "address": address,
-                "name": name,
-                "role": role
-            ]
-        )
+        activeAddress = device?.addressString ?? ""
+        activeName = device?.nameOrAddress ?? activeAddress
+        emit(type: "status", message: "经典蓝牙通道已打开，正在验证 Flux 对端")
+        guard sendHandshake(newChannel, type: fluxBluetoothHello) else {
+            newChannel.close()
+            handleChannelClosed(newChannel)
+            return
+        }
     }
 
     private func sendClipboard(_ text: String) -> Bool {
@@ -188,7 +193,21 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
             emit(type: "error", message: "经典蓝牙未连接，无法发送剪切板或文件")
             return false
         }
+        guard handshakeComplete else {
+            emit(type: "error", message: "经典蓝牙尚未完成 Flux 协议握手，无法发送剪切板或文件")
+            return false
+        }
+        return writeFrame(channel, payload: payload, sentMessage: sentMessage)
+    }
 
+    private func sendHandshake(_ channel: IOBluetoothRFCOMMChannel, type: String) -> Bool {
+        return writeFrame(channel, payload: "{\"type\":\(jsonString(type))}", sentMessage: nil)
+    }
+
+    private func writeFrame(_ channel: IOBluetoothRFCOMMChannel, payload: String, sentMessage: String?) -> Bool {
+        guard self.channel == channel else {
+            return false
+        }
         let frame = payload.hasSuffix("\n") ? payload : "\(payload)\n"
         var bytes = Array(frame.utf8)
         let totalBytes = bytes.count
@@ -229,6 +248,10 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         channel?.close()
         channel = nil
         receiveBuffer = ""
+        handshakeComplete = false
+        activeRole = ""
+        activeAddress = ""
+        activeName = ""
         emit(type: "stopped", message: "经典蓝牙已停止")
     }
 
@@ -251,7 +274,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         while let newlineRange = receiveBuffer.range(of: "\n") {
             let line = String(receiveBuffer[..<newlineRange.lowerBound])
             receiveBuffer.removeSubrange(...newlineRange.lowerBound)
-            handleLine(line)
+            handleLine(line, from: rfcommChannel)
         }
     }
 
@@ -267,20 +290,69 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         }
         channel = nil
         receiveBuffer = ""
+        handshakeComplete = false
+        activeRole = ""
+        activeAddress = ""
+        activeName = ""
         emit(type: "disconnected", message: "经典蓝牙连接已断开")
     }
 
-    private func handleLine(_ line: String) {
+    private func handleLine(_ line: String, from rfcommChannel: IOBluetoothRFCOMMChannel) {
         if line.isEmpty {
             return
         }
         guard let data = line.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              json["type"] as? String == fluxBluetoothMessage else {
-            emit(type: "message", message: line)
+              let type = json["type"] as? String else {
+            rejectUnverifiedMessage(line, on: rfcommChannel)
             return
         }
-        emit(type: "clipboard", message: json["text"] as? String ?? "")
+        switch type {
+        case fluxBluetoothHello:
+            guard sendHandshake(rfcommChannel, type: fluxBluetoothHelloAck) else {
+                rejectUnverifiedMessage("经典蓝牙握手确认发送失败", on: rfcommChannel)
+                return
+            }
+            confirmHandshake(rfcommChannel)
+        case fluxBluetoothHelloAck:
+            confirmHandshake(rfcommChannel)
+        case fluxBluetoothMessage:
+            guard handshakeComplete else {
+                rejectUnverifiedMessage("经典蓝牙握手未完成，已拒绝未验证数据", on: rfcommChannel)
+                return
+            }
+            emit(type: "clipboard", message: json["text"] as? String ?? "")
+        default:
+            guard handshakeComplete else {
+                rejectUnverifiedMessage("经典蓝牙连接的对端不是 Flux，已断开", on: rfcommChannel)
+                return
+            }
+            emit(type: "message", message: line)
+        }
+    }
+
+    private func confirmHandshake(_ activeChannel: IOBluetoothRFCOMMChannel) {
+        guard channel == activeChannel, !handshakeComplete else {
+            return
+        }
+        handshakeComplete = true
+        let address = activeAddress
+        let name = activeName
+        let role = activeRole
+        emit(
+            type: "connected",
+            message: name.isEmpty ? "经典蓝牙 Flux 握手完成（\(role)）" : "经典蓝牙 Flux 已连接：\(name)（\(role)）",
+            extras: [
+                "address": address,
+                "name": name,
+                "role": role
+            ]
+        )
+    }
+
+    private func rejectUnverifiedMessage(_ message: String, on rejectedChannel: IOBluetoothRFCOMMChannel?) {
+        emit(type: "error", message: message)
+        rejectedChannel?.close()
     }
 
     private func emit(type: String, message: String, extras: [String: String] = [:]) {
@@ -329,7 +401,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
     }
 
     private func jsonString(_ value: String) -> String {
-        guard let data = try? JSONSerialization.data(withJSONObject: value),
+        guard let data = try? JSONEncoder().encode(value),
               let encoded = String(data: data, encoding: .utf8) else {
             return "\"\""
         }

@@ -246,7 +246,12 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
     ref.redux(signalingProvider).dispatch(SetupSignalingConnection());
   }
 
-  ref.notifier(clipboardSyncProvider).enable();
+  // 剪切板同步按用户上次的选择恢复：暂停过的设备重启后不再静默同步。
+  if (ref.read(persistenceProvider).isClipboardSyncEnabled()) {
+    ref.notifier(clipboardSyncProvider).enable();
+  } else {
+    ref.notifier(clipboardSyncProvider).markPausedOnStartup();
+  }
 
   if (appStart) {
     if (defaultTargetPlatform == TargetPlatform.macOS) {

@@ -12,13 +12,28 @@ String describeDestinationDisplayLabel({
   }
 
   final uri = Uri.tryParse(destination);
-  final segments = uri?.pathSegments ?? const <String>[];
+  final List<String> segments;
+  try {
+    segments = uri?.pathSegments ?? const <String>[];
+  } on ArgumentError {
+    return destination;
+  } on FormatException {
+    return destination;
+  }
   final treeIndex = segments.indexOf('tree');
   if (treeIndex == -1 || treeIndex + 1 >= segments.length) {
     return destination;
   }
 
-  final decodedTree = Uri.decodeComponent(segments[treeIndex + 1]);
+  final encodedTree = segments[treeIndex + 1];
+  final String decodedTree;
+  try {
+    decodedTree = Uri.decodeComponent(encodedTree);
+  } on ArgumentError {
+    return destination;
+  } on FormatException {
+    return destination;
+  }
   final colonIndex = decodedTree.indexOf(':');
   if (colonIndex == -1 || colonIndex + 1 >= decodedTree.length) {
     return decodedTree;

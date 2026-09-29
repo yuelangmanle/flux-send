@@ -147,6 +147,18 @@ Duration classicBluetoothReconnectDelay(int attempt) {
   return const Duration(seconds: 15);
 }
 
+/// 连续握手失败达到该次数后停止自动重连：对端大概率不是 Flux 或版本过旧，
+/// 继续重连只会无限循环。
+const classicBluetoothHandshakeFailureReconnectLimit = 3;
+
+bool isClassicBluetoothHandshakeFailureMessage(String message) {
+  return message.contains('对端不是 Flux') || message.contains('握手未完成') || message.contains('握手发送失败') || message.contains('握手确认发送失败');
+}
+
+bool shouldStopClassicBluetoothAutoReconnect({required int handshakeFailureStreak}) {
+  return handshakeFailureStreak >= classicBluetoothHandshakeFailureReconnectLimit;
+}
+
 ClassicBluetoothState applyClassicBluetoothSendFailure(
   ClassicBluetoothState state,
   String message,
@@ -175,6 +187,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
   final Set<String> _createdBluetoothDirectories = {};
   ClassicBluetoothDevice? _lastConnectedDevice;
   int _reconnectAttempt = 0;
+  int _handshakeFailureStreak = 0;
   bool _manualStopRequested = false;
   bool _disposed = false;
 
@@ -264,6 +277,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
     _lastConnectedDevice = device;
     if (!automatic) {
       _reconnectAttempt = 0;
+      _handshakeFailureStreak = 0;
     }
     state = state.copyWith(
       connecting: true,
@@ -460,6 +474,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
         _connectionTimeout?.cancel();
         _reconnectTimer?.cancel();
         _reconnectAttempt = 0;
+        _handshakeFailureStreak = 0;
         if (address != null && address.isNotEmpty) {
           _lastConnectedDevice = ClassicBluetoothDevice(
             address: address,
@@ -478,6 +493,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
         state = state.copyWith(statusMessage: message, clearLastError: true);
       case 'stopped':
         _connectionTimeout?.cancel();
+        _handshakeFailureStreak = 0;
         state = state.copyWith(
           listening: false,
           connected: false,
@@ -488,11 +504,17 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
         );
       case 'disconnected':
         _connectionTimeout?.cancel();
+        if (isClassicBluetoothHandshakeFailureMessage(message)) {
+          _handshakeFailureStreak += 1;
+        } else {
+          _handshakeFailureStreak = 0;
+        }
+        final stopReconnect = shouldStopClassicBluetoothAutoReconnect(handshakeFailureStreak: _handshakeFailureStreak);
         state = state.copyWith(
           connected: false,
           connecting: false,
           clearConnectedAddress: true,
-          statusMessage: message.isEmpty ? '经典蓝牙连接已断开' : message,
+          statusMessage: stopReconnect ? '对方可能不是 Flux 或版本过旧，已停止自动重连；可手动重连或改用局域网' : (message.isEmpty ? '经典蓝牙连接已断开' : message),
           clearLastError: true,
         );
         if (shouldRestartClassicBluetoothListenerOnDisconnect(
@@ -501,7 +523,9 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
         )) {
           unawaited(startListening());
         }
-        _scheduleReconnectIfNeeded();
+        if (!stopReconnect) {
+          _scheduleReconnectIfNeeded();
+        }
       case 'error':
         _connectionTimeout?.cancel();
         final disconnected = shouldTreatClassicBluetoothErrorAsDisconnect(

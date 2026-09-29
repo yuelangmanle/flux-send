@@ -226,6 +226,37 @@ void main() {
     expect(classicBluetoothReconnectDelay(99), const Duration(seconds: 15));
   });
 
+  test('classic Bluetooth auto-reconnect stops after repeated handshake failures', () {
+    expect(isClassicBluetoothHandshakeFailureMessage('经典蓝牙连接的对端不是 Flux，已断开'), isTrue);
+    expect(isClassicBluetoothHandshakeFailureMessage('经典蓝牙握手未完成，已拒绝未验证数据'), isTrue);
+    expect(isClassicBluetoothHandshakeFailureMessage('经典蓝牙握手发送失败'), isTrue);
+    expect(isClassicBluetoothHandshakeFailureMessage('经典蓝牙握手确认发送失败'), isTrue);
+    expect(isClassicBluetoothHandshakeFailureMessage('经典蓝牙连接已断开'), isFalse);
+    expect(isClassicBluetoothHandshakeFailureMessage(''), isFalse);
+
+    expect(shouldStopClassicBluetoothAutoReconnect(handshakeFailureStreak: 0), isFalse);
+    expect(shouldStopClassicBluetoothAutoReconnect(handshakeFailureStreak: 2), isFalse);
+    expect(shouldStopClassicBluetoothAutoReconnect(handshakeFailureStreak: 3), isTrue);
+    expect(shouldStopClassicBluetoothAutoReconnect(handshakeFailureStreak: 5), isTrue);
+  });
+
+  test('classic Bluetooth provider resets handshake failure streak on manual connect and success', () {
+    final source = File('lib/provider/classic_bluetooth_provider.dart').readAsStringSync();
+    final connectIndex = source.indexOf('Future<void> connect(ClassicBluetoothDevice device, {bool automatic = false})');
+    final manualResetIndex = source.indexOf('_handshakeFailureStreak = 0;', connectIndex);
+    final connectedIndex = source.indexOf("case 'connected':");
+    final connectedResetIndex = source.indexOf('_handshakeFailureStreak = 0;', connectedIndex);
+    final disconnectedIndex = source.indexOf("case 'disconnected':");
+    final stopIndex = source.indexOf('shouldStopClassicBluetoothAutoReconnect(handshakeFailureStreak: _handshakeFailureStreak)', disconnectedIndex);
+    final guardIndex = source.indexOf('if (!stopReconnect)', stopIndex);
+
+    expect(manualResetIndex, greaterThan(connectIndex));
+    expect(connectedResetIndex, greaterThan(connectedIndex));
+    expect(stopIndex, isNonNegative);
+    expect(guardIndex, isNonNegative);
+    expect(guardIndex, greaterThan(stopIndex));
+  });
+
   test('classic Bluetooth connect does not overwrite earlier native terminal event', () {
     final source = File('lib/provider/classic_bluetooth_provider.dart').readAsStringSync();
 

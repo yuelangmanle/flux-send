@@ -175,14 +175,16 @@ void main() {
     expect(describeIncomingClipboardStatus('hello'), '已接收远端剪切板（5 字符）');
   });
 
-  test('accepts repeated remote clipboard text after the local clipboard diverged', () {
+  test('rejects stale remote retries so they cannot overwrite a newer local clipboard', () {
+    // 接收端已收过 A（lastRemoteText），用户随后复制了 B（lastLocalText）；
+    // 发送端对 A 的失败重试再次到达时，不得把 B 洗掉。
     expect(
       shouldWriteIncomingClipboard(
         incomingText: 'remote clipboard',
         lastRemoteText: 'remote clipboard',
         lastLocalText: 'local follow-up',
       ),
-      isTrue,
+      isFalse,
     );
     expect(
       shouldWriteIncomingClipboard(
@@ -197,6 +199,44 @@ void main() {
         incomingText: 'new remote clipboard',
         lastRemoteText: 'old remote clipboard',
         lastLocalText: 'old remote clipboard',
+      ),
+      isTrue,
+    );
+    expect(
+      shouldWriteIncomingClipboard(
+        incomingText: 'brand new remote clipboard',
+        lastRemoteText: 'old remote clipboard',
+        lastLocalText: 'local follow-up',
+      ),
+      isTrue,
+    );
+  });
+
+  test('drops pending clipboard retries only after the retry TTL expires', () {
+    final now = DateTime(2026, 7, 27, 12, 0, 0);
+
+    expect(
+      shouldDropStalePendingClipboard(pendingSince: null, now: now),
+      isFalse,
+    );
+    expect(
+      shouldDropStalePendingClipboard(
+        pendingSince: now.subtract(const Duration(seconds: 30)),
+        now: now,
+      ),
+      isFalse,
+    );
+    expect(
+      shouldDropStalePendingClipboard(
+        pendingSince: now.subtract(const Duration(minutes: 2)),
+        now: now,
+      ),
+      isFalse,
+    );
+    expect(
+      shouldDropStalePendingClipboard(
+        pendingSince: now.subtract(const Duration(minutes: 2, seconds: 1)),
+        now: now,
       ),
       isTrue,
     );

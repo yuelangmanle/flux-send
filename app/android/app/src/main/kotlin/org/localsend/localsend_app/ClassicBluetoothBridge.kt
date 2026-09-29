@@ -28,6 +28,8 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
     private val serviceUuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     private val serviceName = "FluxClassicBluetooth"
     private val fluxBluetoothMessage = "flux.bluetooth.message.v1"
+    private val fluxBluetoothHello = "flux.bluetooth.hello.v1"
+    private val fluxBluetoothHelloAck = "flux.bluetooth.hello.ack.v1"
     private val maxWriteChunkSize = 8192
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bluetoothAdapter: BluetoothAdapter?
@@ -37,6 +39,8 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
     private var socket: BluetoothSocket? = null
     private val connectionGeneration = AtomicInteger(0)
     @Volatile private var running = false
+    @Volatile private var handshakeComplete = false
+    @Volatile private var activeRole = ""
 
     fun handleMethodCall(call: MethodCall, result: MethodChannel.Result): Boolean {
         when (call.method) {
@@ -194,18 +198,14 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
         }
         closeSocket(emitDisconnected = false)
         socket = nextSocket
-        val deviceName = remoteDeviceName(nextSocket)
-        emit(
-            "connected",
-            if (deviceName.isBlank()) "经典蓝牙已连接（$role）" else "经典蓝牙已连接：$deviceName（$role）",
-            mapOf(
-                "address" to nextSocket.remoteDevice?.address.orEmpty(),
-                "name" to deviceName,
-                "role" to role,
-            ),
-        )
+        handshakeComplete = false
+        activeRole = role
+        emit("status", "经典蓝牙通道已打开，正在验证 Flux 对端")
         thread(name = "FluxBluetoothReadLoop", isDaemon = true) {
             readLoop(nextSocket)
+        }
+        if (!sendHandshake(nextSocket, fluxBluetoothHello)) {
+            closeActiveSocket(nextSocket, "经典蓝牙握手发送失败")
         }
     }
 
@@ -213,23 +213,55 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
         var disconnectMessage = "经典蓝牙连接已断开"
         try {
             val reader = BufferedReader(InputStreamReader(activeSocket.inputStream, Charsets.UTF_8))
-            while (running || socket == activeSocket) {
+            while (socket === activeSocket) {
                 val line = reader.readLine() ?: break
                 try {
                     val json = JSONObject(line)
-                    if (json.optString("type") == fluxBluetoothMessage) {
-                        emit("clipboard", json.optString("text"))
-                    } else {
-                        emit("message", line)
+                    when (json.optString("type")) {
+                        fluxBluetoothHello -> {
+                            if (!sendHandshake(activeSocket, fluxBluetoothHelloAck)) {
+                                disconnectMessage = "经典蓝牙握手确认发送失败"
+                                break
+                            }
+                            confirmHandshake(activeSocket, activeRole)
+                        }
+                        fluxBluetoothHelloAck -> confirmHandshake(activeSocket, activeRole)
+                        fluxBluetoothMessage -> {
+                            if (!handshakeComplete) {
+                                disconnectMessage = "经典蓝牙握手未完成，已拒绝未验证数据"
+                                break
+                            }
+                            if (socket !== activeSocket) {
+                                break
+                            }
+                            emit("clipboard", json.optString("text"))
+                        }
+                        else -> {
+                            if (!handshakeComplete) {
+                                disconnectMessage = "经典蓝牙连接的对端不是 Flux，已断开"
+                                break
+                            }
+                            if (socket !== activeSocket) {
+                                break
+                            }
+                            emit("message", line)
+                        }
                     }
                 } catch (e: Exception) {
+                    if (!handshakeComplete) {
+                        disconnectMessage = "经典蓝牙连接的对端不是 Flux，已断开"
+                        break
+                    }
+                    if (socket !== activeSocket) {
+                        break
+                    }
                     emit("message", line)
                 }
             }
         } catch (e: Exception) {
             disconnectMessage = "经典蓝牙连接已断开：${e.message}"
         } finally {
-            if (socket == activeSocket) {
+            if (socket === activeSocket) {
                 closeActiveSocket(activeSocket, disconnectMessage)
             }
         }
@@ -250,11 +282,28 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
 
     private fun sendFrame(payload: String, sentMessage: String?): Boolean {
         val activeSocket = socket
-        if (activeSocket == null || !activeSocket.isConnected) {
-            emit("error", "经典蓝牙未连接，无法发送剪切板或文件")
+        if (activeSocket == null || !activeSocket.isConnected || !handshakeComplete) {
+            val reason = if (activeSocket == null || !activeSocket.isConnected) {
+                "经典蓝牙未连接，无法发送剪切板或文件"
+            } else {
+                "经典蓝牙尚未完成 Flux 协议握手，无法发送剪切板或文件"
+            }
+            emit("error", reason)
             return false
         }
 
+        return writeFrame(activeSocket, payload, sentMessage)
+    }
+
+    private fun sendHandshake(activeSocket: BluetoothSocket, type: String): Boolean {
+        return writeFrame(activeSocket, JSONObject().put("type", type).toString(), sentMessage = null)
+    }
+
+    @Synchronized
+    private fun writeFrame(activeSocket: BluetoothSocket, payload: String, sentMessage: String?): Boolean {
+        if (socket !== activeSocket || !activeSocket.isConnected) {
+            return false
+        }
         val frame = if (payload.endsWith("\n")) payload else "$payload\n"
         try {
             val bytes = frame.toByteArray(Charsets.UTF_8)
@@ -275,6 +324,23 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
         }
     }
 
+    private fun confirmHandshake(nextSocket: BluetoothSocket, role: String) {
+        if (socket !== nextSocket || handshakeComplete) {
+            return
+        }
+        handshakeComplete = true
+        val deviceName = remoteDeviceName(nextSocket)
+        emit(
+            "connected",
+            if (deviceName.isBlank()) "经典蓝牙 Flux 握手完成（$role）" else "经典蓝牙 Flux 已连接：$deviceName（$role）",
+            mapOf(
+                "address" to nextSocket.remoteDevice?.address.orEmpty(),
+                "name" to deviceName,
+                "role" to role,
+            ),
+        )
+    }
+
     fun stop() {
         connectionGeneration.incrementAndGet()
         running = false
@@ -290,6 +356,8 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
         } catch (_: Exception) {
         }
         socket = null
+        handshakeComplete = false
+        activeRole = ""
         if (emitDisconnected && hadSocket) {
             emit("disconnected", "经典蓝牙连接已断开")
         }

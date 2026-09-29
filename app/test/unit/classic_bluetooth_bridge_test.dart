@@ -49,9 +49,54 @@ void main() {
     expect(source, contains('sendClipboard'));
     expect(source, contains('private var receiveBuffer = ""'));
     expect(source, contains('while let newlineRange = receiveBuffer.range(of: "\\n")'));
-    expect(source, contains('private func handleLine(_ line: String)'));
+    expect(source, contains('private func handleLine(_ line: String, from rfcommChannel: IOBluetoothRFCOMMChannel)'));
     expect(source, contains('private func sendClipboard(_ text: String) -> Bool'));
     expect(source, contains('fluxBluetoothMessage'));
+  });
+
+  test('native bridges require Flux hello acknowledgement before reporting a usable connection', () {
+    final android = File('android/app/src/main/kotlin/org/localsend/localsend_app/ClassicBluetoothBridge.kt').readAsStringSync();
+    final macos = File('macos/Runner/ClassicBluetoothBridge.swift').readAsStringSync();
+
+    expect(android, contains('flux.bluetooth.hello.v1'));
+    expect(android, contains('flux.bluetooth.hello.ack.v1'));
+    expect(android, contains('confirmHandshake'));
+    expect(macos, contains('flux.bluetooth.hello.v1'));
+    expect(macos, contains('flux.bluetooth.hello.ack.v1'));
+    expect(macos, contains('confirmHandshake'));
+  });
+
+  test('Android only processes frames from the current RFCOMM socket during handshake', () {
+    final android = File('android/app/src/main/kotlin/org/localsend/localsend_app/ClassicBluetoothBridge.kt').readAsStringSync();
+
+    expect(android, contains('while (socket === activeSocket)'));
+    expect(android, contains('if (socket !== activeSocket)'));
+    expect(android, contains('经典蓝牙连接的对端不是 Flux，已断开'));
+  });
+
+  test('Android serializes RFCOMM frame writes against concurrent handshake threads', () {
+    final android = File('android/app/src/main/kotlin/org/localsend/localsend_app/ClassicBluetoothBridge.kt').readAsStringSync();
+    final synchronizedIndex = android.indexOf('@Synchronized');
+    final writeFrameIndex = android.indexOf('private fun writeFrame', synchronizedIndex < 0 ? 0 : synchronizedIndex);
+
+    expect(synchronizedIndex, isNonNegative);
+    expect(writeFrameIndex, greaterThan(synchronizedIndex));
+  });
+
+  test('macOS closes the channel that carried an unverified message instead of the active channel', () {
+    final macos = File('macos/Runner/ClassicBluetoothBridge.swift').readAsStringSync();
+
+    expect(macos, contains('private func rejectUnverifiedMessage(_ message: String, on rejectedChannel: IOBluetoothRFCOMMChannel?)'));
+    expect(macos, contains('handleLine(line, from: rfcommChannel)'));
+    expect(macos, contains('rejectedChannel?.close()'));
+    expect(macos, isNot(contains('channel?.close()\n    }\n\n    private func emit')));
+  });
+
+  test('macOS serializes clipboard strings without NSJSONSerialization object-only crashes', () {
+    final macos = File('macos/Runner/ClassicBluetoothBridge.swift').readAsStringSync();
+
+    expect(macos, contains('JSONEncoder().encode(value)'));
+    expect(macos, isNot(contains('JSONSerialization.data(withJSONObject: value')));
   });
 
   test('macOS sends classic Bluetooth clipboard payloads in bounded RFCOMM chunks', () {
