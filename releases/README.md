@@ -2,13 +2,13 @@
 
 > 位置：`/Users/yueliangmanle/flux-send/releases/history`。以后所有正式安装包都放在这里，桌面不再长期保存安装包。
 
-更新时间：2026-07-27 00:11 CST
+更新时间：2026-07-27 09:35 CST
 
 ## 最新版本
 
-- `releases/history/v1.1.52/Flux-v1.1.52-android.apk`（Android APK，1.1.52+111）
-- `releases/history/v1.1.52/Flux-v1.1.52-macOS.dmg`（macOS DMG，1.1.52+111）
-- `releases/history/v1.1.52/SHA256SUMS.txt`（SHA-256 校验清单）
+- `releases/history/v1.1.55/Flux-v1.1.55-android.apk`（Android APK，1.1.55+114）
+- `releases/history/v1.1.55/Flux-v1.1.55-macOS.dmg`（macOS DMG，1.1.55+114）
+- `releases/history/v1.1.55/SHA256SUMS.txt`（SHA-256 校验清单）
 
 ## 归档列表
 
@@ -126,6 +126,12 @@
 - `releases/history/v1.1.52/Flux-v1.1.52-android.apk`（128M）
 - `releases/history/v1.1.52/Flux-v1.1.52-macOS.dmg`（61M）
 - `releases/history/v1.1.52/SHA256SUMS.txt`（180B）
+- `releases/history/v1.1.53/Flux-v1.1.53-android.apk`（128M）
+- `releases/history/v1.1.53/Flux-v1.1.53-macOS.dmg`（61M）
+- `releases/history/v1.1.53/SHA256SUMS.txt`（180B）
+- `releases/history/v1.1.54/Flux-v1.1.54-android.apk`（127M）
+- `releases/history/v1.1.54/Flux-v1.1.54-macOS.dmg`（61M）
+- `releases/history/v1.1.54/SHA256SUMS.txt`（180B）
 - `releases/history/v1.1.6/Flux-v1.1.6-android.apk`（83M）
 - `releases/history/v1.1.6/Flux-v1.1.6-macOS.dmg`（64M）
 - `releases/history/v1.1.7/Flux-v1.1.7-android.apk`（127M）

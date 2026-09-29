@@ -1,3 +1,26 @@
+## Flux 1.1.55 (2026-09-29)
+
+- fix(clipboard): 接收端不再接受远端对旧文本的失败重试，避免发送端重试覆盖本机刚复制的新内容；待同步文本超过 2 分钟未成功即放弃自动重试并明确提示。
+- fix(clipboard): “暂停剪切板”现在会持久化（默认开启不受影响），重启后保持暂停状态，不再静默恢复同步。
+- fix(bluetooth): Android `writeFrame` 加锁串行化，握手帧与数据帧并发写不再可能交错损坏；读循环在写出前再次校验 socket 身份，旧 socket 晚到数据不会冒充新连接。
+- fix(bluetooth): 对非 Flux 配对设备连续 3 次握手失败后停止自动重连，提示“对方可能不是 Flux 或版本过旧”；手动重连或连接成功会重置计数。
+- fix(macos): 非 Flux 数据只关闭携带该数据的通道，不再可能误关新连接。
+- fix(settings): Android SAF 保存目录包含截断或非法 `%` 编码时安全回退显示原路径，设置页不再崩溃或空白（同时覆盖 `FormatException` 场景）。
+- chore(brand): 应用元数据与关于页标明 Flux 身份并保留 LocalSend（Apache-2.0）上游致谢；删除会把发布资产误推到上游 LocalSend winget 包的 CI 工作流；Windows 安装器改用独立 AppId 与 Flux 命名。
+- ci: Android 签名 secrets 缺失时构建立即失败并给出配置指引，不再延迟到 Gradle 签名阶段报错。
+- docs: 开发手册补充经典蓝牙握手威胁模型（`hello/ack` 是对端活性校验而非认证，传输安全边界仍是 HTTPS + PIN）。
+- test(clipboard/bluetooth): 覆盖重试不覆盖、pending 超时、暂停持久化、握手失败停止重连、写锁与通道定向关闭等回归场景。
+- chore(release): 版本升至 `1.1.55+114`，保持 Android applicationId 与既有签名密钥不变。
+
+## Flux 1.1.54 (2026-07-27)
+
+- fix(bluetooth): Classic Bluetooth 仅在 Android 与 macOS 双方完成 Flux `hello/ack` 协议握手后才报告“已连接”；非 Flux 对端和未验证帧会明确断开，避免 socket 打开就形成假连接。
+- fix(bluetooth): 将 Android 读循环绑定到当前 RFCOMM socket，替换或重连后的旧 socket 无法再写入剪切板、文件帧或连接状态。
+- fix(macos): 使用 `JSONEncoder` 编码剪切板字符串，避免 `NSJSONSerialization` 对顶层字符串触发 Objective-C 异常导致闪退。
+- fix(settings): Android SAF 保存目录包含非法 `%` 编码时安全回退显示原路径，设置页不再崩溃或空白。
+- test(bluetooth): 覆盖握手门禁、旧 socket 隔离、macOS JSON 编码与非法 SAF URI 回归场景。
+- chore(release): 版本升至 `1.1.54+113`，保持 Android applicationId 与既有签名密钥不变。
+
 ## Flux 1.1.53 (2026-07-27)
 
 - feat(update): 在设置页新增“检查更新”，主动读取 Flux GitHub Releases 的稳定版信息，并按当前平台打开 APK、DMG 或发布页。
