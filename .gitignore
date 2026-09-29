@@ -23,6 +23,7 @@
 # Flutter and native build output
 /app/.dart_tool/
 /app/build/
+/app/android/build/
 /app/.packages
 
 # FVM Version Cache
