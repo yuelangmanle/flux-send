@@ -1,17 +1,17 @@
 # Flux 进度与交接记录
 
-> 这份文档用于接手：记录本轮目标、已修复内容、验证证据、打包产物和后续重点。更新日期：2026-07-27。
+> 这份文档用于接手：记录本轮目标、已修复内容、验证证据、打包产物和后续重点。更新日期：2026-09-29。
 
 ## 当前发布
 
 | 项目 | 状态 |
 |------|------|
 | 应用名 | Flux |
-| 当前版本 | 1.1.53+112 |
+| 当前版本 | 1.1.55+114 |
 | Android applicationId | `org.localsend.localsend_app`（必须保持不变，保证覆盖安装） |
 | Android 签名 | 既有私有 JKS；文件、别名和密码仅存于密码管理器与离线备份，绝不进入公开仓库 |
 | macOS 应用名 | `Flux.app` |
-| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v1.1.53/Flux-v1.1.53-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v1.1.53/Flux-v1.1.53-macOS.dmg` |
+| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v1.1.55/Flux-v1.1.55-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v1.1.55/Flux-v1.1.55-macOS.dmg` |
 
 ## 本轮目标
 
@@ -20,6 +20,55 @@
 - 每次发包更新版本号，并保留签名密钥信息，避免 Android 后续无法覆盖安装。
 - 所有关键操作留痕，方便后续开发者接手。
 - 以后所有正式安装包统一归档到 `/Users/yueliangmanle/flux-send/releases/history/v版本号/`，并更新 `releases/README.md`；桌面只允许临时中转，发包后要清空。
+
+### 2026-09-29 v1.1.55 追加修复（四维审查汇总：产品 / UI / 体验 / 全栈）
+
+- 背景：以 4 个并行审查（产品、UI、使用体验、全栈工程师）扫描待发布代码，汇总后统一修复。v1.1.54 已于 2026-07-27 本地归档但未发布 GitHub Release，本轮修复独立升版为 `1.1.55+114`，不动 v1.1.54 归档产物。
+- 根因 1（数据级）：剪切板发送端对部分失败的重试每 5 秒重发旧文本；接收端 `shouldWriteIncomingClipboard` 的第二条件 `lastLocalText != lastRemoteText` 在用户复制过新内容后恒为真，旧文本重试会覆盖接收端刚复制的内容。
+- 修复 1：接收端判据改为 `incomingText != lastRemoteText && incomingText != lastLocalText`——已接收过的远端文本（含失败重试）与本机现有内容一律不再写入；发送端待同步文本超过 2 分钟未成功即放弃自动重试并提示，`_pendingSince` 记录首次入队时间。
+- 根因 2（信任级）：剪切板“暂停”只存内存，`init.dart` 启动无条件 `enable()`，重启后静默恢复同步。
+- 修复 2：`PersistenceService` 新增 `ls_clipboard_sync_enabled`（默认开启），`enable()/disable()` 写入持久层，启动按存储值恢复，暂停过的设备重启显示“剪切板同步已暂停”。
+- 根因 3（并发）：Android `writeFrame` 被 accept/client 线程（hello）与读循环线程（ack）及平台主线程并发调用，RFCOMM 输出流可能交错写坏帧。
+- 修复 3：`writeFrame` 加 `@Synchronized`；读循环在 emit `clipboard`/`message` 前再次校验 `socket === activeSocket`，旧 socket 晚到数据不再冒充新连接。
+- 根因 4：macOS `rejectUnverifiedMessage` 固定关闭 `self.channel`，依赖调用方守卫才能保证不误关新连接。
+- 修复 4：`handleLine(_ line:, from:)` 显式传入触发消息的通道，`rejectUnverifiedMessage(_:on:)` 只关闭该通道。
+- 根因 5（体验）：对非 Flux 配对设备按 2/5/10/15 秒无限循环重连，且提示不含原因。
+- 修复 5：新增 `isClassicBluetoothHandshakeFailureMessage` / `shouldStopClassicBluetoothAutoReconnect`（上限 3 次连续握手失败），达到后停止自动重连并提示“对方可能不是 Flux 或版本过旧”；手动重连、连接成功、手动停止都会重置计数。
+- 根因 6（品牌/流程）：`.github/workflows/winget.yml` 每次 release 会把 Flux 资产推到上游 `LocalSend.LocalSend` winget 包（引用不存在的 WINGET_TOKEN）；pubspec 元数据、关于页、Windows Inno 脚本仍是 LocalSend 身份；git `origin` 仍指向上游 `localsend/localsend`。
+- 修复 6：删除 `winget.yml`；pubspec description/homepage 改为 Flux 与本仓库；关于页加“Flux 基于 LocalSend（Apache-2.0）修改”致谢并新增 Flux 源码入口，上游链接改标注“上游项目”；Inno 脚本改用 Flux 名称/新 AppId（避免与上游安装器互相覆盖），输出名改 `flux`；删除指向上游的 `origin` remote（仅保留 `flux`）。
+- 根因 7（CI）：`compile_apk.yml`/`release.yml` 的 secrets 未配置时会解码出空文件，错误延迟到 Gradle 签名阶段才暴露（当前仓库未配置任何 Actions secrets）。
+- 修复 7：两个工作流的解码步骤加空值守卫，缺失时立即 `exit 1` 并输出配置指引；`docs/DEVELOPMENT.md` 补充蓝牙握手威胁模型（hello/ack 是活性校验不是认证，明文 RFCOMM，传输安全边界仍是 HTTPS + PIN）。
+- 其他：`theme.dart` 删除悬空死代码行；`releases/README.md` 归档表补 v1.1.53；`destination_display_label.dart` 对 `pathSegments` 懒解码抛出的 `FormatException`（截断 UTF-8，如 `%E4%B8`）与 `decodeComponent` 的 `ArgumentError` 都做回退。
+- TDD 留痕：先翻转“重试可写入”的旧断言并新增 pending TTL、握手失败停止重连、原生写锁/通道定向关闭等测试，再实现转绿。
+- 验证：`dart format` 无变更；`flutter analyze` 无 issues；`flutter test` 全量 238 项通过。
+- 已识别、本轮不做（后续优化清单）：约 230 处新功能文案硬编码中文未接入 i18n（`flux_connection_status_card`/`classic_bluetooth_provider`/`clipboard_sync_provider`/`connection_mode_provider`/`settings_tab`）；业务逻辑依赖中文文案匹配（`classic_bluetooth_provider.dart` 的 `contains('经典蓝牙未连接')`、`RegExp(r'发送失败[:：]\s*\d+')`）应改为枚举状态；`settings_tab.dart`（1182 行）、`receive_controller.dart`（879 行）、`classic_bluetooth_provider.dart`（727 行）待拆分；`classic_bluetooth_bridge_test.dart` 的源码字符串断言应升级为行为测试；手动 IP 连接失败直接显示英文异常栈（`address_input_dialog.dart`）应映射中文；扫描空列表缺就地排查指引（`send_tab.dart`）；13+ 处 `Colors.grey` 硬编码应走 `colorScheme`；`ci.yml`（Flutter 3.38.10）与发布线（3.35.6）版本漂移；`msix/`、`fastlane/`、`readme_i18n/`、`scripts/appimage` 等上游残留目录待清理。
+- 构建环境修复（本机，2026-09-29，Xcode 27 / Flutter 3.44 环境变化导致旧命令失败）：
+  1. Android：Maven Central 与 Gradle Plugin Portal 在当前网络不可达，写入 `~/.gradle/init.d/aliyun-mirror.gradle` 注入阿里云镜像；`~/.gradle/gradle.properties` 中已失效的 127.0.0.1:7890 代理已注释（备份 `gradle.properties.bak-20260929`），Gradle 走直连 + 镜像。
+  2. macOS：Xcode 27 SDK 最低部署目标为 12.0，`app/macos/Podfile` 的 platform 升至 12.0 并在 post_install 强制所有 Pod ≥ 12.0（原有一行强制 11.0 的旧代码一并移除），`Runner.xcodeproj` 全部配置升至 12.0。
+  3. macOS：Xcode 27 的 `lipo` 不再接受多架构 `-verify_arch`，Flutter 3.44 工具的架构校验因此误报“does not contain architectures”；已对本机 `/opt/homebrew/share/flutter`（brew Flutter 3.44.0）的 `packages/flutter_tools/lib/src/build_system/targets/darwin.dart` 打补丁改为逐架构校验（语义等价），并删除 `flutter_tools.snapshot` 触发重建。brew 升级 Flutter 后补丁会丢失，届时若上游未修复需重打；`~/.local/bin/flux-lipo-shim/lipo` 为备用 PATH 垫片。
+- 产物与校验（`releases/history/v1.1.55/`）：
+  - `Flux-v1.1.55-android.apk`（134M）SHA-256 `242e1926a04ebfa6e901619737198fd8e90c103a19b44283a25d69e3608dc6d5`；aapt 校验 `org.localsend.localsend_app`、`versionName=1.1.55`、`versionCode=114`；apksigner 证书 SHA-256 保持 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
+  - `Flux-v1.1.55-macOS.dmg`（62M）SHA-256 `18138187f494c83166d579bdbdf9e29161a0164b45d790f20a5f0022591277bd`；`hdiutil verify` 通过；挂载后 `Flux.app` 为 `1.1.55 (114)`，`codesign --verify --deep --strict` 通过，蓝牙 entitlement 为 true。
+  - 同目录 `SHA256SUMS.txt` 已生成。
+- 发布状态：代码与产物已推送；GitHub Release 以 **draft** 形式创建（v1.1.55）。经典蓝牙握手改动仍未做双端真机互传验收，按 `docs/RELEASE.md` 由人工实机验证后再发布（publish）。
+- 真机边界：本轮没有把未执行的 Android ↔ macOS 经典蓝牙双端互传写成通过。安装两个 `1.1.55` 包后，仍需按“系统配对 → 双方切经典蓝牙 → 一端连接 → 双方显示握手完成 → 双向剪切板/小文件”完成最终实机验收；同时回归“暂停剪切板重启保持暂停”与“对非 Flux 设备 3 次握手失败后停止重连”。
+
+### 2026-07-27 v1.1.54 蓝牙真实连通性修复
+
+- 用户反馈与证据：Android 可单端显示“已连接”，macOS 仍处于“监听中”，双方无法传输；macOS 崩溃报告定位到 `ClassicBluetoothBridge.jsonString → NSJSONSerialization.dataWithJSONObject → SIGABRT`；Android 设置页异常为 `Illegal percent encoding in URI`。
+- 根因 1：Android/macOS 在 RFCOMM socket 打开后立即上报 `connected`，没有确认对端是否为 Flux，也没有确认对端已收到可用协议，导致假连接。
+- 修复 1：两端加入 `flux.bluetooth.hello.v1` / `flux.bluetooth.hello.ack.v1` 握手；只在 `confirmHandshake` 后上报连接并允许剪切板或文件帧。未验证数据会断开并给出中文反馈。
+- 根因 2：Android 旧读循环在服务端仍运行时会持续处理已替换 socket 的数据，可能把旧链路数据写入新状态。
+- 修复 2：读循环改为只在 `socket === activeSocket` 时处理，重连、替换、停止后旧 socket 的晚到数据被隔离。
+- 根因 3：macOS 使用仅允许顶层数组/字典的 `JSONSerialization.data(withJSONObject:)` 编码字符串，Objective-C 异常会绕过 Swift `try?` 并终止进程。
+- 修复 3：改为 `JSONEncoder().encode(value)`；设置路径解析对非法 SAF 百分号编码安全回退，避免设置页崩溃。
+- TDD 留痕：先新增握手门禁、旧 socket 隔离、macOS 字符串编码、非法 SAF URI 的红灯测试；定向 22 项测试与 Dart 静态分析已转绿。尚未把未做的 Android/macOS 双端真机互传写成通过。
+- 发布约束：版本升为 `1.1.54+113`，继续使用既有 `org.localsend.localsend_app` 与本机私有 JKS；构建完成后再写入 SHA-256、签名和 DMG 校验结果。
+- 发布验证：`flutter analyze` 无 issues，`flutter test` 全量通过；Android APK 实际为 `versionName=1.1.54`、`versionCode=113`、包名 `org.localsend.localsend_app`，签名证书 SHA-256 保持为 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
+- macOS 验证：DMG 通过 `hdiutil verify`；真实挂载后的 `Flux.app` 为 `1.1.54+113` 且 `codesign --verify --deep --strict`、蓝牙 entitlement 均通过；经典蓝牙模式启动烟测 12 秒持续运行、有 5 个可见窗口，崩溃报告计数保持 `1 -> 1`。
+- 构建留痕：构建工具并行运行时会让旧 bundle 被提前打进 DMG；本次已从通过签名和版本校验的 `Flux.app` 重建最终 DMG，并再次从实际挂载点校验版本，不能仅依据 DMG 文件名判断版本。
+- 归档产物：`releases/history/v1.1.54/Flux-v1.1.54-android.apk` SHA-256 为 `b5a7ff8b50031b3ce10cecd0804c8dec63b56d9baa283ef8a680c782b87e47f9`；`releases/history/v1.1.54/Flux-v1.1.54-macOS.dmg` SHA-256 为 `68438223fd8e1782ce8a5243e87bc3fcb4efa46b0a589e3fc5bfebd16d8b8d0e`；校验清单为同目录 `SHA256SUMS.txt`。
+- 真机边界：本轮没有把未执行的 Android ↔ macOS 经典蓝牙双端互传写成通过。安装两个 `1.1.54` 包后，仍需按“系统配对 → 双方切经典蓝牙 → 一端连接 → 双方显示握手完成 → 双向剪切板/小文件”完成最终实机验收。
 
 ### 2026-07-27 开源仓库与更新通道初始化
 
