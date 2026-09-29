@@ -173,8 +173,6 @@ ThemeData _getYaruTheme(Brightness brightness) {
     borderRadius: _borderRadius,
   );
 
-  InputDecorationThemeData;
-
   return baseTheme.copyWith(
     navigationBarTheme: colorScheme.brightness == Brightness.dark
         ? NavigationBarThemeData(

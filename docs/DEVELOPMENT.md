@@ -6,13 +6,26 @@ Flux 是基于 [LocalSend](https://github.com/localsend/localsend) 的 Apache-2.
 
 | 项目 | 值 |
 | --- | --- |
-| 当前正式版本 | `1.1.53+112` |
+| 当前正式版本 | `1.1.54+113` |
 | Android applicationId | `org.localsend.localsend_app` |
 | Android 发布密钥 | 现有私有 JKS，**不在仓库中** |
 | 上游基线 | LocalSend 1.17.0 |
 | Flutter 版本 | `3.38.10`（见 `.fvmrc`） |
 
 `applicationId`、发布密钥和签名证书必须保持不变，才能让 Android 用户覆盖安装后续版本。
+
+## 1.1.54 蓝牙握手约定
+
+经典蓝牙 RFCOMM socket 打开不等于 Flux 已连接。Android 与 macOS 都必须先发送 `flux.bluetooth.hello.v1`，收到 `flux.bluetooth.hello.ack.v1` 后才发出 `connected` 事件并允许文件或剪切板帧。
+
+- 未完成握手时，发送文件或剪切板必须失败并显示“尚未完成 Flux 协议握手”；
+- 收到非 Flux 数据时必须断开，不得显示为已连接；
+- 连接替换、停止或断开时必须重置握手状态；
+- Android 读循环只处理当前 socket，旧 socket 的晚到数据必须丢弃。
+
+### 威胁模型说明
+
+`hello/ack` 握手是**对端活性校验，不是身份认证**。RFCOMM 链路本身是明文，且握手帧不含凭据：任何已配对设备发送一条 `{"type":"flux.bluetooth.hello.v1"}` 即可通过验证。它的价值在于防止把普通蓝牙串口对端误报为“Flux 已连接”，而不是防止恶意对端。真正的传输安全边界仍是局域网通道的 HTTPS + PIN（或接收端的人工确认）；经典蓝牙通道仅建议在已配对的可信设备之间使用，不要将其视为加密通道。
 
 ## 本地准备
 

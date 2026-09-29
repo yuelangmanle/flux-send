@@ -27,3 +27,9 @@
 
 # FVM Version Cache
 .fvm/
+
+# Local agent tooling state; never part of the source tree
+.mimosa/
+.v2c/
+.video_agent/
+app/.mimosa/

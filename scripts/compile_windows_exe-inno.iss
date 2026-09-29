@@ -3,17 +3,18 @@
 ; Copy the contents of the zip to D:\inno, then run this Inno script
 ; Copy app/assets/packaging/logo-256.ico to D:\inno\logo-256.ico
 
-#define MyAppName "LocalSend"
-#define MyAppVersion "1.1.53"
-#define MyAppPublisher "Tien Do Nam"
-#define MyAppURL "https://localsend.org"
+#define MyAppName "Flux"
+#define MyAppVersion "1.1.55"
+#define MyAppPublisher "Flux Contributors"
+#define MyAppURL "https://github.com/yueliangmanle/flux-send"
 #define MyAppExeName "localsend_app.exe"
 #define MyAppMsixHelper "localsend_msix_helper.msix"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{00809252-FEC6-448E-83B4-E7F55AE7E47D}
+; Flux 使用独立 AppId，避免与上游 LocalSend 的安装器互相覆盖。
+AppId={{2C8763CA-29EC-4F5F-8FC0-9FD0CD979001}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -27,7 +28,7 @@ DisableProgramGroupPage=yes
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=D:\inno-result
-OutputBaseFilename=localsend
+OutputBaseFilename=flux
 SetupIconFile=D:\inno\logo.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
