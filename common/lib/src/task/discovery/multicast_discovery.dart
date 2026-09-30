@@ -49,27 +49,14 @@ class MulticastService {
       );
       for (final socket in sockets) {
         socket.socket.listen((_) {
-          final datagram = socket.socket.receive();
-          if (datagram == null) {
-            return;
-          }
-
-          try {
-            final dto = MulticastDto.fromJson(jsonDecode(utf8.decode(datagram.data)));
-            if (dto.fingerprint == syncState.securityContext.certificateHash) {
-              return;
-            }
-
-            final ip = datagram.address.address;
-            final peer = dto.toDevice(ip, syncState.port, syncState.protocol == ProtocolType.https);
-            streamController.add(peer);
-            if ((dto.announcement == true || dto.announce == true) && syncState.serverRunning) {
-              // only respond when server is running
-              // ignore: discarded_futures
-              _answerAnnouncement(peer);
-            }
-          } catch (e) {
-            _logger.warning('Could not parse multicast message', e);
+          // 一次事件可能对应多份积压数据报，循环排空避免突发丢包。
+          RawDatagram? datagram;
+          while ((datagram = socket.socket.receive()) != null) {
+            _handleMulticastDatagram(
+              datagram,
+              syncState: syncState,
+              streamController: streamController,
+            );
           }
         });
         _logger.info(
@@ -103,6 +90,30 @@ class MulticastService {
     _cancelCompleter.complete();
   }
 
+  void _handleMulticastDatagram(
+    RawDatagram datagram, {
+    required SyncState syncState,
+    required StreamController<Device> streamController,
+  }) {
+    try {
+      final dto = MulticastDto.fromJson(jsonDecode(utf8.decode(datagram.data)));
+      if (dto.fingerprint == syncState.securityContext.certificateHash) {
+        return;
+      }
+
+      final ip = datagram.address.address;
+      final peer = dto.toDevice(ip, syncState.port, syncState.protocol == ProtocolType.https);
+      streamController.add(peer);
+      if ((dto.announcement == true || dto.announce == true) && syncState.serverRunning) {
+        // only respond when server is running
+        // ignore: discarded_futures
+        _answerAnnouncement(peer);
+      }
+    } catch (e) {
+      _logger.warning('Could not parse multicast message', e);
+    }
+  }
+
   /// Sends an announcement which triggers a response on every LocalSend member of the network.
   Future<void> sendAnnouncement() async {
     final syncState = _ref.read(syncProvider);
@@ -119,11 +130,17 @@ class MulticastService {
       for (final socket in sockets) {
         try {
           socket.socket.send(dto, InternetAddress(syncState.multicastGroup), syncState.port);
-          socket.socket.close();
         } catch (e) {
           _logger.warning('Could not send multicast message', e);
         }
       }
+    }
+
+    // 全部重试轮次发完后再关闭，提前关闭会让后续重试包被静默丢弃。
+    for (final socket in sockets) {
+      try {
+        socket.socket.close();
+      } catch (_) {}
     }
   }
 
