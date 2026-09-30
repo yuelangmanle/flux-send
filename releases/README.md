@@ -2,16 +2,19 @@
 
 > 位置：`releases/history/`。正式安装包归档于此，同时上传 GitHub Releases；本目录不入 Git。
 
-更新时间：2026-09-30
+更新时间：2026-09-30（v2.0.0）（2.0.0 发布后回填产物哈希）
 
 ## 最新版本
 
-- `releases/history/v1.1.55/Flux-v1.1.55-android.apk`（Android APK，1.1.55+114）
-- `releases/history/v1.1.55/Flux-v1.1.55-macOS.dmg`（macOS DMG，1.1.55+114）
-- `releases/history/v1.1.55/SHA256SUMS.txt`（SHA-256 校验清单）
+- `releases/history/v2.0.0/Flux-v2.0.0-android.apk`（Android APK，2.0.0+200）
+- `releases/history/v2.0.0/Flux-v2.0.0-macOS.dmg`（macOS DMG，2.0.0+200）
+- `releases/history/v2.0.0/SHA256SUMS.txt`（SHA-256 校验清单）
 
 ## 归档列表
 
+- `releases/history/v1.1.55/Flux-v1.1.55-android.apk`（134M）
+- `releases/history/v1.1.55/Flux-v1.1.55-macOS.dmg`（62M）
+- `releases/history/v1.1.55/SHA256SUMS.txt`（180B）
 - `releases/history/v1.1.52/Flux-v1.1.52-android.apk`（128M）
 - `releases/history/v1.1.52/Flux-v1.1.52-macOS.dmg`（61M）
 - `releases/history/v1.1.52/SHA256SUMS.txt`（180B）

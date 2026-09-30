@@ -7,11 +7,11 @@
 | 项目 | 状态 |
 |------|------|
 | 应用名 | Flux |
-| 当前版本 | 1.1.55+114 |
+| 当前版本 | 2.0.0+200 |
 | Android applicationId | `org.localsend.localsend_app`（必须保持不变，保证覆盖安装） |
 | Android 签名 | 既有私有 JKS；文件、别名和密码仅存于密码管理器与离线备份，绝不进入公开仓库 |
 | macOS 应用名 | `Flux.app` |
-| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v1.1.55/Flux-v1.1.55-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v1.1.55/Flux-v1.1.55-macOS.dmg` |
+| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v2.0.0/Flux-v2.0.0-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v2.0.0/Flux-v2.0.0-macOS.dmg` |
 
 ## 本轮目标
 
@@ -20,6 +20,18 @@
 - 每次发包更新版本号，并保留签名密钥信息，避免 Android 后续无法覆盖安装。
 - 所有关键操作留痕，方便后续开发者接手。
 - 以后所有正式安装包统一归档到 `/Users/yueliangmanle/flux-send/releases/history/v版本号/`，并更新 `releases/README.md`；桌面只允许临时中转，发包后要清空。
+
+### 2026-09-30 v2.0.0 大版本：安全/稳定性/传输性能整体升级
+
+- 依据：docs/ROADMAP-2.0.md（四维深读审查汇总）。本批实施其中阶段一全部 + 阶段二/三的高价值快赢项；断点续传、蓝牙协议 v2、前台服务、二维码配对、剪贴板时间线等留在 2.0.x/2.1。
+- 安全：剪贴板同步出站校验对端 TLS 证书指纹（TOFU）；`/api/clipboard` 加 1 MiB 上限 + 每 IP 30 次/分钟限流 + 可选 PIN（X-Pin 头）；PIN 限流改 5 分钟滑动窗口（成功清零），PIN 优先走请求头。
+- 稳定性：UDP 公告重试不再中途关闭 socket；监听排空积压数据报；Android SAF 扫描移后台线程 + 5000 条上限（消 ANR）；picker 按 requestCode 存 Result（消挂死）；未知扩展名兜底 octet-stream（消崩溃）；onDestroy 回收全部挂起 Result。
+- 性能：蓝牙接收改流式写临时 .part 文件 + 大小校验（消大文件 OOM）；进度文案 100ms 节流。
+- macOS：pending 文件安全作用域在 Flutter 消费后统一释放（修泄漏）；目标目录书签过期自动重建；Debug entitlements 补 app-scope bookmarks。
+- 重构：删除 WebRTC 信令/接收链、in_app_purchase 捐赠、TV 输入包装等上游遗留；TextFieldTv → FluxTextField。
+- UI：扫描空态给原因提示 + “去排查/手动输入 IP”入口（新 i18n key 经 slang 生成）；失败重试按钮加本地化 tooltip。
+- 验证：`dart format` 无变更；`flutter analyze` 无 issues；`flutter test` 全量 242 项通过；`:app:compileReleaseKotlin` 通过（原生改动编译验证）。
+- 已知未做（记入 ROADMAP）：断点续传、蓝牙协议 v2 能力协商、Android 前台服务（息屏保活）、二维码配对、剪贴板时间线、设置页拆分、i18n 全量收口。`send_provider.dart` 的 rhttp publicKey 接线（发送链 pinning）尚未完成，剪切板链已先落地。
 
 ### 2026-09-29 v1.1.55 追加修复（四维审查汇总：产品 / UI / 体验 / 全栈）
 
