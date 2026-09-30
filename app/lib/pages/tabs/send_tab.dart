@@ -24,6 +24,7 @@ import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/widget/big_button.dart';
 import 'package:localsend_app/widget/custom_icon_button.dart';
 import 'package:localsend_app/widget/dialogs/add_file_dialog.dart';
+import 'package:localsend_app/widget/dialogs/address_input_dialog.dart';
 import 'package:localsend_app/widget/dialogs/send_mode_help_dialog.dart';
 import 'package:localsend_app/widget/file_thumbnail.dart';
 import 'package:localsend_app/widget/flux_connection_status_card.dart';
@@ -209,11 +210,41 @@ class SendTab extends StatelessWidget {
                   ],
                 ),
                 if (vm.nearbyDevices.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 10, left: _horizontalPadding, right: _horizontalPadding),
-                    child: Opacity(
-                      opacity: 0.3,
-                      child: DevicePlaceholderListTile(),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10, left: _horizontalPadding, right: _horizontalPadding),
+                    child: Column(
+                      children: [
+                        const Opacity(
+                          opacity: 0.3,
+                          child: DevicePlaceholderListTile(),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          t.sendTab.emptyHint,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                              onPressed: () => context.push(() => const TroubleshootPage()),
+                              child: Text(t.sendTab.troubleshootButton),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                await showDialog(
+                                  context: context,
+                                  builder: (_) => const AddressInputDialog(),
+                                );
+                              },
+                              child: Text(t.sendTab.manualIpButton),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ...vm.nearbyDevices.map((device) {

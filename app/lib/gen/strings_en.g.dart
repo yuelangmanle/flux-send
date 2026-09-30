@@ -195,6 +195,9 @@ class TranslationsGeneralEn {
 
   /// en: 'No items in Clipboard.'
   String get noItemInClipboard => 'No items in Clipboard.';
+
+  /// en: 'Retry'
+  String get retry => 'Retry';
 }
 
 // Path: receiveTab
@@ -254,6 +257,15 @@ class TranslationsSendTabEn {
 
   /// en: 'Place items to share.'
   String get placeItems => 'Place items to share.';
+
+  /// en: 'No devices found? Make sure both devices are on the same Wi-Fi or hotspot and Flux is open on the receiver.'
+  String get emptyHint => 'No devices found? Make sure both devices are on the same Wi-Fi or hotspot and Flux is open on the receiver.';
+
+  /// en: 'Troubleshoot'
+  String get troubleshootButton => 'Troubleshoot';
+
+  /// en: 'Enter IP manually'
+  String get manualIpButton => 'Enter IP manually';
 }
 
 // Path: settingsTab
@@ -392,8 +404,11 @@ class TranslationsReceivePageEn {
   // Translations
 
   /// en: '(one) {wants to send you a file} (other) {wants to send you {n} files}'
-  String subTitle({required num n}) =>
-      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'wants to send you a file', other: 'wants to send you ${n} files');
+  String subTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(
+    n,
+    one: 'wants to send you a file',
+    other: 'wants to send you ${n} files',
+  );
 
   /// en: 'sent you a message:'
   String get subTitleMessage => 'sent you a message:';

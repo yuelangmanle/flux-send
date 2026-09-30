@@ -39,7 +39,8 @@
     "save": "保存",
     "unchanged": "未更改",
     "unknown": "未知",
-    "noItemInClipboard": "剪贴板为空"
+    "noItemInClipboard": "剪贴板为空",
+    "retry": "重试"
   },
   "receiveTab": {
     "title": "接收",
@@ -82,7 +83,10 @@
     },
     "sendModeHelp": "提示",
     "help": "请确保目标连接到同一个 Wi‑Fi 网络。",
-    "placeItems": "列出要分享的项目。"
+    "placeItems": "列出要分享的项目。",
+    "emptyHint": "没发现设备？确认双方在同一 Wi-Fi/热点下，且接收端已打开 Flux。",
+    "troubleshootButton": "去排查",
+    "manualIpButton": "手动输入 IP"
   },
   "settingsTab": {
     "title": "设置",

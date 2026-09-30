@@ -174,6 +174,8 @@ class _TranslationsGeneralZhCn extends TranslationsGeneralEn {
   String get unknown => '未知';
   @override
   String get noItemInClipboard => '剪贴板为空';
+  @override
+  String get retry => '重试';
 }
 
 // Path: receiveTab
@@ -224,6 +226,12 @@ class _TranslationsSendTabZhCn extends TranslationsSendTabEn {
   String get help => '请确保目标连接到同一个 Wi‑Fi 网络。';
   @override
   String get placeItems => '列出要分享的项目。';
+  @override
+  String get emptyHint => '没发现设备？确认双方在同一 Wi-Fi/热点下，且接收端已打开 Flux。';
+  @override
+  String get troubleshootButton => '去排查';
+  @override
+  String get manualIpButton => '手动输入 IP';
 }
 
 // Path: settingsTab
@@ -327,8 +335,11 @@ class _TranslationsReceivePageZhCn extends TranslationsReceivePageEn {
 
   // Translations
   @override
-  String subTitle({required num n}) =>
-      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(n, one: '想要发送给你一个文件', other: '想要发送给你 ${n} 个文件');
+  String subTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(
+    n,
+    one: '想要发送给你一个文件',
+    other: '想要发送给你 ${n} 个文件',
+  );
   @override
   String get subTitleMessage => '发送给你了一条消息：';
   @override
@@ -408,8 +419,11 @@ class _TranslationsWebSharePageZhCn extends TranslationsWebSharePageEn {
   @override
   String get error => '在启动服务器过程中发生了错误。';
   @override
-  String openLink({required num n}) =>
-      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(n, one: '在浏览器中打开链接：', other: '在浏览器中打开其中一个链接：');
+  String openLink({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(
+    n,
+    one: '在浏览器中打开链接：',
+    other: '在浏览器中打开其中一个链接：',
+  );
   @override
   String get requests => '请求';
   @override
@@ -1387,7 +1401,11 @@ class _TranslationsDialogsQuickSaveFromFavoritesNoticeZhCn extends TranslationsD
   @override
   String get title => _root.general.quickSaveFromFavorites;
   @override
-  List<String> get content => ['当前会自动接受收藏夹中设备的文件请求。', '警告：这目前并非绝对安全，知道您收藏夹列表中的设备指纹被黑客窃取，其仍可以向您发送文件。', '但是，此选项比“允许任何设备”更安全。'];
+  List<String> get content => [
+    '当前会自动接受收藏夹中设备的文件请求。',
+    '警告：这目前并非绝对安全，知道您收藏夹列表中的设备指纹被黑客窃取，其仍可以向您发送文件。',
+    '但是，此选项比“允许任何设备”更安全。',
+  ];
 }
 
 // Path: dialogs.pin

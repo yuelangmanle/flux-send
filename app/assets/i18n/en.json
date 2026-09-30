@@ -39,7 +39,8 @@
     "save": "Save",
     "unchanged": "Unchanged",
     "unknown": "Unknown",
-    "noItemInClipboard": "No items in Clipboard."
+    "noItemInClipboard": "No items in Clipboard.",
+    "retry": "Retry"
   },
   "receiveTab": {
     "title": "Receive",
@@ -82,7 +83,10 @@
     },
     "sendModeHelp": "Explanation",
     "help": "Please ensure that the desired target is also on the same Wi-Fi network.",
-    "placeItems": "Place items to share."
+    "placeItems": "Place items to share.",
+    "emptyHint": "No devices found? Make sure both devices are on the same Wi-Fi or hotspot and Flux is open on the receiver.",
+    "troubleshootButton": "Troubleshoot",
+    "manualIpButton": "Enter IP manually"
   },
   "settingsTab": {
     "title": "Settings",

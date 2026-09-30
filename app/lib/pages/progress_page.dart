@@ -412,6 +412,7 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                         ),
                         if (sendSession != null && fileStatus == FileStatus.failed)
                           IconButton(
+                            tooltip: t.general.retry,
                             icon: const Icon(Icons.refresh),
                             onPressed: () async {
                               await ref
