@@ -31,6 +31,15 @@
 - 重构：删除 WebRTC 信令/接收链、in_app_purchase 捐赠、TV 输入包装等上游遗留；TextFieldTv → FluxTextField。
 - UI：扫描空态给原因提示 + “去排查/手动输入 IP”入口（新 i18n key 经 slang 生成）；失败重试按钮加本地化 tooltip。
 - 验证：`dart format` 无变更；`flutter analyze` 无 issues；`flutter test` 全量 242 项通过；`:app:compileReleaseKotlin` 通过（原生改动编译验证）。
+- 构建环境记录（本机，2026-09-30，Xcode 27 / Rust stable 1.94 环境）：
+  1. macOS DMG 多次构建失败的根因链：stable 工具链自动升级 1.93.1→1.94.0 + `~/.cargo/registry` 经本地代理下载损坏 + Xcode 27 新链接器在 `MACOSX_DEPLOYMENT_TARGET>=12` 时对部分 proc-macro dylib 间歇性产出 "mis-aligned LINKEDIT string pool"（rustc 报 E0463，每次失败的不是同一个 crate；与 cargokit 固定用 stable 解析工具链叠加，长路径 target 目录更容易触发）。
+  2. 已落地的环境规避（机器级，均在仓库外）：`rustup default 1.93.1` 并将 `stable` 符号链接至 1.93.1（`rustup toolchain link stable ~/.rustup/toolchains/1.93.1-aarch64-apple-darwin`）；`~/.cargo/config.toml` 注释失效代理（备份同目录）并新增 `[env] MACOSX_DEPLOYMENT_TARGET = { value = "10.14", force = true }`（仅影响 macOS rust 编译，dylib 在 12+ 照常运行）；曾损坏的 `~/.cargo/registry/{cache,src}` 已清空重下。
+  3. 仓库内规避：`app/rust/rust-toolchain.toml` 钉扎 1.93.1；macOS 构建改为 **arm64 单架构**（Podfile 与 Runner 工程强制 `ARCHS = arm64`），Intel Mac 暂用 1.1.55；链接器修复后按 ROADMAP 恢复双架构并移除上述规避。
+- 产物与校验（`releases/history/v2.0.0/`）：
+  - `Flux-v2.0.0-android.apk`（133M）SHA-256 `dca3326148a7ccd566849c4b27c4bd6332379ef768cfb2740ab5117d3f239e2f`；aapt 校验 `org.localsend.localsend_app`、`versionName=2.0.0`、`versionCode=200`；apksigner 证书 SHA-256 保持 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
+  - `Flux-v2.0.0-macOS.dmg`（arm64）SHA-256 `5c224e7e716cfaef03ed4f57f8fab994ffa49bc18ca70bcac4d30b574a9c6f18`；`hdiutil verify` 通过；挂载后 `Flux.app` 为 `2.0.0 (200)`，`codesign --verify --deep --strict` 通过，蓝牙 entitlement 为 true。
+  - 同目录 `SHA256SUMS.txt` 已生成。
+- 发布状态：用户确认后直接发布 GitHub Release v2.0.0（未经双端真机验收，验收转为发布后事项）。
 - 已知未做（记入 ROADMAP）：断点续传、蓝牙协议 v2 能力协商、Android 前台服务（息屏保活）、二维码配对、剪贴板时间线、设置页拆分、i18n 全量收口。`send_provider.dart` 的 rhttp publicKey 接线（发送链 pinning）尚未完成，剪切板链已先落地。
 
 ### 2026-09-29 v1.1.55 追加修复（四维审查汇总：产品 / UI / 体验 / 全栈）

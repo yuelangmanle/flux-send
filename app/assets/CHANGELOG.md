@@ -2,6 +2,8 @@
 
 大版本更新：安全、稳定性与传输性能的整体升级，配套架构清理。完整 2.0 路线图见 `docs/ROADMAP-2.0.md`。
 
+> **macOS 安装包说明**：2.0.0 的 DMG 为 Apple Silicon (arm64) 单架构。Xcode 27 新链接器在双架构构建中对 Rust proc-macro dylib 会间歇性产出无法加载的产物（详见 `docs/PROGRESS.md` 的构建环境记录），Intel Mac 用户请暂用 1.1.55，恢复双架构后另行发版。
+
 - feat(security): 剪切板同步通道现在校验对端 TLS 证书指纹（与设备指纹一致），阻断中间人截获；手动输入且未注册的对端仍可连接（TOFU）。
 - feat(security): `/api/clipboard` 增加 1 MiB 请求体上限、每 IP 每分钟 30 次限流；接收端设置 PIN 后，剪切板写入也必须提供 PIN（`X-Pin` 头，兼容 query 方式）。
 - feat(security): PIN 错误尝试改为 5 分钟滑动窗口（成功即清零、过期自动失效），不再永久锁死同 NAT 用户；PIN 优先从请求头读取，避免进入 URL 日志。

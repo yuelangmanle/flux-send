@@ -17,9 +17,6 @@ PODS:
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
-  - in_app_purchase_storekit (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - network_info_plus (0.0.1):
     - FlutterMacOS
   - open_dir_macos (0.0.1):
@@ -67,7 +64,6 @@ DEPENDENCIES:
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gal (from `Flutter/ephemeral/.symlinks/plugins/gal/darwin`)
-  - in_app_purchase_storekit (from `Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - network_info_plus (from `Flutter/ephemeral/.symlinks/plugins/network_info_plus/macos`)
   - open_dir_macos (from `Flutter/ephemeral/.symlinks/plugins/open_dir_macos/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
@@ -106,8 +102,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   gal:
     :path: Flutter/ephemeral/.symlinks/plugins/gal/darwin
-  in_app_purchase_storekit:
-    :path: Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin
   network_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/network_info_plus/macos
   open_dir_macos:
@@ -151,7 +145,6 @@ SPEC CHECKSUMS:
   file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   gal: 44e5b10dbd347c8247a2851acee6c1fbe282c1d3
-  in_app_purchase_storekit: d1a48cb0f8b29dbf5f85f782f5dd79b21b90a5e6
   network_info_plus: 21d1cd6a015ccb2fdff06a1fbfa88d54b4e92f61
   open_dir_macos: 79810d7921d777f8732bf6358b3a0839a8fad9b5
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
@@ -169,6 +162,6 @@ SPEC CHECKSUMS:
   wakelock_plus: 21ddc249ac4b8d018838dbdabd65c5976c308497
   window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
-PODFILE CHECKSUM: 62e2785b87201f496fb52af31f9ba2f142463f6c
+PODFILE CHECKSUM: fadf2a4df24f2524f1697863009ffea583de4286
 
 COCOAPODS: 1.16.2
