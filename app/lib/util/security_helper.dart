@@ -62,6 +62,16 @@ $publicBase64
   return X509Utils.fixPem(temp);
 }
 
+/// 校验证书 DER 字节的 SHA-256 指纹是否与预期一致（LocalSend 协议中设备指纹即证书哈希）。
+/// 预期指纹为空时放行（手动输入且未完成注册的对端）。
+bool matchesCertificateBytes({required Uint8List der, required String expectedFingerprint}) {
+  if (expectedFingerprint.trim().isEmpty) {
+    return true;
+  }
+  final hash = CryptoUtils.getHash(der, algorithmName: 'SHA-256');
+  return hash.toLowerCase() == expectedFingerprint.trim().toLowerCase();
+}
+
 /// Verifies a certificate with a public key.
 /// Throws an exception if the certificate is invalid.
 Future<void> verifyCertificate({

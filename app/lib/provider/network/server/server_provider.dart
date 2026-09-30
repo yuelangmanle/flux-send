@@ -9,17 +9,22 @@ import 'package:common/model/stored_security_context.dart';
 import 'package:localsend_app/model/cross_file.dart';
 import 'package:localsend_app/model/state/server/server_state.dart';
 import 'package:localsend_app/provider/clipboard_sync_provider.dart';
+import 'package:localsend_app/provider/network/server/controller/common.dart';
 import 'package:localsend_app/provider/network/server/controller/receive_controller.dart';
 import 'package:localsend_app/provider/network/server/controller/send_controller.dart';
 import 'package:localsend_app/provider/network/server/server_utils.dart';
 import 'package:localsend_app/provider/security_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/util/alias_generator.dart';
+import 'package:localsend_app/util/request_limiter.dart';
 import 'package:localsend_app/util/simple_server.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 final _logger = Logger('Server');
+
+/// 剪切板接口请求体上限：剪切板是文本通道，1MB 已远超合理上限。
+const maxClipboardBodyBytes = 1024 * 1024;
 const _minFallbackPort = 1024;
 const _serverPortFallbackCount = 20;
 
@@ -143,9 +148,27 @@ class ServerService extends Notifier<ServerState?> {
     );
 
     // Flux: Clipboard sync route
+    final clipboardRateLimiter = RequestRateLimiter(maxRequests: 30, window: const Duration(minutes: 1));
     router.post('/api/clipboard', (HttpRequest request) async {
       try {
-        final body = await utf8.decoder.bind(request).join();
+        // 同一 IP 每分钟最多 30 次，防止剪切板接口被刷。
+        if (!clipboardRateLimiter.allow(request.ip, DateTime.now())) {
+          return await request.respondJson(HttpStatus.tooManyRequests, message: 'Too many requests.');
+        }
+        // 接收端设置了 PIN 时，剪切板写入也必须提供 PIN（X-Pin 头或 query 参数）。
+        final pinOk = await checkPin(
+          pin: ref.read(settingsProvider).receivePin,
+          request: request,
+        );
+        if (!pinOk) {
+          return;
+        }
+
+        final contentLength = int.tryParse(request.headers.value(HttpHeaders.contentLengthHeader) ?? '');
+        if (contentLength != null && contentLength > maxClipboardBodyBytes) {
+          return await request.respondJson(HttpStatus.requestEntityTooLarge, message: 'Clipboard payload too large.');
+        }
+        final body = await utf8.decoder.bind(request.cast<List<int>>().transform(limitBytes(maxClipboardBodyBytes))).join();
         final text = extractClipboardTextFromRequestBody(
           body: body,
           contentType: request.headers.contentType?.toString() ?? request.headers.value(HttpHeaders.contentTypeHeader),
@@ -160,6 +183,8 @@ class ServerService extends Notifier<ServerState?> {
         } else {
           return await request.respondJson(HttpStatus.badRequest, message: 'missing text');
         }
+      } on BytesLimitExceededException {
+        return await request.respondJson(HttpStatus.requestEntityTooLarge, message: 'Clipboard payload too large.');
       } catch (e) {
         return await request.respondJson(HttpStatus.internalServerError, message: e.toString());
       }
@@ -174,7 +199,7 @@ class ServerService extends Notifier<ServerState?> {
       https: https,
       session: null,
       webSendState: null,
-      pinAttempts: {},
+      pinAttempts: const {},
     );
 
     state = newServerState;

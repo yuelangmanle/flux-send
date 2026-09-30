@@ -113,9 +113,7 @@ class SendController {
       }
 
       final pinCorrect = await checkPin(
-        server: server,
         pin: state.webSendState!.pin,
-        pinAttempts: state.webSendState!.pinAttempts,
         request: request,
       );
       if (!pinCorrect) {
@@ -250,6 +248,8 @@ class SendController {
 
   Future<void> initializeWebSend({required List<CrossFile> files}) async {
     final webSendState = WebSendState(
+      // PIN 限流已改为进程级 PinRateLimiter，字段保留以兼容既有模型。
+      pinAttempts: {},
       sessions: {},
       files: Map.fromEntries(
         await Future.wait(
@@ -284,7 +284,6 @@ class SendController {
       ),
       autoAccept: server.ref.read(settingsProvider).shareViaLinkAutoAccept,
       pin: null,
-      pinAttempts: {},
     );
 
     server.setState(

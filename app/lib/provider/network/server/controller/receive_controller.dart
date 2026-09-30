@@ -199,9 +199,7 @@ class ReceiveController {
     }
 
     final pinCorrect = await checkPin(
-      server: server,
       pin: server.ref.read(settingsProvider).receivePin,
-      pinAttempts: server.getState().pinAttempts,
       request: request,
     );
     if (!pinCorrect) {

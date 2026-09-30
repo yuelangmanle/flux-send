@@ -12,6 +12,7 @@ import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/scan_facade.dart';
 import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:localsend_app/provider/security_provider.dart';
+import 'package:localsend_app/util/security_helper.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -589,7 +590,7 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
         final ip = device.ip!;
 
         try {
-          await _sendToDevice(ip, device.port, device.https, text);
+          await _sendToDevice(ip, device.port, device.https, text, expectedFingerprint: device.fingerprint);
           successCount++;
         } catch (e) {
           _logger.warning('Failed to send clipboard to $ip: $e');
@@ -651,11 +652,24 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
     }
   }
 
-  Future<void> _sendToDevice(String ip, int port, bool https, String text) async {
+  Future<void> _sendToDevice(
+    String ip,
+    int port,
+    bool https,
+    String text, {
+    String? expectedFingerprint,
+  }) async {
     final url = buildClipboardSyncUri(ip: ip, port: port, https: https);
     final client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 3)
-      ..badCertificateCallback = (_, __, ___) => true;
+      ..badCertificateCallback = (cert, host, port) {
+        // 自签证书体系下以“证书指纹 == 对端设备指纹”作为身份校验，防止中间人截获剪切板。
+        final matches = matchesCertificateBytes(der: cert.der, expectedFingerprint: expectedFingerprint ?? '');
+        if (!matches) {
+          _logger.warning('Clipboard TLS certificate fingerprint mismatch for $host:$port');
+        }
+        return matches;
+      };
     try {
       final request = await client.postUrl(url);
       request.headers.set('Content-Type', 'text/plain; charset=utf-8');
