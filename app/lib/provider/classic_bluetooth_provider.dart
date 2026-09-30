@@ -76,19 +76,45 @@ class _IncomingBluetoothFile {
   final String fileName;
   final FileType fileType;
   final int expectedSize;
-  final List<Uint8List> chunks = [];
+  final File partFile;
+  final IOSink sink;
   int receivedBytes = 0;
+  DateTime lastProgressUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+  bool _failed = false;
 
   _IncomingBluetoothFile({
     required this.id,
     required this.fileName,
     required this.fileType,
     required this.expectedSize,
-  });
+  }) : partFile = File('${Directory.systemTemp.path}/flux_bt_$id.part'),
+       sink = File('${Directory.systemTemp.path}/flux_bt_$id.part').openWrite();
 
-  void addChunk(Uint8List chunk) {
-    chunks.add(chunk);
-    receivedBytes += chunk.length;
+  /// 追加一块数据；返回 false 表示该传输已失败，应忽略后续块。
+  bool addChunk(Uint8List chunk) {
+    if (_failed) {
+      return false;
+    }
+    try {
+      sink.add(chunk);
+      receivedBytes += chunk.length;
+      return true;
+    } catch (e) {
+      _failed = true;
+      _logger.warning('Writing Bluetooth chunk failed for $fileName', e);
+      return false;
+    }
+  }
+
+  Future<void> discard() async {
+    _failed = true;
+    try {
+      await sink.flush();
+      await sink.close();
+    } catch (_) {}
+    try {
+      await partFile.delete();
+    } catch (_) {}
   }
 }
 
@@ -494,6 +520,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
       case 'stopped':
         _connectionTimeout?.cancel();
         _handshakeFailureStreak = 0;
+        _discardIncomingFiles();
         state = state.copyWith(
           listening: false,
           connected: false,
@@ -504,6 +531,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
         );
       case 'disconnected':
         _connectionTimeout?.cancel();
+        _discardIncomingFiles();
         if (isClassicBluetoothHandshakeFailureMessage(message)) {
           _handshakeFailureStreak += 1;
         } else {
@@ -605,12 +633,21 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
           orElse: () => FileType.other,
         );
         final size = decoded['size'] is int ? decoded['size'] as int : int.tryParse(decoded['size']?.toString() ?? '') ?? 0;
-        _incomingFiles[id] = _IncomingBluetoothFile(
-          id: id,
-          fileName: fileName,
-          fileType: fileType,
-          expectedSize: size,
-        );
+        try {
+          _incomingFiles[id] = _IncomingBluetoothFile(
+            id: id,
+            fileName: fileName,
+            fileType: fileType,
+            expectedSize: size,
+          );
+        } catch (e) {
+          _logger.warning('Creating Bluetooth temp file failed', e);
+          state = state.copyWith(
+            lastError: '经典蓝牙接收文件失败：无法创建临时文件',
+            statusMessage: '经典蓝牙接收文件失败',
+          );
+          return true;
+        }
         state = state.copyWith(statusMessage: '经典蓝牙开始接收文件：$fileName', clearLastError: true);
         return true;
       case fluxBluetoothFileChunk:
@@ -620,11 +657,24 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
           return true;
         }
         final bytes = base64Decode(data);
-        transfer.addChunk(Uint8List.fromList(bytes));
-        state = state.copyWith(
-          statusMessage: '经典蓝牙正在接收 ${transfer.fileName}：${transfer.receivedBytes}/${transfer.expectedSize} B',
-          clearLastError: true,
-        );
+        if (!transfer.addChunk(Uint8List.fromList(bytes))) {
+          _incomingFiles.remove(id);
+          unawaited(transfer.discard());
+          state = state.copyWith(
+            lastError: '经典蓝牙接收文件失败：${transfer.fileName} 写入失败',
+            statusMessage: '经典蓝牙接收文件失败',
+          );
+          return true;
+        }
+        // 进度文案 100ms 节流，避免大文件期间每块都触发整页重建。
+        final now = DateTime.now();
+        if (now.difference(transfer.lastProgressUpdate) >= const Duration(milliseconds: 100)) {
+          transfer.lastProgressUpdate = now;
+          state = state.copyWith(
+            statusMessage: '经典蓝牙正在接收 ${transfer.fileName}：${transfer.receivedBytes}/${transfer.expectedSize} B',
+            clearLastError: true,
+          );
+        }
         return true;
       case fluxBluetoothFileEnd:
         unawaited(_finishIncomingFile(id));
@@ -641,6 +691,16 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
     }
 
     try {
+      await transfer.sink.flush();
+      await transfer.sink.close();
+      if (transfer.expectedSize > 0 && transfer.receivedBytes != transfer.expectedSize) {
+        await transfer.discard();
+        state = state.copyWith(
+          lastError: '经典蓝牙接收文件失败：${transfer.fileName} 大小不匹配（收到 ${transfer.receivedBytes}，预期 ${transfer.expectedSize}）',
+          statusMessage: '经典蓝牙接收文件失败',
+        );
+        return;
+      }
       state = state.copyWith(statusMessage: '经典蓝牙正在保存文件：${transfer.fileName}', clearLastError: true);
       final settings = _ref.read(settingsProvider);
       final destination = settings.destination ?? await getDefaultDestinationDirectory();
@@ -650,7 +710,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
         fileName: transfer.fileName,
         saveToGallery: shouldSaveToGallery,
         isImage: transfer.fileType == FileType.image,
-        stream: Stream<Uint8List>.fromIterable(transfer.chunks),
+        stream: transfer.partFile.openRead().map(Uint8List.fromList),
         onProgress: (_) {},
         androidSdkInt: _ref.read(deviceInfoProvider).androidSdkInt,
         createdDirectories: _createdBluetoothDirectories,
@@ -670,17 +730,27 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
               timestamp: DateTime.now().toUtc(),
             ),
           );
+      unawaited(transfer.partFile.delete().then<void>((_) {}, onError: (Object _) {}));
       state = state.copyWith(
         statusMessage: '已通过经典蓝牙接收文件：${transfer.fileName}',
         clearLastError: true,
       );
     } catch (e, st) {
+      unawaited(transfer.partFile.delete().then<void>((_) {}, onError: (Object _) {}));
       _logger.warning('Saving incoming Bluetooth file failed', e, st);
       state = state.copyWith(
         lastError: '经典蓝牙文件保存失败：$e',
         statusMessage: '经典蓝牙文件保存失败',
       );
     }
+  }
+
+  /// 断连、停止或销毁时清理所有未完成的蓝牙接收（关闭并删除临时文件）。
+  void _discardIncomingFiles() {
+    for (final transfer in _incomingFiles.values) {
+      unawaited(transfer.discard());
+    }
+    _incomingFiles.clear();
   }
 
   Future<void> stop() async {
@@ -707,7 +777,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
     _manualStopRequested = true;
     _connectionTimeout?.cancel();
     _reconnectTimer?.cancel();
-    _incomingFiles.clear();
+    _discardIncomingFiles();
     unawaited(_events?.cancel());
     unawaited(stopClassicBluetooth());
     super.dispose();

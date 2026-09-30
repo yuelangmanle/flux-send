@@ -50,8 +50,11 @@ class MulticastService {
       for (final socket in sockets) {
         socket.socket.listen((_) {
           // 一次事件可能对应多份积压数据报，循环排空避免突发丢包。
-          RawDatagram? datagram;
-          while ((datagram = socket.socket.receive()) != null) {
+          while (true) {
+            final datagram = socket.socket.receive();
+            if (datagram == null) {
+              break;
+            }
             _handleMulticastDatagram(
               datagram,
               syncState: syncState,
@@ -91,7 +94,7 @@ class MulticastService {
   }
 
   void _handleMulticastDatagram(
-    RawDatagram datagram, {
+    Datagram datagram, {
     required SyncState syncState,
     required StreamController<Device> streamController,
   }) {

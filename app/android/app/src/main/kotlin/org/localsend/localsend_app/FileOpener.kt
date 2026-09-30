@@ -3,7 +3,6 @@ package org.localsend.localsend_app
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.DocumentsContract
 import java.util.Locale
 
 fun openUri(context: Context, uriStr: String) {
@@ -11,11 +10,14 @@ fun openUri(context: Context, uriStr: String) {
     val intent = Intent(Intent.ACTION_VIEW, uri)
     val type = getFileType(uriStr)
 
-    println("Inferred type: $type")
-
     intent.setDataAndType(uri, type)
     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    context.startActivity(intent)
+    try {
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        // 未知类型没有可处理的应用，静默兜底避免崩溃。
+        android.util.Log.w("FluxFileOpener", "Could not open $uriStr as $type", e)
+    }
 }
 
 private fun getFileType(filePath: String): String {
@@ -88,6 +90,7 @@ private fun getFileType(filePath: String): String {
         "xml" -> "text/plain"
         "z" -> "application/x-compress"
         "zip" -> "application/x-zip-compressed"
-        else -> DocumentsContract.Document.MIME_TYPE_DIR
+        // 未知扩展名按通用二进制处理；目录 MIME 会导致大多数 ROM 抛 ActivityNotFoundException。
+        else -> "application/octet-stream"
     }
 }

@@ -15,6 +15,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import kotlin.concurrent.thread
 
 
 private const val CHANNEL = "org.localsend.localsend_app/localsend"
@@ -24,7 +25,8 @@ private const val REQUEST_CODE_PICK_DIRECTORY_PATH = 2
 private const val REQUEST_CODE_PICK_FILE = 3
 
 class MainActivity : FlutterActivity() {
-    private var pendingResult: MethodChannel.Result? = null
+    // 每个 picker 请求码独立保存 Result，避免连续调用时互相覆盖导致 Future 挂死。
+    private val pendingResults = mutableMapOf<Int, MethodChannel.Result>()
     private var multicastLock: WifiManager.MulticastLock? = null
     private lateinit var classicBluetoothBridge: ClassicBluetoothBridge
 
@@ -57,18 +59,18 @@ class MainActivity : FlutterActivity() {
 
             when (call.method) {
                 "pickDirectory" -> {
-                    pendingResult = result
-                    openDirectoryPicker(onlyPath = false)
+                    pendingResults[REQUEST_CODE_PICK_DIRECTORY] = result
+                    openDirectoryPicker(REQUEST_CODE_PICK_DIRECTORY)
                 }
 
                 "pickFiles" -> {
-                    pendingResult = result
+                    pendingResults[REQUEST_CODE_PICK_FILE] = result
                     openFilePicker()
                 }
 
                 "pickDirectoryPath" -> {
-                    pendingResult = result
-                    openDirectoryPicker(onlyPath = true)
+                    pendingResults[REQUEST_CODE_PICK_DIRECTORY_PATH] = result
+                    openDirectoryPicker(REQUEST_CODE_PICK_DIRECTORY_PATH)
                 }
 
                 "createDirectory" -> handleCreateDirectory(call, result)
@@ -106,6 +108,11 @@ class MainActivity : FlutterActivity() {
             classicBluetoothBridge.stop()
         }
         releaseMulticastLock()
+        // 回收所有挂起的 picker Result，防止调用方 Future 永久挂起。
+        for ((_, result) in pendingResults) {
+            result.error("CANCELED", "Activity destroyed", null)
+        }
+        pendingResults.clear()
         super.onDestroy()
     }
 
@@ -142,17 +149,14 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun openDirectoryPicker(onlyPath: Boolean) {
+    private fun openDirectoryPicker(requestCode: Int) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
         intent.addFlags(
             Intent.FLAG_GRANT_READ_URI_PERMISSION or
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
                 Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
         )
-        startActivityForResult(
-            intent,
-            if (onlyPath) REQUEST_CODE_PICK_DIRECTORY_PATH else REQUEST_CODE_PICK_DIRECTORY
-        )
+        startActivityForResult(intent, requestCode)
     }
 
     private fun openFilePicker() {
@@ -171,14 +175,12 @@ class MainActivity : FlutterActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_CANCELED) {
-            pendingResult?.error("CANCELED", "Canceled", null)
-            pendingResult = null
+            pendingResults.remove(requestCode)?.error("CANCELED", "Canceled", null)
             return
         }
 
         if (resultCode != Activity.RESULT_OK || data == null) {
-            pendingResult?.error("Error $resultCode", "Failed to access directory or file", null)
-            pendingResult = null
+            pendingResults.remove(requestCode)?.error("Error $resultCode", "Failed to access directory or file", null)
             return
         }
 
@@ -190,14 +192,16 @@ class MainActivity : FlutterActivity() {
                 if (uri != null) {
                     takePersistableDirectoryPermission(uri, takeFlags)
 
-                    val files = mutableListOf<FileInfo>()
-                    listFiles(uri, files)
-                    val resultData = PickDirectoryResult(uri.toString(), files)
-                    pendingResult?.success(resultData.toMap())
-                    pendingResult = null
+                    // SAF 递归扫描是阻塞的 ContentResolver 查询，移到后台线程避免大目录 ANR。
+                    thread {
+                        val files = mutableListOf<FileInfo>()
+                        listFiles(uri, files)
+                        runOnUiThread {
+                            pendingResults.remove(requestCode)?.success(PickDirectoryResult(uri.toString(), files).toMap())
+                        }
+                    }
                 } else {
-                    pendingResult?.error("Error", "Failed to access directory", null)
-                    pendingResult = null
+                    pendingResults.remove(requestCode)?.error("Error", "Failed to access directory", null)
                 }
             }
 
@@ -207,11 +211,9 @@ class MainActivity : FlutterActivity() {
                     data.flags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 if (uri != null) {
                     takePersistableDirectoryPermission(uri, takeFlags)
-                    pendingResult?.success(uri.toString())
-                    pendingResult = null
+                    pendingResults.remove(requestCode)?.success(uri.toString())
                 } else {
-                    pendingResult?.error("Error", "Failed to access directory", null)
-                    pendingResult = null
+                    pendingResults.remove(requestCode)?.error("Error", "Failed to access directory", null)
                 }
             }
 
@@ -228,7 +230,7 @@ class MainActivity : FlutterActivity() {
 
                     data.data != null -> listOf(data.data!!)
                     else -> {
-                        pendingResult?.error("Error", "Failed to access file", null)
+                        pendingResults.remove(requestCode)?.error("Error", "Failed to access file", null)
                         return
                     }
                 }
@@ -241,7 +243,7 @@ class MainActivity : FlutterActivity() {
                     takePersistableReadPermission(uri, takeFlags)
                     val documentFile = FastDocumentFile.fromDocumentUri(this, uri)
                     if (documentFile == null) {
-                        pendingResult?.error("Error", "Failed to access file", null)
+                        pendingResults.remove(requestCode)?.error("Error", "Failed to access file", null)
                         return
                     }
                     resultList.add(
@@ -254,13 +256,15 @@ class MainActivity : FlutterActivity() {
                     )
                 }
 
-                pendingResult?.success(resultList.map { it.toMap() })
-                pendingResult = null
+                pendingResults.remove(requestCode)?.success(resultList.map { it.toMap() })
             }
         }
     }
 
-    private fun listFiles(uri: Uri, files: MutableList<FileInfo>) {
+    private fun listFiles(uri: Uri, files: MutableList<FileInfo>, maxEntries: Int = 5000) {
+        if (files.size >= maxEntries) {
+            return
+        }
         val pickedDir: FastDocumentFile = FastDocumentFile.fromTreeUri(this, uri)
 
         for (file in pickedDir.listFiles()) {
