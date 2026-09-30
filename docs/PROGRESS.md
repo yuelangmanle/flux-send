@@ -50,7 +50,9 @@
   - `Flux-v1.1.55-android.apk`（134M）SHA-256 `242e1926a04ebfa6e901619737198fd8e90c103a19b44283a25d69e3608dc6d5`；aapt 校验 `org.localsend.localsend_app`、`versionName=1.1.55`、`versionCode=114`；apksigner 证书 SHA-256 保持 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
   - `Flux-v1.1.55-macOS.dmg`（62M）SHA-256 `18138187f494c83166d579bdbdf9e29161a0164b45d790f20a5f0022591277bd`；`hdiutil verify` 通过；挂载后 `Flux.app` 为 `1.1.55 (114)`，`codesign --verify --deep --strict` 通过，蓝牙 entitlement 为 true。
   - 同目录 `SHA256SUMS.txt` 已生成。
-- 发布状态：代码与产物已推送；GitHub Release 以 **draft** 形式创建（v1.1.55）。经典蓝牙握手改动仍未做双端真机互传验收，按 `docs/RELEASE.md` 由人工实机验证后再发布（publish）。
+- 发布状态：代码与产物已推送；GitHub Release v1.1.55 已于 2026-09-30 由用户决定直接发布（未按 RELEASE.md 先做双端真机验收，验收作为后续事项补做）。`releases/latest` API 已返回 v1.1.55 与三个正确命名产物，应用内“检查更新”即刻可见。
+- 遗留待办：补做 Android ↔ macOS 经典蓝牙双端真机互传验收（配对 → 双方切经典蓝牙 → 连接 → 握手完成 → 双向剪切板/小文件），以及“暂停剪切板重启保持”与“非 Flux 设备 3 次失败停止重连”回归；如验收发现问题，按惯例以 1.1.56 修复发布。
+- 勘误：本轮排查中一段“账号被 GitHub 风控隐藏”的结论是错误的，原因是从用户消息照抄了带多余字母 i 的账号名（yueliangmanle ≠ yuelangmanle）且未与登录账号核对；所有 404 均为查询了不存在的账号名所致，账号与仓库从未异常。
 - 真机边界：本轮没有把未执行的 Android ↔ macOS 经典蓝牙双端互传写成通过。安装两个 `1.1.55` 包后，仍需按“系统配对 → 双方切经典蓝牙 → 一端连接 → 双方显示握手完成 → 双向剪切板/小文件”完成最终实机验收；同时回归“暂停剪切板重启保持暂停”与“对非 Flux 设备 3 次握手失败后停止重连”。
 
 ### 2026-07-27 v1.1.54 蓝牙真实连通性修复
