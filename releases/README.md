@@ -1,8 +1,8 @@
 # Flux 安装包历史归档
 
-> 位置：`/Users/yueliangmanle/flux-send/releases/history`。以后所有正式安装包都放在这里，桌面不再长期保存安装包。
+> 位置：`releases/history/`。正式安装包归档于此，同时上传 GitHub Releases；本目录不入 Git。
 
-更新时间：2026-07-27 09:35 CST
+更新时间：2026-09-30
 
 ## 最新版本
 
@@ -12,131 +12,11 @@
 
 ## 归档列表
 
-- `releases/history/v1.0.0/Flux-v1.0.0-android.apk`（127M）
-- `releases/history/v1.0.0/Flux-v1.0.0-macOS.dmg`（61M）
-- `releases/history/v1.0.1/Flux-v1.0.1-android.apk`（127M）
-- `releases/history/v1.0.1/Flux-v1.0.1-macOS.dmg`（61M）
-- `releases/history/v1.1.0/Flux-v1.1.0-android.apk`（127M）
-- `releases/history/v1.1.0/Flux-v1.1.0-macOS.dmg`（61M）
-- `releases/history/v1.1.1/Flux-v1.1.1-android.apk`（127M）
-- `releases/history/v1.1.1/Flux-v1.1.1-macOS.dmg`（64M）
-- `releases/history/v1.1.10/Flux-v1.1.10-android.apk`（127M）
-- `releases/history/v1.1.10/Flux-v1.1.10-macOS.dmg`（61M）
-- `releases/history/v1.1.11/Flux-v1.1.11-android.apk`（127M）
-- `releases/history/v1.1.11/Flux-v1.1.11-macOS.dmg`（61M）
-- `releases/history/v1.1.12/Flux-v1.1.12-android.apk`（127M）
-- `releases/history/v1.1.12/Flux-v1.1.12-macOS.dmg`（61M）
-- `releases/history/v1.1.13/Flux-v1.1.13-android.apk`（127M）
-- `releases/history/v1.1.13/Flux-v1.1.13-macOS.dmg`（61M）
-- `releases/history/v1.1.14/Flux-v1.1.14-android.apk`（127M）
-- `releases/history/v1.1.14/Flux-v1.1.14-macOS.dmg`（61M）
-- `releases/history/v1.1.15/Flux-v1.1.15-android.apk`（127M）
-- `releases/history/v1.1.15/Flux-v1.1.15-macOS.dmg`（61M）
-- `releases/history/v1.1.16/Flux-v1.1.16-android.apk`（127M）
-- `releases/history/v1.1.16/Flux-v1.1.16-macOS.dmg`（61M）
-- `releases/history/v1.1.17/Flux-v1.1.17-android.apk`（127M）
-- `releases/history/v1.1.17/Flux-v1.1.17-macOS.dmg`（61M）
-- `releases/history/v1.1.18/Flux-v1.1.18-android.apk`（127M）
-- `releases/history/v1.1.18/Flux-v1.1.18-macOS.dmg`（61M）
-- `releases/history/v1.1.19/Flux-v1.1.19-android.apk`（127M）
-- `releases/history/v1.1.19/Flux-v1.1.19-macOS.dmg`（61M）
-- `releases/history/v1.1.20/Flux-v1.1.20-android.apk`（127M）
-- `releases/history/v1.1.20/Flux-v1.1.20-macOS.dmg`（61M）
-- `releases/history/v1.1.21/Flux-v1.1.21-android.apk`（127M）
-- `releases/history/v1.1.21/Flux-v1.1.21-macOS.dmg`（61M）
-- `releases/history/v1.1.22/Flux-v1.1.22-android.apk`（127M）
-- `releases/history/v1.1.22/Flux-v1.1.22-macOS.dmg`（61M）
-- `releases/history/v1.1.23/Flux-v1.1.23-android.apk`（127M）
-- `releases/history/v1.1.23/Flux-v1.1.23-macOS.dmg`（61M）
-- `releases/history/v1.1.24/Flux-v1.1.24-android.apk`（127M）
-- `releases/history/v1.1.24/Flux-v1.1.24-macOS.dmg`（61M）
-- `releases/history/v1.1.25/Flux-v1.1.25-android.apk`（127M）
-- `releases/history/v1.1.25/Flux-v1.1.25-macOS.dmg`（61M）
-- `releases/history/v1.1.26/Flux-v1.1.26-android.apk`（127M）
-- `releases/history/v1.1.26/Flux-v1.1.26-macOS.dmg`（61M）
-- `releases/history/v1.1.27/Flux-v1.1.27-android.apk`（127M）
-- `releases/history/v1.1.27/Flux-v1.1.27-macOS.dmg`（61M）
-- `releases/history/v1.1.28/Flux-v1.1.28-android.apk`（127M）
-- `releases/history/v1.1.28/Flux-v1.1.28-macOS.dmg`（61M）
-- `releases/history/v1.1.29/Flux-v1.1.29-android.apk`（127M）
-- `releases/history/v1.1.29/Flux-v1.1.29-macOS.dmg`（61M）
-- `releases/history/v1.1.3/Flux-v1.1.3-android.apk`（127M）
-- `releases/history/v1.1.3/Flux-v1.1.3-macOS.dmg`（64M）
-- `releases/history/v1.1.30/Flux-v1.1.30-android.apk`（127M）
-- `releases/history/v1.1.30/Flux-v1.1.30-macOS.dmg`（61M）
-- `releases/history/v1.1.31/Flux-v1.1.31-android.apk`（127M）
-- `releases/history/v1.1.31/Flux-v1.1.31-macOS.dmg`（61M）
-- `releases/history/v1.1.32/Flux-v1.1.32-android.apk`（127M）
-- `releases/history/v1.1.32/Flux-v1.1.32-macOS.dmg`（61M）
-- `releases/history/v1.1.33/Flux-v1.1.33-android.apk`（127M）
-- `releases/history/v1.1.33/Flux-v1.1.33-macOS.dmg`（61M）
-- `releases/history/v1.1.34/Flux-v1.1.34-android.apk`（127M）
-- `releases/history/v1.1.34/Flux-v1.1.34-macOS.dmg`（61M）
-- `releases/history/v1.1.35/Flux-v1.1.35-android.apk`（127M）
-- `releases/history/v1.1.35/Flux-v1.1.35-macOS.dmg`（61M）
-- `releases/history/v1.1.36/Flux-v1.1.36-android.apk`（127M）
-- `releases/history/v1.1.36/Flux-v1.1.36-macOS.dmg`（61M）
-- `releases/history/v1.1.37/Flux-v1.1.37-android.apk`（127M）
-- `releases/history/v1.1.37/Flux-v1.1.37-macOS.dmg`（61M）
-- `releases/history/v1.1.38/Flux-v1.1.38-android.apk`（127M）
-- `releases/history/v1.1.38/Flux-v1.1.38-macOS.dmg`（61M）
-- `releases/history/v1.1.39/Flux-v1.1.39-android.apk`（127M）
-- `releases/history/v1.1.39/Flux-v1.1.39-macOS.dmg`（61M）
-- `releases/history/v1.1.39/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.4/Flux-v1.1.4-android.apk`（83M）
-- `releases/history/v1.1.4/Flux-v1.1.4-macOS.dmg`（61M）
-- `releases/history/v1.1.40/Flux-v1.1.40-android.apk`（127M）
-- `releases/history/v1.1.40/Flux-v1.1.40-macOS.dmg`（61M）
-- `releases/history/v1.1.40/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.41/Flux-v1.1.41-android.apk`（127M）
-- `releases/history/v1.1.41/Flux-v1.1.41-macOS.dmg`（61M）
-- `releases/history/v1.1.41/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.42/Flux-v1.1.42-android.apk`（127M）
-- `releases/history/v1.1.42/Flux-v1.1.42-macOS.dmg`（61M）
-- `releases/history/v1.1.42/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.43/Flux-v1.1.43-android.apk`（127M）
-- `releases/history/v1.1.43/Flux-v1.1.43-macOS.dmg`（61M）
-- `releases/history/v1.1.43/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.44/Flux-v1.1.44-android.apk`（127M）
-- `releases/history/v1.1.44/Flux-v1.1.44-macOS.dmg`（61M）
-- `releases/history/v1.1.44/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.45/Flux-v1.1.45-android.apk`（127M）
-- `releases/history/v1.1.45/Flux-v1.1.45-macOS.dmg`（61M）
-- `releases/history/v1.1.45/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.46/Flux-v1.1.46-android.apk`（127M）
-- `releases/history/v1.1.46/Flux-v1.1.46-macOS.dmg`（61M）
-- `releases/history/v1.1.46/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.47/Flux-v1.1.47-android.apk`（127M）
-- `releases/history/v1.1.47/Flux-v1.1.47-macOS.dmg`（61M）
-- `releases/history/v1.1.47/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.48/Flux-v1.1.48-android.apk`（127M）
-- `releases/history/v1.1.48/Flux-v1.1.48-macOS.dmg`（61M）
-- `releases/history/v1.1.48/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.49/Flux-v1.1.49-android.apk`（127M）
-- `releases/history/v1.1.49/Flux-v1.1.49-macOS.dmg`（61M）
-- `releases/history/v1.1.49/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.5/Flux-v1.1.5-android.apk`（83M）
-- `releases/history/v1.1.5/Flux-v1.1.5-macOS.dmg`（64M）
-- `releases/history/v1.1.50/Flux-v1.1.50-android.apk`（128M）
-- `releases/history/v1.1.50/Flux-v1.1.50-macOS.dmg`（61M）
-- `releases/history/v1.1.50/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.51/Flux-v1.1.51-android.apk`（128M）
-- `releases/history/v1.1.51/Flux-v1.1.51-macOS.dmg`（61M）
-- `releases/history/v1.1.51/SHA256SUMS.txt`（180B）
 - `releases/history/v1.1.52/Flux-v1.1.52-android.apk`（128M）
 - `releases/history/v1.1.52/Flux-v1.1.52-macOS.dmg`（61M）
 - `releases/history/v1.1.52/SHA256SUMS.txt`（180B）
 - `releases/history/v1.1.53/Flux-v1.1.53-android.apk`（128M）
 - `releases/history/v1.1.53/Flux-v1.1.53-macOS.dmg`（61M）
 - `releases/history/v1.1.53/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.54/Flux-v1.1.54-android.apk`（127M）
-- `releases/history/v1.1.54/Flux-v1.1.54-macOS.dmg`（61M）
-- `releases/history/v1.1.54/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.6/Flux-v1.1.6-android.apk`（83M）
-- `releases/history/v1.1.6/Flux-v1.1.6-macOS.dmg`（64M）
-- `releases/history/v1.1.7/Flux-v1.1.7-android.apk`（127M）
-- `releases/history/v1.1.7/Flux-v1.1.7-macOS.dmg`（64M）
-- `releases/history/v1.1.8/Flux-v1.1.8-android.apk`（127M）
-- `releases/history/v1.1.8/Flux-v1.1.8-macOS.dmg`（61M）
-- `releases/history/v1.1.9/Flux-v1.1.9-android.apk`（127M）
-- `releases/history/v1.1.9/Flux-v1.1.9-macOS.dmg`（61M）
+
+> 2026-09-30 空间清理：v1.0.0～v1.1.51 及 v1.1.54 的本地归档已删除（这些版本未发布到 GitHub Releases，无法从远端恢复）；v1.1.52、v1.1.53 本地与 GitHub Releases 双备份保留，最新版本 v1.1.55 以 GitHub Releases 为准。
