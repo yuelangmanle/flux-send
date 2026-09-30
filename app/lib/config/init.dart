@@ -23,16 +23,10 @@ import 'package:localsend_app/provider/clipboard_sync_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
-import 'package:localsend_app/provider/network/webrtc/signaling_provider.dart';
 import 'package:localsend_app/provider/persistence_provider.dart';
 
-// [FOSS_REMOVE_START]
-import 'package:localsend_app/provider/purchase_provider.dart';
-
-// [FOSS_REMOVE_END]
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/provider/tv_provider.dart';
 import 'package:localsend_app/provider/window_dimensions_provider.dart';
 import 'package:localsend_app/rust/api/logging.dart' as rust_logging;
 import 'package:localsend_app/rust/frb_generated.dart';
@@ -155,7 +149,6 @@ Future<RefenaContainer> preInit(List<String> args) async {
       persistenceProvider.overrideWithValue(persistenceService),
       deviceRawInfoProvider.overrideWithValue(await getDeviceInfo()),
       appArgumentsProvider.overrideWithValue(args),
-      tvProvider.overrideWithValue(await checkIfTv()),
       dynamicColorsProvider.overrideWithValue(dynamicColors),
       sleepProvider.overrideWithInitialState((ref) => startHidden),
     ],
@@ -241,11 +234,6 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
     _logger.warning('Starting multicast listener failed', e);
   }
 
-  final signalingState = ref.read(signalingProvider);
-  if (shouldStartSignalingConnection(signalingState)) {
-    ref.redux(signalingProvider).dispatch(SetupSignalingConnection());
-  }
-
   // 剪切板同步按用户上次的选择恢复：暂停过的设备重启后不再静默同步。
   if (ref.read(persistenceProvider).isClipboardSyncEnabled()) {
     ref.notifier(clipboardSyncProvider).enable();
@@ -316,13 +304,6 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
     // If we received a share intent, then don't clear it, otherwise the shared file will be lost.
     ref.global.dispatchAsync(ClearCacheAction()); // ignore: unawaited_futures
   }
-
-  // [FOSS_REMOVE_START]
-  if (checkPlatformSupportPayment()) {
-    // ignore: unawaited_futures
-    ref.redux(purchaseProvider).dispatchAsync(InitPurchaseStream());
-  }
-  // [FOSS_REMOVE_END]
 }
 
 Future<void> requestAndroidNetworkPermissions() async {

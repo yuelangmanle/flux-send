@@ -6,7 +6,7 @@ import 'package:local_hero/local_hero.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/widget/custom_basic_appbar.dart';
-import 'package:localsend_app/widget/dialogs/text_field_tv.dart';
+import 'package:localsend_app/widget/flux_text_field.dart';
 import 'package:localsend_app/widget/labeled_checkbox.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:moform/moform.dart';
@@ -165,7 +165,7 @@ class _NetworkInterfacesPageState extends State<NetworkInterfacesPage> {
                     ]);
                   },
                   builder: (context, controller) {
-                    return TextFieldTv(
+                    return FluxTextField(
                       name: t.networkInterfacesPage.whitelist,
                       controller: controller,
                       onDelete: () async {

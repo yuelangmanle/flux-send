@@ -12,7 +12,6 @@ import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/pages/about/about_page.dart';
 import 'package:localsend_app/pages/changelog_page.dart';
-import 'package:localsend_app/pages/donation/donation_page.dart';
 import 'package:localsend_app/pages/language_page.dart';
 import 'package:localsend_app/pages/settings/network_interfaces_page.dart';
 import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
@@ -32,8 +31,8 @@ import 'package:localsend_app/widget/dialogs/encryption_disabled_notice.dart';
 import 'package:localsend_app/widget/dialogs/pin_dialog.dart';
 import 'package:localsend_app/widget/dialogs/quick_save_from_favorites_notice.dart';
 import 'package:localsend_app/widget/dialogs/quick_save_notice.dart';
-import 'package:localsend_app/widget/dialogs/text_field_tv.dart';
 import 'package:localsend_app/widget/dialogs/text_field_with_actions.dart';
+import 'package:localsend_app/widget/flux_text_field.dart';
 import 'package:localsend_app/widget/labeled_checkbox.dart';
 import 'package:localsend_app/widget/local_send_logo.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
@@ -420,7 +419,7 @@ class _SettingsTabState extends State<SettingsTab> {
                       if (vm.advanced)
                         _SettingsEntry(
                           label: t.settingsTab.network.deviceModel,
-                          child: TextFieldTv(
+                          child: FluxTextField(
                             name: t.settingsTab.network.deviceModel,
                             controller: vm.deviceModelController,
                             onChanged: (s) async {
@@ -431,7 +430,7 @@ class _SettingsTabState extends State<SettingsTab> {
                       if (vm.advanced)
                         _SettingsEntry(
                           label: t.settingsTab.network.port,
-                          child: TextFieldTv(
+                          child: FluxTextField(
                             name: t.settingsTab.network.port,
                             controller: vm.portController,
                             onChanged: (s) async {
@@ -456,7 +455,7 @@ class _SettingsTabState extends State<SettingsTab> {
                       if (vm.advanced)
                         _SettingsEntry(
                           label: t.settingsTab.network.discoveryTimeout,
-                          child: TextFieldTv(
+                          child: FluxTextField(
                             name: t.settingsTab.network.discoveryTimeout,
                             controller: vm.timeoutController,
                             onChanged: (s) async {
@@ -482,7 +481,7 @@ class _SettingsTabState extends State<SettingsTab> {
                       if (vm.advanced)
                         _SettingsEntry(
                           label: t.settingsTab.network.multicastGroup,
-                          child: TextFieldTv(
+                          child: FluxTextField(
                             name: t.settingsTab.network.multicastGroup,
                             controller: vm.multicastController,
                             onChanged: (s) async {
@@ -532,13 +531,6 @@ class _SettingsTabState extends State<SettingsTab> {
                         buttonLabel: t.general.open,
                         onTap: () async {
                           await context.push(() => const AboutPage());
-                        },
-                      ),
-                      _ButtonEntry(
-                        label: t.settingsTab.other.support,
-                        buttonLabel: t.settingsTab.other.donate,
-                        onTap: () async {
-                          await context.push(() => const DonationPage());
                         },
                       ),
                       _ButtonEntry(
