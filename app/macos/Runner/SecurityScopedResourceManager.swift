@@ -25,10 +25,17 @@ class SecurityScopedResourceManager {
     }
     
     func stopAccessing(url: URL) {
-        // TODO: stop accessing when file is not needed anymore! See: https://developer.apple.com/documentation/foundation/url/1779698-startaccessingsecurityscopedreso#:~:text=resource%20in%20question.-,Warning,-If%20you%20fail
         if openResources.keys.contains(url) {
             url.stopAccessingSecurityScopedResource()
             openResources.removeValue(forKey: url)
         }
+    }
+
+    /// Flutter 侧消费完 pending 文件后统一释放安全作用域，避免访问计数累积泄漏。
+    func stopAccessingAll() {
+        for url in openResources.keys {
+            url.stopAccessingSecurityScopedResource()
+        }
+        openResources.removeAll()
     }
 }

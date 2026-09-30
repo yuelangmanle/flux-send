@@ -197,6 +197,9 @@ class AppDelegate: FlutterAppDelegate {
             result(isLaunchedAsLoginItem)
         case "isReduceMotionEnabled":
             result(NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+        case "releasePendingFileAccess":
+            SecurityScopedResourceManager.shared.stopAccessingAll()
+            result(nil)
         case "openFirewallSettings":
             openFirewallSettings()
             result(nil)
@@ -228,8 +231,15 @@ class AppDelegate: FlutterAppDelegate {
         do {
             var isStale = false
             let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, bookmarkDataIsStale: &isStale)
-            if !isStale {
-                let _ = url.startAccessingSecurityScopedResource()
+            if isStale {
+                // 书签过期时以新数据重建，否则后续启动会一直失效。
+                if url.startAccessingSecurityScopedResource() {
+                    let refreshed = try url.bookmarkData(options: [.withSecurityScope], includingResourceValuesForKeys: nil, relativeTo: nil)
+                    Defaults[.destinationFolderBookmark] = refreshed
+                    url.stopAccessingSecurityScopedResource()
+                }
+            } else {
+                url.startAccessingSecurityScopedResource()
             }
         } catch {
             print("Failed to restore folder access: \(error)")

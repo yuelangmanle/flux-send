@@ -250,6 +250,7 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
             args: files,
           ),
         );
+        await releasePendingFileAccess();
       });
 
       // handle dropped strings

@@ -22,6 +22,11 @@ Future<void> persistDestinationFolderAccess(String path) async {
   await _methodChannel.invokeMethod('persistDestinationFolderAccess', path);
 }
 
+/// Flutter 侧消费完 pending 文件后调用，释放原生侧的安全作用域访问。
+Future<void> releasePendingFileAccess() async {
+  await _methodChannel.invokeMethod('releasePendingFileAccess');
+}
+
 Future<void> updateDockProgress(double progress) async {
   await _methodChannel.invokeMethod('updateDockProgress', progress);
 }
