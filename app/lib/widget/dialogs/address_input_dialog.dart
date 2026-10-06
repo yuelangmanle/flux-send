@@ -14,6 +14,7 @@ import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/rust/api/model.dart';
+import 'package:localsend_app/util/address_connect_error.dart';
 import 'package:localsend_app/util/address_input_parser.dart';
 import 'package:localsend_app/util/rust.dart';
 import 'package:localsend_app/widget/dialogs/error_dialog.dart';
@@ -108,7 +109,7 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
               deviceCompleter.complete();
             }
           } catch (e) {
-            error = e.toString();
+            error = describeAddressConnectError(e);
             rethrow;
           }
         }(),
