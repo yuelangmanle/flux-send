@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/provider/classic_bluetooth_provider.dart';
 import 'package:localsend_app/provider/clipboard_sync_provider.dart';
@@ -220,7 +221,12 @@ class FluxConnectionStatusCard extends StatelessWidget {
                   ),
                 if (mode == FluxConnectionMode.classicBluetooth && selectedFiles.isNotEmpty)
                   FilledButton.icon(
-                    onPressed: bluetooth?.connected == true ? () => unawaited(ref.notifier(classicBluetoothProvider).sendFiles(selectedFiles)) : null,
+                    onPressed: bluetooth?.connected == true
+                        ? () {
+                            HapticFeedback.selectionClick();
+                            unawaited(ref.notifier(classicBluetoothProvider).sendFiles(selectedFiles));
+                          }
+                        : null,
                     icon: const Icon(Icons.send_rounded),
                     label: Text(t.connectionStatusCard.btSendFiles(count: selectedFiles.length)),
                   ),
