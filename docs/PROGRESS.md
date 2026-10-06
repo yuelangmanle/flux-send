@@ -51,6 +51,12 @@
 - 循环 18（测试）：`limitBytes` 流转换器 2 条单测（正常透传 / 超限抛 BytesLimitExceededException）。
 - 安全扫描：Mimosa normal 静态扫描完成（563 包），代码发现 0 条；离线 advisory 匹配 3 包 9 条（离线库比对，待联网核对）。`dart pub outdated` 快照记入依赖升级债（flutter_markdown 停维护、若干包落后一个大版本，不在夜间盲目升级）。
 - 文档：README 平台宣称修正为 Android 与 macOS（Windows 线未维护）；ROADMAP-2.0 标注执行状态。
+- 产物与校验（`releases/history/v2.1.0/`）：
+  - `Flux-v2.1.0-android.apk`（133M）SHA-256 `f0b9d61d3dbaacfe5354daa87654fe4c70440d3fe453e4ca60be471e47912a94`；aapt 校验 `org.localsend.localsend_app`、`versionName=2.1.0`、`versionCode=220`；apksigner 证书 SHA-256 保持 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
+  - `Flux-v2.1.0-macOS.dmg`（arm64）SHA-256 `b2d2d7eb82432a8cf4f9b9a9a8eeeea3f6aabe446571ac648cd6c3d3abd67c13`；`hdiutil verify` 通过；挂载后 `Flux.app` 为 `2.1.0 (220)`，`codesign --verify --deep --strict` 通过。
+  - 同目录 `SHA256SUMS.txt` 已生成。
+- 发布状态：已发布 GitHub Release v2.1.0（Latest）。真机验收仍为发布后事项。
+
 - 验证：随机顺序全量测试两轮（seed 42/777）通过；`dart fix --apply lib` 无待修项；全量 260 项测试通过。
 
 ### 2026-10-07 01:15 循环优化批次 3
