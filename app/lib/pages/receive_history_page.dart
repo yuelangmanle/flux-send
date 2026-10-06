@@ -56,6 +56,8 @@ class ReceiveHistoryPage extends StatefulWidget {
 
 class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
   _HistoryGrouping _grouping = _HistoryGrouping.day;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   Future<void> _openFile(
     BuildContext context,
@@ -75,7 +77,11 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
   @override
   Widget build(BuildContext context) {
     final entries = context.watch(receiveHistoryProvider);
-    final groups = _grouping == _HistoryGrouping.day ? groupReceiveHistoryByDay(entries) : groupReceiveHistoryByType(entries);
+    final query = _searchQuery.trim().toLowerCase();
+    final filtered = query.isEmpty
+        ? entries
+        : entries.where((e) => e.fileName.toLowerCase().contains(query) || e.senderAlias.toLowerCase().contains(query)).toList();
+    final groups = _grouping == _HistoryGrouping.day ? groupReceiveHistoryByDay(filtered) : groupReceiveHistoryByType(filtered);
     return Scaffold(
       appBar: basicLocalSendAppbar(t.receiveHistoryPage.title),
       body: ResponsiveListView(
@@ -137,26 +143,59 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
                     _grouping = selection.first;
                   });
                 },
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: _HistoryGrouping.day,
-                    icon: Icon(Icons.calendar_month_rounded),
-                    label: Text('按日期'),
+                    icon: const Icon(Icons.calendar_month_rounded),
+                    label: Text(t.receiveHistoryPage.groupByDay),
                   ),
                   ButtonSegment(
                     value: _HistoryGrouping.type,
-                    icon: Icon(Icons.category_rounded),
-                    label: Text('按类型'),
+                    icon: const Icon(Icons.category_rounded),
+                    label: Text(t.receiveHistoryPage.groupByType),
                   ),
                 ],
               ),
             ),
           ],
+          const SizedBox(height: 14),
+          if (entries.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  hintText: t.receiveHistoryPage.searchHint,
+                  suffixIcon: _searchQuery.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _searchQuery = '';
+                            });
+                          },
+                        ),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+              ),
+            ),
           const SizedBox(height: 20),
           if (entries.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 100),
               child: Center(child: Text(t.receiveHistoryPage.empty, style: Theme.of(context).textTheme.headlineMedium)),
+            )
+          else if (filtered.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 100),
+              child: Center(child: Text(t.receiveHistoryPage.noResults, style: Theme.of(context).textTheme.headlineSmall)),
             )
           else
             ...groups.expand((group) {
@@ -168,7 +207,7 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
                       Text(group.label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(width: 8),
                       Text(
-                        '${group.entries.length} 项',
+                        t.receiveHistoryPage.entriesCount(count: group.entries.length),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ],
@@ -296,4 +335,10 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
       ),
     );
   }
+}
+
+@override
+void dispose() {
+  _searchController.dispose();
+  super.dispose();
 }

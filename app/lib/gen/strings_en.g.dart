@@ -361,6 +361,21 @@ class TranslationsReceiveHistoryPageEn {
   String get empty => 'The history is empty.';
 
   late final TranslationsReceiveHistoryPageEntryActionsEn entryActions = TranslationsReceiveHistoryPageEntryActionsEn.internal(_root);
+
+  /// en: 'Search by file name or device'
+  String get searchHint => 'Search by file name or device';
+
+  /// en: 'No matching entries'
+  String get noResults => 'No matching entries';
+
+  /// en: '{count} entries'
+  String entriesCount({required Object count}) => '${count} entries';
+
+  /// en: 'By date'
+  String get groupByDay => 'By date';
+
+  /// en: 'By type'
+  String get groupByType => 'By type';
 }
 
 // Path: apkPickerPage

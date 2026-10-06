@@ -299,6 +299,16 @@ class _TranslationsReceiveHistoryPageZhCn extends TranslationsReceiveHistoryPage
   String get empty => '无历史记录。';
   @override
   late final _TranslationsReceiveHistoryPageEntryActionsZhCn entryActions = _TranslationsReceiveHistoryPageEntryActionsZhCn._(_root);
+  @override
+  String get searchHint => '按文件名或设备搜索';
+  @override
+  String get noResults => '没有匹配的记录';
+  @override
+  String entriesCount({required Object count}) => '${count} 项';
+  @override
+  String get groupByDay => '按日期';
+  @override
+  String get groupByType => '按类型';
 }
 
 // Path: apkPickerPage

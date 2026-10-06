@@ -196,7 +196,12 @@
       "showInFolder": "Show in folder",
       "info": "Information",
       "deleteFromHistory": "Delete from history"
-    }
+    },
+    "searchHint": "Search by file name or device",
+    "noResults": "No matching entries",
+    "entriesCount": "{count} entries",
+    "groupByDay": "By date",
+    "groupByType": "By type"
   },
   "apkPickerPage": {
     "title": "Apps (APK)",

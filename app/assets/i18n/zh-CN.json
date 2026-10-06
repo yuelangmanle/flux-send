@@ -189,7 +189,12 @@
       "showInFolder": "在文件管理器中显示",
       "info": "信息",
       "deleteFromHistory": "从历史记录中删除"
-    }
+    },
+    "searchHint": "按文件名或设备搜索",
+    "noResults": "没有匹配的记录",
+    "entriesCount": "{count} 项",
+    "groupByDay": "按日期",
+    "groupByType": "按类型"
   },
   "apkPickerPage": {
     "title": "应用（APK）",
