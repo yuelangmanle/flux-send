@@ -132,6 +132,8 @@ class FluxConnectionStatusCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 _StatusPill(
+                  // 正在搜索/扫描的药丸带呼吸动效；已连接与待命保持常亮。
+                  breathing: mode == FluxConnectionMode.classicBluetooth ? bluetooth?.connected != true : scanning,
                   icon: mode == FluxConnectionMode.classicBluetooth
                       ? (bluetooth?.connected == true ? Icons.bluetooth_connected_rounded : Icons.bluetooth_searching_rounded)
                       : (scanning ? Icons.sync_rounded : Icons.radar_rounded),
@@ -375,42 +377,85 @@ class _BluetoothDevicesPanel extends StatelessWidget {
   }
 }
 
-class _StatusPill extends StatelessWidget {
+class _StatusPill extends StatefulWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final bool breathing;
 
   const _StatusPill({
     required this.icon,
     required this.label,
     required this.color,
+    this.breathing = false,
   });
+
+  @override
+  State<_StatusPill> createState() => _StatusPillState();
+}
+
+class _StatusPillState extends State<_StatusPill> with SingleTickerProviderStateMixin {
+  late final AnimationController _breathController;
+
+  @override
+  void initState() {
+    super.initState();
+    _breathController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    if (widget.breathing) {
+      _breathController.repeat(reverse: true); // ignore: discarded_futures
+    } else {
+      _breathController.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(_StatusPill oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.breathing != oldWidget.breathing) {
+      widget.breathing ? _breathController.repeat(reverse: true) : _breathController.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _breathController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final widget = this.widget;
 
-    return DecoratedBox(
+    final content = DecoratedBox(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: theme.brightness == Brightness.light ? 0.12 : 0.22),
+        color: widget.color.withValues(alpha: theme.brightness == Brightness.light ? 0.12 : 0.22),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
+        border: Border.all(color: widget.color.withValues(alpha: 0.18)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 15, color: color),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w700),
-            ),
-          ],
+        child: FadeTransition(
+          opacity: CurvedAnimation(parent: _breathController, curve: Curves.easeInOut),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(widget.icon, size: 15, color: widget.color),
+              const SizedBox(width: 6),
+              Text(
+                widget.label,
+                style: theme.textTheme.labelMedium?.copyWith(color: widget.color, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
         ),
       ),
     );
+
+    return content;
   }
 }
 
