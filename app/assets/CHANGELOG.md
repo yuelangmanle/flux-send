@@ -1,3 +1,20 @@
+## Flux 2.0.1 (2026-10-07)
+
+v2.0.0 发布当夜按既定 ROADMAP 完成的第一批循环优化（安全/体验/可测性）。详细记录见 `docs/PROGRESS.md`。
+
+- feat(security): 发送流程先 `/api/register` 获取对端公钥并对 prepare-upload 做 TLS 证书 pinning（防中间人）；对端不支持或失败时优雅退化为不 pinning。
+- feat(security): `/api/clipboard` 增加 1 MiB 请求体上限与每 IP 每分钟 30 次限流；接收端设置 PIN 后剪切板写入也需提供 PIN（`X-Pin` 头，兼容 query）。
+- fix(security): PIN 错误尝试改 5 分钟滑动窗口（成功清零），PIN 优先从 `X-Pin` 头读取。
+- fix(discovery): UDP 设备公告重试不再中途关闭 socket（第 2、3 轮重试曾被静默丢弃）；监听端循环排空积压数据报。
+- fix(bluetooth): 接收文件流式写入临时文件并校验大小（消大文件 OOM）；进度文案 100ms 节流；断开事件新增结构化代码（`PEER_NOT_FLUX`/`HANDSHAKE_*`），Dart 优先按代码判断并保留文案 fallback；对非 Flux 设备连续 3 次握手失败后停止自动重连。
+- fix(android): SAF 扫描移后台线程（消 ANR）；picker 结果按请求码隔离（消挂死）；未知扩展名兜底 octet-stream。
+- fix(macos): pending 文件安全作用域统一释放（修泄漏）；目标目录书签过期自动重建。
+- feat(ui): 进度页实时传输速度曲线；接收历史搜索 + 长按多选批量删除；扫描空态指引；状态卡呼吸动效；传输完成/失败/蓝牙发送触觉反馈；首次启动引导 + 设置页"使用说明"；手动连接失败中文分类提示。
+- feat(i18n): 状态卡、设置页、接收历史等约 60 条展示文案迁入 slang（en + zh-CN）。
+- refactor: 移除 WebRTC 信令链、in_app_purchase 捐赠、TV 遗留；settings_tab 拆分（1182 → 697+513 行）；主题色收敛（22 处 `Colors.grey` 清零）。
+- ci: `flutter test` 启用随机顺序；Android 签名 secrets 缺失时立即失败并给配置指引。
+- chore(release): 版本升至 `2.0.1+211`，保持 Android applicationId 与既有签名密钥不变。macOS 仍为 Apple Silicon 单架构（见 2.0.0 说明）。
+
 ## Flux 2.0.0 (2026-09-30)
 
 大版本更新：安全、稳定性与传输性能的整体升级，配套架构清理。完整 2.0 路线图见 `docs/ROADMAP-2.0.md`。

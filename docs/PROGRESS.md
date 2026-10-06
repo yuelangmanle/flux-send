@@ -7,11 +7,11 @@
 | 项目 | 状态 |
 |------|------|
 | 应用名 | Flux |
-| 当前版本 | 2.0.0+200 |
+| 当前版本 | 2.0.1+211 |
 | Android applicationId | `org.localsend.localsend_app`（必须保持不变，保证覆盖安装） |
 | Android 签名 | 既有私有 JKS；文件、别名和密码仅存于密码管理器与离线备份，绝不进入公开仓库 |
 | macOS 应用名 | `Flux.app` |
-| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v2.0.0/Flux-v2.0.0-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v2.0.0/Flux-v2.0.0-macOS.dmg` |
+| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v2.0.1/Flux-v2.0.1-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v2.0.1/Flux-v2.0.1-macOS.dmg` |
 
 ## 本轮目标
 

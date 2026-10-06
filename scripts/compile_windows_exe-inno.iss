@@ -4,7 +4,7 @@
 ; Copy app/assets/packaging/logo-256.ico to D:\inno\logo-256.ico
 
 #define MyAppName "Flux"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "2.0.1"
 #define MyAppPublisher "Flux Contributors"
 #define MyAppURL "https://github.com/yueliangmanle/flux-send"
 #define MyAppExeName "localsend_app.exe"
