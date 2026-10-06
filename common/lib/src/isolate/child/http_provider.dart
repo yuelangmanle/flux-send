@@ -22,6 +22,16 @@ abstract class CustomHttpClient {
     required void Function(double) onSendProgress,
     required CustomCancelToken cancelToken,
   });
+
+  /// POST 自定义头与文本体，返回响应体字符串（用于断点续传 offset 探询）。
+  Future<String> postRaw({
+    required String uri,
+    Map<String, String> query = const {},
+    Map<String, String> headers = const {},
+    String? body,
+  }) {
+    throw UnimplementedError();
+  }
 }
 
 class CustomCancelToken {

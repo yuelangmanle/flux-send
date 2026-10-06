@@ -461,6 +461,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
             mime: file.file.lookupMime(),
             fileSize: file.file.size,
             device: target,
+            resume: isRetry,
           ),
         );
 

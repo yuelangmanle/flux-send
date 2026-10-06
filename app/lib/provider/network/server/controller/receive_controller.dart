@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:common/api_route_builder.dart';
@@ -486,6 +487,32 @@ class ReceiveController {
         ),
       ),
     );
+
+    // 断点续传： Flux 发送端可探询已暂存偏移量，并以 `X-Flux-Resume-Offset` 从该处续传。
+    // 接收端始终把 body 写入暂存 .part 文件，完成后经 saveFile 落到最终位置并删除暂存。
+    final stagedFile = File(
+      getStagingPath(
+        destinationDirectory: receiveState.destinationDirectory,
+        sessionId: receiveState.sessionId,
+        fileId: fileId,
+      ),
+    );
+    final resumeProbe = request.headers.value('X-Flux-Resume-Probe');
+    if (resumeProbe != null) {
+      final stagedBytes = stagedFile.existsSync() ? stagedFile.lengthSync() : 0;
+      return await request.respondJson(200, body: {'offset': stagedBytes});
+    }
+    final resumeOffsetHeader = request.headers.value('X-Flux-Resume-Offset');
+    final stagedBytes = stagedFile.existsSync() ? stagedFile.lengthSync() : 0;
+    var resumeOffset = 0;
+    if (resumeOffsetHeader != null) {
+      resumeOffset = int.tryParse(resumeOffsetHeader) ?? -1;
+      if (resumeOffset < 0 || resumeOffset > stagedBytes) {
+        // 发送端偏移与暂存不符：返回真实偏移，让发送端重新对齐。
+        return await request.respondJson(409, body: {'offset': stagedBytes}, message: 'Offset mismatch');
+      }
+    }
+
     final fileType = receivingFile.file.fileType;
     final shouldSaveToGallery = receiveState.saveToGallery && (fileType == FileType.image || fileType == FileType.video);
 
@@ -494,12 +521,37 @@ class ReceiveController {
     try {
       _logger.info('Saving ${receivingFile.file.fileName}');
 
+      // body → 暂存 .part（追加或重写）
+      final stagedSink = stagedFile.openWrite(mode: resumeOffset > 0 ? FileMode.append : FileMode.write);
+      var appended = 0;
+      await request
+          .cast<Uint8List>()
+          .map((chunk) {
+            appended += chunk.length;
+            if (receivingFile.file.size != 0) {
+              server.ref
+                  .notifier(progressProvider)
+                  .setProgress(
+                    sessionId: receiveState.sessionId,
+                    fileId: fileId,
+                    progress: ((resumeOffset + appended) / receivingFile.file.size).clamp(0.0, 1.0),
+                  );
+            }
+            return chunk;
+          })
+          .pipe(stagedSink as StreamConsumer<Uint8List>);
+      await stagedSink.flush();
+      await stagedSink.close();
+      if (!stagedFile.existsSync() || stagedFile.lengthSync() < resumeOffset) {
+        return await request.respondJson(500, message: 'Staged file missing');
+      }
+
       (savedToGallery, filePath) = await saveFile(
         destinationDirectory: receiveState.destinationDirectory,
         fileName: receivingFile.desiredName!,
         saveToGallery: shouldSaveToGallery,
         isImage: fileType == FileType.image,
-        stream: request,
+        stream: stagedFile.openRead().map(Uint8List.fromList),
         onProgress: (savedBytes) {
           if (receivingFile.file.size != 0) {
             server.ref
@@ -548,8 +600,13 @@ class ReceiveController {
             ),
           );
 
+      unawaited(stagedFile.delete().then<void>((_) {}, onError: (Object _) {}));
       _logger.info('Saved ${receivingFile.file.fileName}.');
     } catch (e, st) {
+      // 失败时保留暂存文件以支持断点续传；仅当未写入任何字节时删除。
+      if (stagedFile.existsSync() && stagedFile.lengthSync() == 0) {
+        unawaited(stagedFile.delete().then<void>((_) {}, onError: (Object _) {}));
+      }
       server.setState(
         (oldState) => oldState?.copyWith(
           session: oldState.session?.fileFinished(
@@ -874,4 +931,17 @@ extension on ReceiveSessionState {
         ),
     );
   }
+}
+
+/// 断点续传暂存文件路径（按 会话+文件 隔离，位于目标目录的隐藏暂存子目录）。
+String getStagingPath({
+  required String destinationDirectory,
+  required String sessionId,
+  required String fileId,
+}) {
+  final stagingDir = Directory('$destinationDirectory/.flux_staging');
+  if (!stagingDir.existsSync()) {
+    stagingDir.createSync(recursive: true);
+  }
+  return '${stagingDir.path}${Platform.pathSeparator}$sessionId-$fileId.part';
 }

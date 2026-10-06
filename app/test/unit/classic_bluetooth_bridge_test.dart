@@ -25,7 +25,7 @@ void main() {
     expect(source, contains('sendClipboard'));
     expect(source, contains('result.success(sendClipboard(text))'));
     expect(source, contains('private fun sendClipboard(text: String): Boolean'));
-    expect(source, contains('private fun closeActiveSocket(activeSocket: BluetoothSocket, message: String)'));
+    expect(source, contains('private fun closeActiveSocket(activeSocket: BluetoothSocket, message: String, code: String = codeDisconnected)'));
     expect(source, contains('emitDisconnected: Boolean'));
     expect(source, contains('return false'));
     expect(source, contains('return true'));

@@ -134,6 +134,9 @@ class IsolateHttpUploadAction extends ReduxActionWithResult<IsolateController, P
   final int fileSize;
   final Device device;
 
+  /// 重试失败文件时为 true：子 isolate 会先探询接收端已暂存偏移量再续传。
+  final bool resume;
+
   IsolateHttpUploadAction({
     required this.isolateIndex,
     required this.remoteSessionId,
@@ -144,6 +147,7 @@ class IsolateHttpUploadAction extends ReduxActionWithResult<IsolateController, P
     required this.mime,
     required this.fileSize,
     required this.device,
+    this.resume = false,
   });
 
   @override
@@ -159,6 +163,7 @@ class IsolateHttpUploadAction extends ReduxActionWithResult<IsolateController, P
       mime: mime,
       fileSize: fileSize,
       device: device,
+      resume: resume,
     );
 
     final taskId = _idProvider.getNextId();

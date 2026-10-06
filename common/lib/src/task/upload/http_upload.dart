@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:common/api_route_builder.dart';
 import 'package:common/model/device.dart';
 import 'package:common/src/isolate/child/http_provider.dart';
@@ -13,6 +14,34 @@ class HttpUploadService {
 
   HttpUploadService(this._client);
 
+  /// 探询接收端已暂存的字节数（断点续传）。对端不支持时返回 0。
+  Future<int> probeResumeOffset({
+    required Device target,
+    required String? remoteSessionId,
+    required String fileId,
+    required String token,
+  }) async {
+    try {
+      final body = await _client.postRaw(
+        uri: ApiRoute.upload.target(target),
+        query: {
+          if (remoteSessionId != null) 'sessionId': remoteSessionId,
+          'fileId': fileId,
+          'token': token,
+        },
+        headers: {'X-Flux-Resume-Probe': '1'},
+      );
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded['offset'] is num) {
+        final offset = (decoded['offset'] as num).toInt();
+        return offset > 0 ? offset : 0;
+      }
+    } catch (_) {
+      // 对端不支持续传协议时按 0 处理。
+    }
+    return 0;
+  }
+
   Future<void> upload({
     required Stream<List<int>> stream,
     required int contentLength,
@@ -23,6 +52,7 @@ class HttpUploadService {
     required String token,
     required void Function(double) onSendProgress,
     required CustomCancelToken cancelToken,
+    int resumeOffset = 0,
   }) async {
     await _client.postStream(
       uri: ApiRoute.upload.target(target),
@@ -34,6 +64,7 @@ class HttpUploadService {
       headers: {
         'Content-Length': contentLength.toString(),
         'Content-Type': contentType,
+        if (resumeOffset > 0) 'X-Flux-Resume-Offset': resumeOffset.toString(),
       },
       stream: stream,
       onSendProgress: onSendProgress,

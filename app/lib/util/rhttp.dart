@@ -39,6 +39,22 @@ class RhttpWrapper implements CustomHttpClient {
   }
 
   @override
+  Future<String> postRaw({
+    required String uri,
+    Map<String, String> query = const {},
+    Map<String, String> headers = const {},
+    String? body,
+  }) async {
+    final response = await _client.post(
+      uri,
+      query: query,
+      headers: HttpHeaders.rawMap(headers),
+      body: body == null ? null : HttpBody.text(body),
+    );
+    return response.body;
+  }
+
+  @override
   Future<void> postStream({
     required String uri,
     required Map<String, String> query,

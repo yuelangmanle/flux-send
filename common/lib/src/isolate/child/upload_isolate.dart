@@ -32,6 +32,9 @@ class HttpUploadTask implements BaseHttpUploadTask {
   final int fileSize;
   final Device device;
 
+  /// true 时先向接收端探询已暂存偏移量并从该处续传（仅对端也是 Flux 时生效）。
+  final bool resume;
+
   HttpUploadTask({
     required this.remoteSessionId,
     required this.remoteFileToken,
@@ -41,6 +44,7 @@ class HttpUploadTask implements BaseHttpUploadTask {
     required this.mime,
     required this.fileSize,
     required this.device,
+    this.resume = false,
   });
 }
 
@@ -108,18 +112,36 @@ Future<void> setupHttpUploadIsolate(
         final cancelToken = CustomCancelToken();
         ref.read(_cancelTokenProvider).putIfAbsent(task.id, () => cancelToken);
 
+        // 断点续传：重试时先探询接收端已暂存偏移量，只发送剩余字节。
+        var resumeOffset = 0;
+        var totalToSend = uploadTask.fileSize;
+        if (uploadTask.resume) {
+          resumeOffset = await ref.read(httpUploadProvider).probeResumeOffset(
+                target: uploadTask.device,
+                remoteSessionId: uploadTask.remoteSessionId,
+                fileId: uploadTask.fileId,
+                token: uploadTask.remoteFileToken,
+              );
+          totalToSend = uploadTask.fileSize - resumeOffset;
+        }
+
         await ref.read(httpUploadProvider).upload(
-              stream: streamController?.stream ?? Stream.fromIterable([uploadTask.fileBytes!]),
-              contentLength: uploadTask.fileSize,
+              stream: resumeOffset > 0
+                  ? (streamController?.stream ?? Stream.fromIterable([uploadTask.fileBytes!])).skip(resumeOffset)
+                  : streamController?.stream ?? Stream.fromIterable([uploadTask.fileBytes!]),
+              contentLength: totalToSend,
               contentType: uploadTask.mime,
               target: uploadTask.device,
               remoteSessionId: uploadTask.remoteSessionId,
               fileId: uploadTask.fileId,
               token: uploadTask.remoteFileToken,
+              resumeOffset: resumeOffset,
               onSendProgress: (progress) {
+                // 汇报的是“本次发送”的进度；换算成整文件的含偏移进度。
+                final adjusted = (resumeOffset + progress * totalToSend) / (uploadTask.fileSize == 0 ? 1 : uploadTask.fileSize);
                 sendToMain(IsolateTaskStreamResult.event(
                   id: task.id,
-                  data: progress,
+                  data: adjusted.clamp(0.0, 1.0),
                 ));
               },
               cancelToken: cancelToken,

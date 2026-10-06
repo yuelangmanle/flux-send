@@ -168,6 +168,14 @@ class _NoopHttpClient implements CustomHttpClient {
   Future<String> post({required String uri, Map<String, String> query = const {}, required Map<String, dynamic> json}) async => '{}';
 
   @override
+  Future<String> postRaw({
+    required String uri,
+    Map<String, String> query = const {},
+    Map<String, String> headers = const {},
+    String? body,
+  }) async => '{}';
+
+  @override
   Future<void> postStream({
     required String uri,
     required Map<String, String> query,
