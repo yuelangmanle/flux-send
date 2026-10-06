@@ -45,6 +45,14 @@
 - 文档：README 平台宣称修正为 Android 与 macOS（Windows 线未维护，不夸大支持范围）；ROADMAP-2.0.md 标注执行状态。
 - 待办延续：i18n 收口剩余（classic_bluetooth_provider 状态文案 52 条等，与逻辑耦合需随错误码协议分批做）、断点续传、前台服务、二维码配对。
 
+### 2026-10-07 01:15 循环优化批次 3（续）
+
+- 循环 17（i18n）：pages/widget 层展示文案全量收口——about/language/send_tab_vm/copyable_text/address_input_dialog/状态卡剩余 14 条迁入 `display` 命名空间（en+zh）。全库剩余中文字面量仅 79 条（provider 状态消息与故意保留的中文兜底消息，待错误码协议分批处理）。
+- 循环 18（测试）：`limitBytes` 流转换器 2 条单测（正常透传 / 超限抛 BytesLimitExceededException）。
+- 安全扫描：Mimosa normal 静态扫描完成（563 包），代码发现 0 条；离线 advisory 匹配 3 包 9 条（离线库比对，待联网核对）。`dart pub outdated` 快照记入依赖升级债（flutter_markdown 停维护、若干包落后一个大版本，不在夜间盲目升级）。
+- 文档：README 平台宣称修正为 Android 与 macOS（Windows 线未维护）；ROADMAP-2.0 标注执行状态。
+- 验证：随机顺序全量测试两轮（seed 42/777）通过；`dart fix --apply lib` 无待修项；全量 260 项测试通过。
+
 ### 2026-10-07 01:15 循环优化批次 3
 
 - 循环 9（体验）：接收历史页新增搜索框（文件名/设备过滤）+ 无结果空态；分组按钮与计数接入 i18n。
