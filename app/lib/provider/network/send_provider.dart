@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'package:flutter/services.dart';
 
 import 'package:common/isolate.dart';
 import 'package:common/model/device.dart';
@@ -11,6 +10,7 @@ import 'package:common/model/file_type.dart';
 import 'package:common/model/session_status.dart';
 import 'package:common/util/sleep.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:localsend_app/model/cross_file.dart';
 import 'package:localsend_app/model/send_mode.dart';
 import 'package:localsend_app/model/state/send/send_session_state.dart';
