@@ -279,9 +279,9 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
         }
     }
 
-    private fun closeActiveSocket(activeSocket: BluetoothSocket, message: String) {
+    private fun closeActiveSocket(activeSocket: BluetoothSocket, message: String, code: String = codeDisconnected) {
         closeSocket(emitDisconnected = false)
-        emit("disconnected", message)
+        emitDisconnected(message, code)
     }
 
     private fun sendClipboard(text: String): Boolean {
