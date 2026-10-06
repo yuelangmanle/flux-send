@@ -1,7 +1,12 @@
 # Flux 2.0 路线图（规划稿）
 
 > 生成于 2026-09-30，基于 4 路并行深读审查（架构 / 网络协议安全 / 原生层 / UI·UX·创新）。
-> 证据均标注 文件:行号，实施时以当时代码为准。当前基线：v1.1.55+114。
+> 证据均标注 文件:行号，实施时以当时代码为准。
+>
+> **执行状态（2026-10-07 更新）**：v2.0.0 已发布。P0-1/2/5/6/7/8/9/10 与阶段一的死代码、错误码协议（蓝牙部分）、PIN 限流已落地；
+> 剪切板通道出站 pinning（TOFU）已落地，发送链 prepare-upload pinning 已落地，二进制上传链 pinning 未做；
+> 蓝牙收文件流式落盘 + 进度节流已落地；接收历史搜索/多选、状态卡呼吸灯、速度曲线、手动连接错误映射、首启引导已落地；
+> 未做：断点续传、蓝牙协议 v2 能力协商、Android 前台服务、二维码配对、剪贴板时间线、i18n 全量收口、设置页进一步拆分、Windows/iOS。
 
 ## 一、总主题
 
@@ -31,7 +36,7 @@
 
 ## 三、2.0 功能路线图（按阶段）
 
-### 阶段一：还债基线（先于一切新功能）
+### 阶段一：还债基线（✅ 已于 v2.0.0/2.0.x 完成，除单独标注项）
 1. 删死代码：webrtc 接收链（`webrtc_receiver.dart` 零引用、`signaling_provider` 仅 init 启动无消费、`rust/api/webrtc.dart` + 1160 行 freezed）——可省三架构 rust 编译的大头时间；`purchase_provider`（上游付费遗留）；`tv_provider`；Windows/Linux 目录与依赖（win32_registry、yaru、bitsdojo_window、msix）。
 2. 错误码协议：`core/errors/` 定义枚举，Dart/Kotlin/Swift 三端对齐，中文文案兼容读过渡（新码优先、旧文案 fallback，双端同版后移除）。
 3. P0 安全三连：证书 pinning 全链路（TOFU + 收藏指纹）、clipboard 鉴权、PIN 限流重写。
@@ -40,7 +45,7 @@
 6. 测试升级：字符串断言改行为断言；补 send_provider / server 路由覆盖。
 7. i18n 收口：229 处硬编码中文迁入 slang，CI 加 `[一-龥]` 扫描拦截。
 
-### 阶段二：传输体验（2.0 的主打卖点）
+### 阶段二：传输体验（部分完成：速度曲线/节流/大小校验已落地；断点续传与前台服务未做）
 1. **断点续传 + 完整性**：upload 增加 offset/Range + 分块 SHA-256，接收端 `.part` + 会话 token；HTTP 与蓝牙共用同一分块校验协议。（当前失败即整文件重发）
 2. **蓝牙文件通道下沉原生**：长度前缀二进制帧替代 base64+JSON（省 33% 空间）、逐块 ACK 背压、64KB 分块、进度事件；两端常量经握手协商。
 3. **Android 前台服务**：蓝牙监听与传输移入 foreground service（`FOREGROUND_SERVICE_CONNECTED_DEVICE` + 通知进度），解决息屏断连；multicast lock 一并迁移。
@@ -48,7 +53,7 @@
 5. **Android targetSdk 34→35**（2026 上架要求）+ 边到边验证。
 6. macOS：tray 菜单"最近目标速传"（statusItem 基建已有）；修 `AppDelegate.swift:120-142` bookmark 泄漏（startAccessing 无 stop）。
 
-### 阶段三：体验与创新
+### 阶段三：体验与创新（部分完成：1/5/6/7 已落地；2/3/4/8 未做）
 1. **一键速传收藏设备**（S，性价比最高）：send 页收藏设备条，点即发。
 2. **二维码配对**（M）：本机指纹二维码 + 对端扫码，替代手动输 IP；顺带完成配对信任模型。
 3. **接收记录管理**（M）：搜索（`SearchAnchor`）+ 长按多选批量操作 + `Hero` 大图预览。
