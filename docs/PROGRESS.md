@@ -21,6 +21,17 @@
 - 所有关键操作留痕，方便后续开发者接手。
 - 以后所有正式安装包统一归档到 `/Users/yueliangmanle/flux-send/releases/history/v版本号/`，并更新 `releases/README.md`；桌面只允许临时中转，发包后要清空。
 
+### 2026-10-07 凌晨 循环优化批次（v2.0.0 发布后持续迭代，目标 10-07 08:30）
+
+- 循环 1（安全）：发送链先 register 获取对端公钥并传给 prepareUpload 做 TLS pinning；失败/对端不支持时优雅退化为不 pinning（`send_provider.dart`）。二进制上传链路（isolate rhttp）的请求级 pinning 依赖 rust 改造，记入 ROADMAP。
+- 循环 2（协议）：Android/macOS 蓝牙桥的断开事件新增结构化 `code`（PEER_NOT_FLUX / HANDSHAKE_* / DISCONNECTED），Dart 优先按 code 判断握手失败并保留旧文案匹配作 fallback（旧对端兼容）；新增错误码单测。
+- 循环 3（UI）：theme 输入框边框去重（light/dark 原本相同）；22 处 `Colors.grey` 全部迁移到 `colorScheme` 语义色，暗色模式对比度修复。
+- 循环 4（架构）：1182 行 settings_tab 拆分为 `settings_tab.dart`（697 行）+ `settings_tab.sections.dart`（513 行，part 文件按 general/receive/send/network/other 分组）；行为不变，settings 韧性测试改为覆盖两个文件。
+- 循环 5（i18n）：连接状态卡 39 条展示文案迁入 slang `connectionStatusCard` 命名空间（en + zh-CN，含参数化插值），相关源码断言测试同步更新。
+- 循环 6（体验）：进度页新增实时传输速度曲线——`TransferSpeedSampler`（纯逻辑，500ms 采样、60 点窗口、5 点平滑，含单测）+ `TransferSpeedChart`（CustomPaint 单色描边 + 渐变填充）。
+- 验证：每轮提交前 `dart format` / `flutter analyze`（0 issues）/ `flutter test`（248 项）全绿。
+- 待办延续：二进制上传链 pinning（rust 层）、断点续传、蓝牙协议 v2、Android 前台服务、二维码配对、剪贴板时间线、i18n 全量收口。
+
 ### 2026-09-30 v2.0.0 大版本：安全/稳定性/传输性能整体升级
 
 - 依据：docs/ROADMAP-2.0.md（四维深读审查汇总）。本批实施其中阶段一全部 + 阶段二/三的高价值快赢项；断点续传、蓝牙协议 v2、前台服务、二维码配对、剪贴板时间线等留在 2.0.x/2.1。
