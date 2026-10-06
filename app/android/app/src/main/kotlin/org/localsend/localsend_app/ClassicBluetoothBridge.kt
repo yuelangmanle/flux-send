@@ -37,6 +37,7 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
     private val codeHandshakeAckSendFailed = "HANDSHAKE_ACK_SEND_FAILED"
     private val codeHandshakeIncomplete = "HANDSHAKE_INCOMPLETE"
     private val codePeerNotFlux = "PEER_NOT_FLUX"
+    private val protocolVersion = 2
     private val maxWriteChunkSize = 8192
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bluetoothAdapter: BluetoothAdapter?
@@ -149,6 +150,8 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
         val generation = connectionGeneration.incrementAndGet()
         serverSocket = nextServerSocket
         running = true
+        // 前台服务保活：息屏后 Doze 不冻结监听线程
+        ForegroundService.start(context)
         thread(name = "FluxBluetoothServer", isDaemon = true) {
             try {
                 emit("listening", "经典蓝牙 RFCOMM 正在等待配对设备连接")
@@ -308,7 +311,8 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
     }
 
     private fun sendHandshake(activeSocket: BluetoothSocket, type: String): Boolean {
-        return writeFrame(activeSocket, JSONObject().put("type", type).toString(), sentMessage = null)
+        val frame = JSONObject().put("type", type).put("v", protocolVersion)
+        return writeFrame(activeSocket, frame.toString(), sentMessage = null)
     }
 
     @Synchronized
@@ -356,6 +360,7 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
     fun stop() {
         connectionGeneration.incrementAndGet()
         running = false
+        ForegroundService.stop(context)
         closeSocket(emitDisconnected = false)
         closeServerSocket()
         emit("stopped", "经典蓝牙已停止")

@@ -14,6 +14,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
     private let codeHandshakeAckSendFailed = "HANDSHAKE_ACK_SEND_FAILED"
     private let codeHandshakeIncomplete = "HANDSHAKE_INCOMPLETE"
     private let codePeerNotFlux = "PEER_NOT_FLUX"
+    private let protocolVersion = 2
     private let maxWriteChunkSize = 8192
     private var eventSink: FlutterEventSink?
     private var channel: IOBluetoothRFCOMMChannel?
@@ -209,7 +210,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
     }
 
     private func sendHandshake(_ channel: IOBluetoothRFCOMMChannel, type: String) -> Bool {
-        return writeFrame(channel, payload: "{\"type\":\(jsonString(type))}", sentMessage: nil)
+        return writeFrame(channel, payload: "{\"type\":\(jsonString(type)),\"v\":\(protocolVersion)}", sentMessage: nil)
     }
 
     private func writeFrame(_ channel: IOBluetoothRFCOMMChannel, payload: String, sentMessage: String?) -> Bool {

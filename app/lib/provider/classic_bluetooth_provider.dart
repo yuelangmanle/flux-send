@@ -493,6 +493,9 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
     final type = event['type']?.toString();
     final message = event['message']?.toString() ?? '';
     final address = event['address']?.toString();
+    if (event['v'] != null) {
+      _logger.fine('Peer protocol version: ${event['v']}');
+    }
     final code = event['code']?.toString();
 
     if (event['type'] == 'clipboard') {
