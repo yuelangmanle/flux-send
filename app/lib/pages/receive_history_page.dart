@@ -272,7 +272,7 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
                             _selectionMode = true;
                             _selectedEntryIds.add(entry.id);
                           });
-                          unawaited(HapticFeedback.selectionClick());
+                          HapticFeedback.selectionClick(); // ignore: discarded_futures
                         }
                       },
                       onTap: _selectionMode
