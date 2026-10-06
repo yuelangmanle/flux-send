@@ -1,3 +1,16 @@
+## Flux 2.1.0 (2026-10-07)
+
+v2.0.x 之后的第二个功能版本：断点续传、蓝牙协议 v2、Android 保活、二维码配对与依赖升级。完整路线图见 `docs/ROADMAP-2.0.md`。
+
+- feat(protocol): **断点续传**——接收端将上传体暂存为 `.flux_staging/<会话>-<文件>.part`，发送端重试时自动探询已接收偏移量并只发送剩余字节；仅两端均为 Flux 时生效，与上游 LocalSend 互操作不受影响。
+- feat(bluetooth): 握手帧新增协议版本字段（`v:2`），旧对端忽略未知字段照常工作；为后续能力协商留口。
+- feat(android): 新增前台服务，经典蓝牙监听/传输期间保活，息屏后不再因 Doze 冻结断连（`FOREGROUND_SERVICE_CONNECTED_DEVICE` + 常驻通知）。
+- feat(pairing): 手动 IP 弹窗新增"本机二维码"，展示本机地址/端口/别名，供对端快速录入。
+- feat(ui): 接收历史长按多选批量删除；进度页实时速度曲线。
+- feat(i18n): 状态卡/设置页/接收历史等约 75 条展示文案迁入 slang。
+- chore(deps): flutter_markdown（已停维护）替换为社区维护的 flutter_markdown_plus；新增 qr_flutter。
+- chore(release): 版本升至 `2.1.0+220`，保持 Android applicationId 与既有签名密钥不变。macOS 仍为 Apple Silicon 单架构。
+
 ## Flux 2.0.1 (2026-10-07)
 
 v2.0.0 发布当夜按既定 ROADMAP 完成的第一批循环优化（安全/体验/可测性）。详细记录见 `docs/PROGRESS.md`。

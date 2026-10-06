@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:common/model/device.dart';
@@ -18,6 +19,7 @@ import 'package:localsend_app/util/address_connect_error.dart';
 import 'package:localsend_app/util/address_input_parser.dart';
 import 'package:localsend_app/util/rust.dart';
 import 'package:localsend_app/widget/dialogs/error_dialog.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
@@ -291,4 +293,35 @@ extension on List<String> {
     final seen = <String>{};
     return where((s) => seen.add(s.ipPrefix)).toList();
   }
+}
+
+/// 展示本机连接信息的二维码（IP/端口/别名），供另一台设备扫码或手动抄录。
+Future<void> showLocalQrDialog(BuildContext context, Ref ref) async {
+  final localIps = ref.read(localIpProvider).localIps;
+  final settings = ref.read(settingsProvider);
+  final payload = jsonEncode({
+    'host': localIps.isNotEmpty ? localIps.first : '',
+    'port': settings.port,
+    'https': settings.https,
+    'alias': settings.alias,
+  });
+  unawaited(
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('本机连接二维码'),
+        content: SizedBox(
+          width: 240,
+          height: 240,
+          child: QrImageView(data: payload, size: 240),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    ),
+  );
 }
