@@ -7,7 +7,7 @@ void main() {
     final source = File('lib/pages/language_page.dart').readAsStringSync();
 
     expect(source, contains('t.settingsTab.general.language'));
-    expect(source, contains('加载中'));
+    expect(source, contains('t.display.loading'));
     expect(source, isNot(contains('t.sendTab.selection.title')));
     expect(source, isNot(contains("'Loading'")));
   });
