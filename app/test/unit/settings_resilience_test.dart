@@ -50,8 +50,8 @@ void main() {
     expect(fallbackStart, isNonNegative);
     expect(tab.substring(appbarStart), contains('MoveWindow'));
     expect(tab.substring(appbarStart), contains('checkPlatformIsDesktop()'));
-    expect(tab.substring(fallbackStart), contains('设置页加载失败'));
-    expect(tab.substring(fallbackStart), contains('重试'));
+    expect(tab.substring(fallbackStart), contains('t.settingsTab.errorFallback.title'));
+    expect(tab.substring(fallbackStart), contains('t.general.retry'));
   });
 
   test('clipboard provider failures stay inside the clipboard settings section', () {

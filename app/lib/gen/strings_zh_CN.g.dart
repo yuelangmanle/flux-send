@@ -257,6 +257,14 @@ class _TranslationsSettingsTabZhCn extends TranslationsSettingsTabEn {
   late final _TranslationsSettingsTabOtherZhCn other = _TranslationsSettingsTabOtherZhCn._(_root);
   @override
   String get advancedSettings => '高级设置';
+  @override
+  late final _TranslationsSettingsTabUpdateCheckZhCn updateCheck = _TranslationsSettingsTabUpdateCheckZhCn._(_root);
+  @override
+  late final _TranslationsSettingsTabErrorFallbackZhCn errorFallback = _TranslationsSettingsTabErrorFallbackZhCn._(_root);
+  @override
+  late final _TranslationsSettingsTabClipboardSectionZhCn clipboardSection = _TranslationsSettingsTabClipboardSectionZhCn._(_root);
+  @override
+  late final _TranslationsSettingsTabConnectionModeSectionZhCn connectionModeSection = _TranslationsSettingsTabConnectionModeSectionZhCn._(_root);
 }
 
 // Path: troubleshootPage
@@ -1089,6 +1097,90 @@ class _TranslationsSettingsTabOtherZhCn extends TranslationsSettingsTabOtherEn {
   String get privacyPolicy => '隐私政策';
   @override
   String get termsOfUse => '使用条款';
+}
+
+// Path: settingsTab.updateCheck
+class _TranslationsSettingsTabUpdateCheckZhCn extends TranslationsSettingsTabUpdateCheckEn {
+  _TranslationsSettingsTabUpdateCheckZhCn._(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get checking => '正在检查 GitHub 最新版本…';
+  @override
+  String get failedTitle => '检查更新失败';
+  @override
+  String failedMessage({required Object error}) => '无法连接 GitHub 获取更新信息。请确认网络后重试。\n\n${error}';
+  @override
+  String get ok => '知道了';
+  @override
+  String get upToDateTitle => '已是最新版本';
+  @override
+  String upToDateMessage({required Object version}) => '当前版本 ${version} 已是 GitHub 上的最新正式版。';
+  @override
+  String get done => '完成';
+  @override
+  String get noMatchingAsset => '此平台暂未提供匹配的安装包。将为你打开 GitHub 发布页。';
+  @override
+  String downloading({required Object name}) => '将打开浏览器下载 ${name}。下载后请按系统提示完成安装。';
+  @override
+  String newVersionTitle({required Object version}) => '发现新版本 ${version}';
+  @override
+  String newVersionMessage({required Object installMessage, required Object version}) => '${installMessage}\n\n当前版本：${version}';
+  @override
+  String get later => '暂不更新';
+  @override
+  String get openPageFailed => '无法打开下载页面，请稍后重试。';
+  @override
+  String get openReleasePage => '打开发布页';
+  @override
+  String get downloadUpdate => '下载更新';
+}
+
+// Path: settingsTab.errorFallback
+class _TranslationsSettingsTabErrorFallbackZhCn extends TranslationsSettingsTabErrorFallbackEn {
+  _TranslationsSettingsTabErrorFallbackZhCn._(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '设置页加载失败';
+  @override
+  String message({required Object error}) => 'Flux 已拦截本次异常，没有让页面继续白屏。请点重试重新加载设置页；如果仍失败，把下面这段错误反馈给我们。\n\n${error}';
+}
+
+// Path: settingsTab.clipboardSection
+class _TranslationsSettingsTabClipboardSectionZhCn extends TranslationsSettingsTabClipboardSectionEn {
+  _TranslationsSettingsTabClipboardSectionZhCn._(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '剪切板同步';
+  @override
+  String get alwaysSync => '常驻同步剪切板';
+  @override
+  String targets({required Object count}) => '可同步设备：${count} 台';
+  @override
+  String lastSync({required Object text}) => '最近同步：${text}';
+  @override
+  String totalSync({required Object count}) => '累计同步：${count} 次';
+  @override
+  String error({required Object error}) => '错误：${error}';
+}
+
+// Path: settingsTab.connectionModeSection
+class _TranslationsSettingsTabConnectionModeSectionZhCn extends TranslationsSettingsTabConnectionModeSectionEn {
+  _TranslationsSettingsTabConnectionModeSectionZhCn._(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '连接模式';
 }
 
 // Path: troubleshootPage.firewall

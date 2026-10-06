@@ -158,7 +158,39 @@
       "privacyPolicy": "Privacy Policy",
       "termsOfUse": "Terms of Use"
     },
-    "advancedSettings": "Advanced settings"
+    "advancedSettings": "Advanced settings",
+    "updateCheck": {
+      "checking": "Checking GitHub for updates…",
+      "failedTitle": "Update check failed",
+      "failedMessage": "Could not reach GitHub for update info. Check your network and retry.\n\n{error}",
+      "ok": "Got it",
+      "upToDateTitle": "Already up to date",
+      "upToDateMessage": "Version {version} is already the latest stable release on GitHub.",
+      "done": "Done",
+      "noMatchingAsset": "No matching installer for this platform. Opening the GitHub release page instead.",
+      "downloading": "Opening the browser to download {name}. Follow the system prompt to install.",
+      "newVersionTitle": "New version {version} available",
+      "newVersionMessage": "{installMessage}\n\nCurrent version: {version}",
+      "later": "Later",
+      "openPageFailed": "Could not open the download page. Try again later.",
+      "openReleasePage": "Open release page",
+      "downloadUpdate": "Download update"
+    },
+    "errorFallback": {
+      "title": "Settings failed to load",
+      "message": "Flux caught the exception and prevented a blank page. Tap retry to reload the settings page; if it keeps failing, include the error below in your feedback.\n\n{error}"
+    },
+    "clipboardSection": {
+      "title": "Clipboard sync",
+      "alwaysSync": "Sync clipboard in the background",
+      "targets": "Sync targets: {count}",
+      "lastSync": "Last sync: {text}",
+      "totalSync": "Total syncs: {count}",
+      "error": "Error: {error}"
+    },
+    "connectionModeSection": {
+      "title": "Connection mode"
+    }
   },
   "troubleshootPage": {
     "title": "Troubleshoot",

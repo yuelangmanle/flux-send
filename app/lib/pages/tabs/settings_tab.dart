@@ -138,12 +138,12 @@ class _SettingsTabState extends State<SettingsTab> {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const AlertDialog(
+        builder: (_) => AlertDialog(
           content: Row(
             children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 16),
-              Expanded(child: Text('正在检查 GitHub 最新版本…')),
+              const CircularProgressIndicator(),
+              const SizedBox(width: 16),
+              Expanded(child: Text(t.settingsTab.updateCheck.checking)),
             ],
           ),
         ),
@@ -165,12 +165,12 @@ class _SettingsTabState extends State<SettingsTab> {
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text('检查更新失败'),
-          content: Text('无法连接 GitHub 获取更新信息。请确认网络后重试。\n\n$error'),
+          title: Text(t.settingsTab.updateCheck.failedTitle),
+          content: Text(t.settingsTab.updateCheck.failedMessage(error: error.toString())),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('知道了'),
+              child: Text(t.settingsTab.updateCheck.ok),
             ),
           ],
         ),
@@ -183,12 +183,12 @@ class _SettingsTabState extends State<SettingsTab> {
       await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text('已是最新版本'),
-          content: Text('当前版本 ${updateCheck.installedVersion} 已是 GitHub 上的最新正式版。'),
+          title: Text(t.settingsTab.updateCheck.upToDateTitle),
+          content: Text(t.settingsTab.updateCheck.upToDateMessage(version: updateCheck.installedVersion)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('完成'),
+              child: Text(t.settingsTab.updateCheck.done),
             ),
           ],
         ),
@@ -198,17 +198,17 @@ class _SettingsTabState extends State<SettingsTab> {
 
     final asset = updateCheck.installAsset;
     final target = asset?.downloadUri ?? updateCheck.release.releasePageUri;
-    final installMessage = asset == null ? '此平台暂未提供匹配的安装包。将为你打开 GitHub 发布页。' : '将打开浏览器下载 ${asset.name}。下载后请按系统提示完成安装。';
+    final installMessage = asset == null ? t.settingsTab.updateCheck.noMatchingAsset : t.settingsTab.updateCheck.downloading(name: asset.name);
 
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('发现新版本 ${updateCheck.release.version}'),
-        content: Text('$installMessage\n\n当前版本：${updateCheck.installedVersion}'),
+        title: Text(t.settingsTab.updateCheck.newVersionTitle(version: updateCheck.release.version)),
+        content: Text(t.settingsTab.updateCheck.newVersionMessage(installMessage: installMessage, version: updateCheck.installedVersion)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('暂不更新'),
+            child: Text(t.settingsTab.updateCheck.later),
           ),
           FilledButton(
             onPressed: () async {
@@ -216,11 +216,11 @@ class _SettingsTabState extends State<SettingsTab> {
               final launched = await launchUrl(target, mode: LaunchMode.externalApplication);
               if (!launched && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('无法打开下载页面，请稍后重试。')),
+                  SnackBar(content: Text(t.settingsTab.updateCheck.openPageFailed)),
                 );
               }
             },
-            child: Text(asset == null ? '打开发布页' : '下载更新'),
+            child: Text(asset == null ? t.settingsTab.updateCheck.openReleasePage : t.settingsTab.updateCheck.downloadUpdate),
           ),
         ],
       ),
@@ -336,7 +336,7 @@ class _SettingsFallback extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          '设置页加载失败',
+                          t.settingsTab.errorFallback.title,
                           style: theme.textTheme.titleMedium,
                         ),
                       ),
@@ -344,7 +344,7 @@ class _SettingsFallback extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Flux 已拦截本次异常，没有让页面继续白屏。请点重试重新加载设置页；如果仍失败，把下面这段错误反馈给我。',
+                    t.settingsTab.errorFallback.message(error: error.toString()),
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 12),
@@ -358,7 +358,7 @@ class _SettingsFallback extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: onRetry,
                       icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('重试'),
+                      label: Text(t.general.retry),
                     ),
                   ),
                 ],
@@ -385,7 +385,7 @@ class _ConnectionModeSection extends StatelessWidget {
     final theme = Theme.of(context);
 
     return _SettingsSection(
-      title: '连接模式',
+      title: t.settingsTab.connectionModeSection.title,
       children: [
         LayoutBuilder(
           builder: (context, constraints) {
@@ -403,30 +403,30 @@ class _ConnectionModeSection extends StatelessWidget {
                 if (context.mounted) {
                   if (!selectedDetails.activationSucceeded) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(selectedDetails.failureMessage ?? '连接模式切换失败，已回到上一种模式。')),
+                      SnackBar(content: Text(selectedDetails.failureMessage ?? t.connectionStatusCard.modeSwitchFailed)),
                     );
                     return;
                   }
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('已切换到${selectedDetails.title}：${selectedDetails.subtitle}')),
+                    SnackBar(content: Text(t.connectionStatusCard.switchedNetwork(mode: selectedDetails.title) + selectedDetails.subtitle)),
                   );
                 }
               },
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: FluxConnectionMode.localNetwork,
-                  icon: Icon(Icons.router_rounded),
-                  label: Text('局域网'),
+                  icon: const Icon(Icons.router_rounded),
+                  label: Text(t.connectionStatusCard.modeLan),
                 ),
                 ButtonSegment(
                   value: FluxConnectionMode.hotspot,
-                  icon: Icon(Icons.wifi_tethering_rounded),
-                  label: Text('热点'),
+                  icon: const Icon(Icons.wifi_tethering_rounded),
+                  label: Text(t.connectionStatusCard.modeHotspot),
                 ),
                 ButtonSegment(
                   value: FluxConnectionMode.classicBluetooth,
-                  icon: Icon(Icons.bluetooth_connected_rounded),
-                  label: Text('蓝牙'),
+                  icon: const Icon(Icons.bluetooth_connected_rounded),
+                  label: Text(t.connectionStatusCard.modeBluetooth),
                 ),
               ],
             );
@@ -483,10 +483,10 @@ class _ClipboardSyncSettingsSection extends StatelessWidget {
     final clipboard = context.ref.watch(clipboardSyncProvider);
 
     return _SettingsSection(
-      title: '剪切板同步',
+      title: t.settingsTab.clipboardSection.title,
       children: [
         _BooleanEntry(
-          label: '常驻同步剪切板',
+          label: t.settingsTab.clipboardSection.alwaysSync,
           value: clipboard.enabled,
           onChanged: (_) => context.ref.notifier(clipboardSyncProvider).toggle(),
         ),
@@ -500,7 +500,7 @@ class _ClipboardSyncSettingsSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
-            '可同步设备：${clipboard.onlineDeviceCount} 台',
+            t.settingsTab.clipboardSection.targets(count: clipboard.onlineDeviceCount),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
@@ -508,7 +508,7 @@ class _ClipboardSyncSettingsSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              '最近同步：${text.length > 50 ? text.substring(0, 50) : text}',
+              t.settingsTab.clipboardSection.lastSync(text: text.length > 50 ? text.substring(0, 50) : text),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -516,7 +516,7 @@ class _ClipboardSyncSettingsSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              '累计同步：${clipboard.syncCount} 次',
+              t.settingsTab.clipboardSection.totalSync(count: clipboard.syncCount),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -524,7 +524,7 @@ class _ClipboardSyncSettingsSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              '错误：$error',
+              t.settingsTab.clipboardSection.error(error: error),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),

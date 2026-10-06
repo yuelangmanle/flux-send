@@ -288,6 +288,11 @@ class TranslationsSettingsTabEn {
 
   /// en: 'Advanced settings'
   String get advancedSettings => 'Advanced settings';
+
+  late final TranslationsSettingsTabUpdateCheckEn updateCheck = TranslationsSettingsTabUpdateCheckEn.internal(_root);
+  late final TranslationsSettingsTabErrorFallbackEn errorFallback = TranslationsSettingsTabErrorFallbackEn.internal(_root);
+  late final TranslationsSettingsTabClipboardSectionEn clipboardSection = TranslationsSettingsTabClipboardSectionEn.internal(_root);
+  late final TranslationsSettingsTabConnectionModeSectionEn connectionModeSection = TranslationsSettingsTabConnectionModeSectionEn.internal(_root);
 }
 
 // Path: troubleshootPage
@@ -1302,6 +1307,115 @@ class TranslationsSettingsTabOtherEn {
 
   /// en: 'Terms of Use'
   String get termsOfUse => 'Terms of Use';
+}
+
+// Path: settingsTab.updateCheck
+class TranslationsSettingsTabUpdateCheckEn {
+  TranslationsSettingsTabUpdateCheckEn.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Checking GitHub for updates…'
+  String get checking => 'Checking GitHub for updates…';
+
+  /// en: 'Update check failed'
+  String get failedTitle => 'Update check failed';
+
+  /// en: 'Could not reach GitHub for update info. Check your network and retry. {error}'
+  String failedMessage({required Object error}) => 'Could not reach GitHub for update info. Check your network and retry.\n\n${error}';
+
+  /// en: 'Got it'
+  String get ok => 'Got it';
+
+  /// en: 'Already up to date'
+  String get upToDateTitle => 'Already up to date';
+
+  /// en: 'Version {version} is already the latest stable release on GitHub.'
+  String upToDateMessage({required Object version}) => 'Version ${version} is already the latest stable release on GitHub.';
+
+  /// en: 'Done'
+  String get done => 'Done';
+
+  /// en: 'No matching installer for this platform. Opening the GitHub release page instead.'
+  String get noMatchingAsset => 'No matching installer for this platform. Opening the GitHub release page instead.';
+
+  /// en: 'Opening the browser to download {name}. Follow the system prompt to install.'
+  String downloading({required Object name}) => 'Opening the browser to download ${name}. Follow the system prompt to install.';
+
+  /// en: 'New version {version} available'
+  String newVersionTitle({required Object version}) => 'New version ${version} available';
+
+  /// en: '{installMessage} Current version: {version}'
+  String newVersionMessage({required Object installMessage, required Object version}) => '${installMessage}\n\nCurrent version: ${version}';
+
+  /// en: 'Later'
+  String get later => 'Later';
+
+  /// en: 'Could not open the download page. Try again later.'
+  String get openPageFailed => 'Could not open the download page. Try again later.';
+
+  /// en: 'Open release page'
+  String get openReleasePage => 'Open release page';
+
+  /// en: 'Download update'
+  String get downloadUpdate => 'Download update';
+}
+
+// Path: settingsTab.errorFallback
+class TranslationsSettingsTabErrorFallbackEn {
+  TranslationsSettingsTabErrorFallbackEn.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Settings failed to load'
+  String get title => 'Settings failed to load';
+
+  /// en: 'Flux caught the exception and prevented a blank page. Tap retry to reload the settings page; if it keeps failing, include the error below in your feedback. {error}'
+  String message({required Object error}) =>
+      'Flux caught the exception and prevented a blank page. Tap retry to reload the settings page; if it keeps failing, include the error below in your feedback.\n\n${error}';
+}
+
+// Path: settingsTab.clipboardSection
+class TranslationsSettingsTabClipboardSectionEn {
+  TranslationsSettingsTabClipboardSectionEn.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Clipboard sync'
+  String get title => 'Clipboard sync';
+
+  /// en: 'Sync clipboard in the background'
+  String get alwaysSync => 'Sync clipboard in the background';
+
+  /// en: 'Sync targets: {count}'
+  String targets({required Object count}) => 'Sync targets: ${count}';
+
+  /// en: 'Last sync: {text}'
+  String lastSync({required Object text}) => 'Last sync: ${text}';
+
+  /// en: 'Total syncs: {count}'
+  String totalSync({required Object count}) => 'Total syncs: ${count}';
+
+  /// en: 'Error: {error}'
+  String error({required Object error}) => 'Error: ${error}';
+}
+
+// Path: settingsTab.connectionModeSection
+class TranslationsSettingsTabConnectionModeSectionEn {
+  TranslationsSettingsTabConnectionModeSectionEn.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Connection mode'
+  String get title => 'Connection mode';
 }
 
 // Path: troubleshootPage.firewall
