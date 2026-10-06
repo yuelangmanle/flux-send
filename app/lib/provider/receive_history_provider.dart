@@ -135,6 +135,23 @@ class RemoveHistoryEntryAction extends AsyncReduxAction<ReceiveHistoryService, L
   }
 }
 
+/// Removes the given history entries in one batch (single persistence write).
+class RemoveHistoryEntriesAction extends AsyncReduxAction<ReceiveHistoryService, List<ReceiveHistoryEntry>> {
+  final Set<String> entryIds;
+
+  RemoveHistoryEntriesAction(this.entryIds);
+
+  @override
+  Future<List<ReceiveHistoryEntry>> reduce() async {
+    if (entryIds.isEmpty) {
+      return state;
+    }
+    final updated = state.where((e) => !entryIds.contains(e.id)).toList();
+    await notifier._persistence.setReceiveHistory(updated);
+    return updated;
+  }
+}
+
 /// Removes all history entries.
 class RemoveAllHistoryEntriesAction extends AsyncReduxAction<ReceiveHistoryService, List<ReceiveHistoryEntry>> {
   @override

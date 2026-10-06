@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:common/model/device.dart';
 import 'package:common/model/session_status.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/receive_history_entry.dart';
@@ -58,6 +59,8 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
   _HistoryGrouping _grouping = _HistoryGrouping.day;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final Set<String> _selectedEntryIds = {};
+  bool _selectionMode = false;
 
   @override
   void dispose() {
@@ -165,6 +168,42 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
             ),
           ],
           const SizedBox(height: 14),
+          if (_selectionMode && _selectedEntryIds.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      t.receiveHistoryPage.selectedCount(count: _selectedEntryIds.length),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedEntryIds.clear();
+                        _selectionMode = false;
+                      });
+                    },
+                    child: Text(t.general.cancel),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () async {
+                      final ids = Set<String>.from(_selectedEntryIds);
+                      await context.redux(receiveHistoryProvider).dispatchAsync(RemoveHistoryEntriesAction(ids));
+                      setState(() {
+                        _selectedEntryIds.clear();
+                        _selectionMode = false;
+                      });
+                    },
+                    icon: const Icon(Icons.delete_rounded),
+                    label: Text(t.receiveHistoryPage.deleteSelected),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 14),
           if (entries.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -227,7 +266,27 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
                       splashFactory: NoSplash.splashFactory,
                       highlightColor: Colors.transparent,
                       hoverColor: Colors.transparent,
-                      onTap: entry.path != null || entry.isMessage
+                      onLongPress: () {
+                        if (!_selectionMode) {
+                          setState(() {
+                            _selectionMode = true;
+                            _selectedEntryIds.add(entry.id);
+                          });
+                          unawaited(HapticFeedback.selectionClick());
+                        }
+                      },
+                      onTap: _selectionMode
+                          ? () {
+                              setState(() {
+                                if (!_selectedEntryIds.remove(entry.id)) {
+                                  _selectedEntryIds.add(entry.id);
+                                }
+                                if (_selectedEntryIds.isEmpty) {
+                                  _selectionMode = false;
+                                }
+                              });
+                            }
+                          : entry.path != null || entry.isMessage
                           ? () async {
                               if (entry.isMessage) {
                                 final vm = ViewProvider((ref) {

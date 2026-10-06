@@ -235,7 +235,9 @@
     "noResults": "No matching entries",
     "entriesCount": "{count} entries",
     "groupByDay": "By date",
-    "groupByType": "By type"
+    "groupByType": "By type",
+    "selectedCount": "{count} selected",
+    "deleteSelected": "Delete selected"
   },
   "apkPickerPage": {
     "title": "Apps (APK)",

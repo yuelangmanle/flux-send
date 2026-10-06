@@ -228,7 +228,9 @@
     "noResults": "没有匹配的记录",
     "entriesCount": "{count} 项",
     "groupByDay": "按日期",
-    "groupByType": "按类型"
+    "groupByType": "按类型",
+    "selectedCount": "已选择 {count} 项",
+    "deleteSelected": "删除所选"
   },
   "apkPickerPage": {
     "title": "应用（APK）",

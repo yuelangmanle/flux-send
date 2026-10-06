@@ -385,6 +385,12 @@ class TranslationsReceiveHistoryPageEn {
 
   /// en: 'By type'
   String get groupByType => 'By type';
+
+  /// en: '{count} selected'
+  String selectedCount({required Object count}) => '${count} selected';
+
+  /// en: 'Delete selected'
+  String get deleteSelected => 'Delete selected';
 }
 
 // Path: apkPickerPage

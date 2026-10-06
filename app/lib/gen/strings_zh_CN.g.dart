@@ -321,6 +321,10 @@ class _TranslationsReceiveHistoryPageZhCn extends TranslationsReceiveHistoryPage
   String get groupByDay => '按日期';
   @override
   String get groupByType => '按类型';
+  @override
+  String selectedCount({required Object count}) => '已选择 ${count} 项';
+  @override
+  String get deleteSelected => '删除所选';
 }
 
 // Path: apkPickerPage
