@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:flutter/services.dart';
 import 'dart:collection';
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 import 'package:common/isolate.dart';
 import 'package:common/model/device.dart';
@@ -391,10 +391,10 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
 
         if (hasError) {
           _logger.info('Transfer finished with errors.');
-          HapticFeedback.heavyImpact();
+          unawaited(HapticFeedback.heavyImpact());
         } else {
           _logger.info('Transfer finished successfully.');
-          HapticFeedback.mediumImpact();
+          unawaited(HapticFeedback.mediumImpact());
         }
       }
     }

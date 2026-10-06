@@ -223,7 +223,7 @@ class FluxConnectionStatusCard extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: bluetooth?.connected == true
                         ? () {
-                            HapticFeedback.selectionClick();
+                            unawaited(HapticFeedback.selectionClick());
                             unawaited(ref.notifier(classicBluetoothProvider).sendFiles(selectedFiles));
                           }
                         : null,
