@@ -141,6 +141,24 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
       );
     }
 
+    // 先注册以获取对端公钥，用于 prepareUpload 的证书 pinning（防中间人）。
+    // 对端不支持、要求 PIN 或出错时退化为不 pinning，不影响既有流程。
+    String? pinnedPublicKey;
+    try {
+      final registerResponse = await client.register(
+        protocol: target.getProtocolType(),
+        ip: target.ip!,
+        port: target.port,
+        payload: requestDto.info,
+      );
+      pinnedPublicKey = registerResponse.publicKey;
+      if (pinnedPublicKey != null) {
+        _logger.info('Received public key from ${target.ip}, pinning prepare-upload.');
+      }
+    } catch (e) {
+      _logger.info('Register for pinning failed on ${target.ip}, continuing without pinning: $e');
+    }
+
     rust_http.PrepareUploadResult? response;
     bool invalidPin;
     bool pinFirstAttempt = true;
@@ -153,8 +171,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
           ip: target.ip!,
           port: target.port,
           payload: requestDto,
-          // TODO
-          publicKey: null,
+          publicKey: pinnedPublicKey,
           pin: pin,
         );
       } on rust_http.RsHttpClientError_StatusCode catch (e) {
