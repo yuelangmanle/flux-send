@@ -20,12 +20,14 @@ import 'package:localsend_app/util/native/open_file.dart';
 import 'package:localsend_app/util/native/open_folder.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/native/taskbar_helper.dart';
+import 'package:localsend_app/util/transfer_speed_sampler.dart';
 import 'package:localsend_app/util/ui/nav_bar_padding.dart';
 import 'package:localsend_app/widget/custom_basic_appbar.dart';
 import 'package:localsend_app/widget/custom_progress_bar.dart';
 import 'package:localsend_app/widget/dialogs/cancel_session_dialog.dart';
 import 'package:localsend_app/widget/dialogs/error_dialog.dart';
 import 'package:localsend_app/widget/file_thumbnail.dart';
+import 'package:localsend_app/widget/transfer_speed_chart.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -61,6 +63,24 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
 
   bool _advanced = false;
 
+  // 传输速度曲线：500ms 采样一次累计字节，保留最近 60 个点。
+  final TransferSpeedSampler _speedSampler = TransferSpeedSampler();
+  final ValueNotifier<List<double>> _speedSamples = ValueNotifier(const []);
+  Timer? _speedTimer;
+
+  void _sampleSpeed() {
+    final session = ref.read(sendProvider)[widget.sessionId];
+    if (session == null) {
+      return;
+    }
+    final totalBytes = session.files.values.fold<int>(
+      0,
+      (sum, f) => sum + (f.file.size * ref.read(progressProvider).getProgress(sessionId: widget.sessionId, fileId: f.file.id)).round(),
+    );
+    _speedSampler.addSample(totalBytes, DateTime.now());
+    _speedSamples.value = _speedSampler.samples;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +90,8 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
       try {
         unawaited(WakelockPlus.enable());
       } catch (_) {}
+
+      _speedTimer = Timer.periodic(const Duration(milliseconds: 500), (_) => _sampleSpeed());
 
       // Periodically call WakelockPlus.enable() to keep the screen awake
       _wakelockPlusTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
@@ -169,6 +191,8 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
 
   @override
   void dispose() {
+    _speedTimer?.cancel();
+    _speedSamples.dispose();
     super.dispose();
     _finishTimer?.cancel();
     _wakelockPlusTimer?.cancel();
@@ -241,6 +265,20 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
         appBar: widget.showAppBar ? basicLocalSendAppbar(title) : null,
         body: Stack(
           children: [
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              left: 15,
+              right: 30,
+              child: ValueListenableBuilder<List<double>>(
+                valueListenable: _speedSamples,
+                builder: (context, samples, _) {
+                  return TransferSpeedChart(
+                    samples: samples,
+                    color: Theme.of(context).colorScheme.primary,
+                  );
+                },
+              ),
+            ),
             ListView.builder(
               padding: EdgeInsets.only(
                 top: MediaQuery.of(context).padding.top + 20,
