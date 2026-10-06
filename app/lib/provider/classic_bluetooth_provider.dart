@@ -673,7 +673,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
           return true;
         }
         final bytes = base64Decode(data);
-        if (!transfer.addChunk(Uint8List.fromList(bytes))) {
+        if (!transfer.addChunk(bytes)) {
           _incomingFiles.remove(id);
           unawaited(transfer.discard());
           state = state.copyWith(
