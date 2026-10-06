@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 
+import 'dart:async';
+
 import 'package:localsend_app/provider/network/server/controller/common.dart';
+import 'package:localsend_app/util/request_limiter.dart';
 import 'package:localsend_app/util/request_limiter.dart';
 import 'package:localsend_app/util/security_helper.dart';
 import 'package:test/test.dart';
@@ -102,6 +105,46 @@ void main() {
     test('accepts anything when no fingerprint is known (manual unregistered peer)', () {
       expect(matchesCertificateBytes(der: Uint8List(0), expectedFingerprint: ''), isTrue);
       expect(matchesCertificateBytes(der: Uint8List(0), expectedFingerprint: '  '), isTrue);
+    });
+  });
+
+  group('limitBytes stream transformer', () {
+    test('passes through data under the limit', () async {
+      final controller = StreamController<List<int>>();
+      final received = <List<int>>[];
+      var done = false;
+
+      controller.stream
+          .transform(limitBytes(10))
+          .listen(
+            received.add,
+            onDone: () => done = true,
+          );
+      controller.add([1, 2, 3]);
+      await controller.close();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(received, [
+        [1, 2, 3],
+      ]);
+      expect(done, isTrue);
+    });
+
+    test('throws BytesLimitExceededException when the cap is exceeded', () async {
+      final controller = StreamController<List<int>>();
+      Object? caught;
+
+      controller.stream
+          .transform(limitBytes(5))
+          .listen(
+            (_) {},
+            onError: (Object e) => caught = e,
+          );
+      controller.add([1, 2, 3, 4, 5, 6, 7]);
+      await controller.close();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(caught, isA<BytesLimitExceededException>());
     });
   });
 }
