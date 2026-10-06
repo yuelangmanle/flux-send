@@ -32,6 +32,17 @@
 - 验证：每轮提交前 `dart format` / `flutter analyze`（0 issues）/ `flutter test`（248 项）全绿。
 - 待办延续：二进制上传链 pinning（rust 层）、断点续传、蓝牙协议 v2、Android 前台服务、二维码配对、剪贴板时间线、i18n 全量收口。
 
+### 2026-10-07 01:35 循环优化批次 2（接凌晨批次继续）
+
+- 循环 7（体验）：手动连接失败按 SocketException/DNS/TLS 分类映射为可操作中文提示（`describeAddressConnectError`，未知异常保留原文 + 兜底建议），配单测。
+- 循环 8（测试）：`extractRequestPin` 抽出纯函数 `resolveRequestPin`，补 4 条优先级单测。
+- 循环 9（体验）：接收历史页新增搜索框（按文件名/设备过滤）+ 无结果空态；分组按钮与计数接入 i18n。
+- 循环 10（动效）：连接状态卡的“扫描/监听”药丸加 1.2s 呼吸动效，已连接与待命保持常亮。
+- 循环 11/12（i18n）：settings_tab 剩余 30 条硬编码全部迁入 slang（updateCheck/errorFallback/clipboardSection/connectionModeSection 子命名空间）；“重试”复用 general.retry。
+- 循环 13（动效）：传输完成/失败/蓝牙发送三处触觉反馈。
+- 验证：每轮 analyze 0 issues、全量测试通过（当前 256 项）；修复了一次以 6 个 lint 带病提交的问题（import 位置与 unawaited 包装）。
+- 待办延续：i18n 收口剩余（classic_bluetooth_provider 状态文案 52 条等，与逻辑耦合需随错误码协议分批做）、断点续传、前台服务、二维码配对。
+
 ### 2026-09-30 v2.0.0 大版本：安全/稳定性/传输性能整体升级
 
 - 依据：docs/ROADMAP-2.0.md（四维深读审查汇总）。本批实施其中阶段一全部 + 阶段二/三的高价值快赢项；断点续传、蓝牙协议 v2、前台服务、二维码配对、剪贴板时间线等留在 2.0.x/2.1。
