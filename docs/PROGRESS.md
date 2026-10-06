@@ -41,6 +41,8 @@
 - 循环 11/12（i18n）：settings_tab 剩余 30 条硬编码全部迁入 slang（updateCheck/errorFallback/clipboardSection/connectionModeSection 子命名空间）；“重试”复用 general.retry。
 - 循环 13（动效）：传输完成/失败/蓝牙发送三处触觉反馈。
 - 验证：每轮 analyze 0 issues、全量测试通过（当前 256 项）；修复了一次以 6 个 lint 带病提交的问题（import 位置与 unawaited 包装）。
+- 安全扫描：Mimosa normal 深度静态扫描完成（563 个包），代码发现 0 条；离线 advisory 匹配到 3 个依赖包共 9 条（离线库比对，具体条目待联网核对）。`dart pub outdated` 快照：flutter_markdown 已停维护、file_picker/device_info_plus/desktop_drop/dynamic_color 等落后一个大版本——统一记入依赖升级债，不在夜间批次盲目升级。
+- 文档：README 平台宣称修正为 Android 与 macOS（Windows 线未维护，不夸大支持范围）；ROADMAP-2.0.md 标注执行状态。
 - 待办延续：i18n 收口剩余（classic_bluetooth_provider 状态文案 52 条等，与逻辑耦合需随错误码协议分批做）、断点续传、前台服务、二维码配对。
 
 ### 2026-10-07 01:15 循环优化批次 3
