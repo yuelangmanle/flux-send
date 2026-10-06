@@ -82,6 +82,11 @@
   - `Flux-v2.0.0-macOS.dmg`（arm64）SHA-256 `5c224e7e716cfaef03ed4f57f8fab994ffa49bc18ca70bcac4d30b574a9c6f18`；`hdiutil verify` 通过；挂载后 `Flux.app` 为 `2.0.0 (200)`，`codesign --verify --deep --strict` 通过，蓝牙 entitlement 为 true。
   - 同目录 `SHA256SUMS.txt` 已生成。
 - 发布状态：用户确认后直接发布 GitHub Release v2.0.0（未经双端真机验收，验收转为发布后事项）。
+- 产物与校验（`releases/history/v2.0.1/`）：
+  - `Flux-v2.0.1-android.apk`（133M）SHA-256 `dddd712ac0bb4b700736345b0a14d07dff84abd3ded7f4f9858d04df204592dc`；aapt 校验 `org.localsend.localsend_app`、`versionName=2.0.1`、`versionCode=211`；apksigner 证书 SHA-256 保持 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
+  - `Flux-v2.0.1-macOS.dmg`（arm64）SHA-256 `041a217042e189ae884f69c91c23d4dbdd361bc9a5682cd3c3ddeba9023f054f`；`hdiutil verify` 通过；挂载后 `Flux.app` 为 `2.0.1 (211)`，`codesign --verify --deep --strict` 通过。
+  - 同目录 `SHA256SUMS.txt` 已生成。
+- 发布状态：用户确认后发布 GitHub Release v2.0.1。
 - 已知未做（记入 ROADMAP）：断点续传、蓝牙协议 v2 能力协商、Android 前台服务（息屏保活）、二维码配对、剪贴板时间线、设置页拆分、i18n 全量收口。`send_provider.dart` 的 rhttp publicKey 接线（发送链 pinning）尚未完成，剪切板链已先落地。
 
 ### 2026-09-29 v1.1.55 追加修复（四维审查汇总：产品 / UI / 体验 / 全栈）
