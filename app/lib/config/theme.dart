@@ -20,12 +20,7 @@ ThemeData getTheme(ColorMode colorMode, Brightness brightness, DynamicColors? dy
 
   final colorScheme = _determineColorScheme(colorMode, brightness, dynamicColors);
 
-  final lightInputBorder = OutlineInputBorder(
-    borderSide: BorderSide(color: colorScheme.secondaryContainer),
-    borderRadius: _borderRadius,
-  );
-
-  final darkInputBorder = OutlineInputBorder(
+  final inputBorder = OutlineInputBorder(
     borderSide: BorderSide(color: colorScheme.secondaryContainer),
     borderRadius: _borderRadius,
   );
@@ -63,9 +58,9 @@ ThemeData getTheme(ColorMode colorMode, Brightness brightness, DynamicColors? dy
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: colorScheme.secondaryContainer,
-      border: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
-      focusedBorder: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
-      enabledBorder: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
+      border: inputBorder,
+      focusedBorder: inputBorder,
+      enabledBorder: inputBorder,
       contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -163,12 +158,7 @@ ThemeData _getYaruTheme(Brightness brightness) {
   final baseTheme = brightness == Brightness.light ? yaru.yaruLight : yaru.yaruDark;
   final colorScheme = baseTheme.colorScheme;
 
-  final lightInputBorder = OutlineInputBorder(
-    borderSide: BorderSide(color: colorScheme.secondaryContainer),
-    borderRadius: _borderRadius,
-  );
-
-  final darkInputBorder = OutlineInputBorder(
+  final inputBorder = OutlineInputBorder(
     borderSide: BorderSide(color: colorScheme.secondaryContainer),
     borderRadius: _borderRadius,
   );
@@ -182,9 +172,9 @@ ThemeData _getYaruTheme(Brightness brightness) {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: colorScheme.secondaryContainer,
-      border: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
-      focusedBorder: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
-      enabledBorder: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
+      border: inputBorder,
+      focusedBorder: inputBorder,
+      enabledBorder: inputBorder,
       contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(

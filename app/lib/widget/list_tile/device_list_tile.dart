@@ -45,7 +45,9 @@ class DeviceListTile extends StatelessWidget {
         spacing: 10,
         children: [
           if (info != null)
-            Text(info!, style: const TextStyle(color: Colors.grey))
+            Builder(
+              builder: (context) => Text(info!, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            )
           else if (progress != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),

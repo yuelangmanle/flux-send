@@ -547,8 +547,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
         _connectionTimeout?.cancel();
         _discardIncomingFiles();
         // 优先使用结构化代码判断；旧版本对端的纯文案走 message 匹配 fallback。
-        final handshakeFailure = isClassicBluetoothHandshakeFailureCode(code) ||
-            (code == null && isClassicBluetoothHandshakeFailureMessage(message));
+        final handshakeFailure = isClassicBluetoothHandshakeFailureCode(code) || (code == null && isClassicBluetoothHandshakeFailureMessage(message));
         if (handshakeFailure) {
           _handshakeFailureStreak += 1;
         } else {

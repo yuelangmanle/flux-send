@@ -167,7 +167,10 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
                     children: [
                       Text(group.label, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(width: 8),
-                      Text('${group.entries.length} 项', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                      Text(
+                        '${group.entries.length} 项',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
                     ],
                   ),
                 ),
@@ -240,7 +243,7 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
                                   maxLines: 1,
                                   overflow: TextOverflow.fade,
                                   softWrap: false,
-                                  style: const TextStyle(color: Colors.grey),
+                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                                 ),
                               ],
                             ),

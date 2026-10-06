@@ -498,7 +498,7 @@ class _SettingsTabState extends State<SettingsTab> {
                           padding: const EdgeInsets.only(bottom: 15),
                           child: Text(
                             t.settingsTab.network.portWarning(defaultPort: defaultPort),
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ),
                       ),
@@ -511,7 +511,7 @@ class _SettingsTabState extends State<SettingsTab> {
                           padding: const EdgeInsets.only(bottom: 15),
                           child: Text(
                             t.settingsTab.network.multicastGroupWarning(defaultMulticast: defaultMulticastGroup),
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ),
                       ),

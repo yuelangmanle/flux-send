@@ -291,13 +291,13 @@ class SendTab extends StatelessWidget {
                         children: [
                           Text(
                             t.sendTab.help,
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             textAlign: TextAlign.center,
                           ),
                           if (checkPlatformCanReceiveShareIntent())
                             Text(
                               t.sendTab.shareIntentInfo,
-                              style: const TextStyle(color: Colors.grey),
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                               textAlign: TextAlign.center,
                             ),
                         ],
@@ -346,7 +346,7 @@ class _CircularPopupButton<T> extends StatelessWidget {
         type: MaterialType.transparency,
         child: DividerTheme(
           data: DividerThemeData(
-            color: Theme.of(context).brightness == Brightness.light ? Colors.lightBlue.shade100 : Colors.grey.shade700,
+            color: Theme.of(context).colorScheme.secondaryContainer,
           ),
           child: PopupMenuButton(
             offset: const Offset(0, 40),
