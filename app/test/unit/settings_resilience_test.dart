@@ -7,6 +7,12 @@ import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
 import 'package:localsend_app/widget/custom_dropdown_button.dart';
 import 'package:test/test.dart';
 
+final tabSource = () {
+  final main = File('lib/pages/tabs/settings_tab.dart').readAsStringSync();
+  final sections = File('lib/pages/tabs/settings_tab.sections.dart').readAsStringSync();
+  return main + sections;
+}();
+
 void main() {
   test('custom dropdown tolerates stale persisted values instead of blanking the settings tab', () {
     expect(
@@ -26,7 +32,7 @@ void main() {
   });
 
   test('settings tab uses safe dropdown values and keeps current color mode in available choices', () {
-    final tab = File('lib/pages/tabs/settings_tab.dart').readAsStringSync();
+    final tab = tabSource;
     final controller = File('lib/pages/tabs/settings_tab_controller.dart').readAsStringSync();
 
     expect(tab, contains('resolveDropdownValue'));
@@ -34,7 +40,7 @@ void main() {
   });
 
   test('settings tab keeps Android away from desktop-only window chrome and has an error fallback', () {
-    final tab = File('lib/pages/tabs/settings_tab.dart').readAsStringSync();
+    final tab = tabSource;
     final appbarStart = tab.indexOf('class _SettingsAppBar');
     final fallbackStart = tab.indexOf('class _SettingsFallback');
 
@@ -49,7 +55,7 @@ void main() {
   });
 
   test('clipboard provider failures stay inside the clipboard settings section', () {
-    final tab = File('lib/pages/tabs/settings_tab.dart').readAsStringSync();
+    final tab = tabSource;
     final builderStart = tab.indexOf('builder: (context, vm) {');
     final builderEnd = tab.indexOf('Widget _buildSettingsLoading');
     final clipboardSectionStart = tab.indexOf('class _ClipboardSyncSettingsSection');
