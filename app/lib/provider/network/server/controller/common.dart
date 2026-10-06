@@ -42,11 +42,18 @@ final pinRateLimiter = PinRateLimiter();
 
 /// 从请求中提取 PIN：优先 `X-Pin` 请求头（不进日志与 URL），兼容上游 LocalSend 的 query 参数方式。
 String? extractRequestPin(HttpRequest request) {
-  final headerPin = request.headers.value('X-Pin');
+  return resolveRequestPin(
+    headerPin: request.headers.value('X-Pin'),
+    queryPin: request.uri.queryParameters['pin'],
+  );
+}
+
+/// 纯逻辑版本，便于单测。
+String? resolveRequestPin({String? headerPin, String? queryPin}) {
   if (headerPin != null && headerPin.isNotEmpty) {
     return headerPin;
   }
-  return request.uri.queryParameters['pin'];
+  return queryPin;
 }
 
 /// Responds with 401 or 429 if the pin is invalid or too many attempts.

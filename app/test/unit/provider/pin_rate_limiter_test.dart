@@ -57,6 +57,24 @@ void main() {
     });
   });
 
+  group('resolveRequestPin', () {
+    test('prefers the header over the query parameter', () {
+      expect(resolveRequestPin(headerPin: '1234', queryPin: '0000'), '1234');
+    });
+
+    test('falls back to the query parameter when the header is absent', () {
+      expect(resolveRequestPin(headerPin: null, queryPin: '5678'), '5678');
+    });
+
+    test('treats an empty header as absent', () {
+      expect(resolveRequestPin(headerPin: '', queryPin: '5678'), '5678');
+    });
+
+    test('returns null when neither is present', () {
+      expect(resolveRequestPin(headerPin: null, queryPin: null), isNull);
+    });
+  });
+
   group('certificate fingerprint matcher', () {
     test('accepts a certificate whose der hash matches the expected fingerprint', () {
       final securityContext = generateSecurityContext();
