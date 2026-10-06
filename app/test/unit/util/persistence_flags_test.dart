@@ -1,6 +1,6 @@
 import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('onboarding flag defaults to not shown and persists once set', () async {
