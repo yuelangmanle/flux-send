@@ -86,7 +86,8 @@
     "placeItems": "列出要分享的项目。",
     "emptyHint": "没发现设备？确认双方在同一 Wi-Fi/热点下，且接收端已打开 Flux。",
     "troubleshootButton": "去排查",
-    "manualIpButton": "手动输入 IP"
+    "manualIpButton": "手动输入 IP",
+    "btModeHint": "经典蓝牙模式不会启动局域网扫描。请用上方「刷新蓝牙设备」和「通过蓝牙发送」。"
   },
   "settingsTab": {
     "title": "设置",
@@ -156,7 +157,8 @@
       "support": "支持 Flux",
       "donate": "捐赠",
       "privacyPolicy": "隐私政策",
-      "termsOfUse": "使用条款"
+      "termsOfUse": "使用条款",
+      "usageGuide": "使用说明"
     },
     "advancedSettings": "高级设置",
     "updateCheck": {

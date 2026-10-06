@@ -86,7 +86,8 @@
     "placeItems": "Place items to share.",
     "emptyHint": "No devices found? Make sure both devices are on the same Wi-Fi or hotspot and Flux is open on the receiver.",
     "troubleshootButton": "Troubleshoot",
-    "manualIpButton": "Enter IP manually"
+    "manualIpButton": "Enter IP manually",
+    "btModeHint": "Classic Bluetooth mode does not start LAN scanning. Use \"Refresh Bluetooth devices\" and \"Send via Bluetooth\" above."
   },
   "settingsTab": {
     "title": "Settings",
@@ -156,7 +157,8 @@
       "support": "Support Flux",
       "donate": "Donate",
       "privacyPolicy": "Privacy Policy",
-      "termsOfUse": "Terms of Use"
+      "termsOfUse": "Terms of Use",
+      "usageGuide": "Usage guide"
     },
     "advancedSettings": "Advanced settings",
     "updateCheck": {

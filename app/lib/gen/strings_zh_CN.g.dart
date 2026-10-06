@@ -236,6 +236,8 @@ class _TranslationsSendTabZhCn extends TranslationsSendTabEn {
   String get troubleshootButton => '去排查';
   @override
   String get manualIpButton => '手动输入 IP';
+  @override
+  String get btModeHint => '经典蓝牙模式不会启动局域网扫描。请用上方「刷新蓝牙设备」和「通过蓝牙发送」。';
 }
 
 // Path: settingsTab
@@ -1118,6 +1120,8 @@ class _TranslationsSettingsTabOtherZhCn extends TranslationsSettingsTabOtherEn {
   String get privacyPolicy => '隐私政策';
   @override
   String get termsOfUse => '使用条款';
+  @override
+  String get usageGuide => '使用说明';
 }
 
 // Path: settingsTab.updateCheck

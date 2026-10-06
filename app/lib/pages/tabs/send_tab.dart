@@ -388,7 +388,7 @@ class _ScanButton extends StatelessWidget {
             onPressed: () async {
               if (context.ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('经典蓝牙模式不会启动局域网扫描。请用上方「刷新蓝牙设备」和「通过蓝牙发送」。')),
+                  SnackBar(content: Text(t.sendTab.btModeHint)),
                 );
                 return;
               }
@@ -406,7 +406,7 @@ class _ScanButton extends StatelessWidget {
       onSelected: (ip) async {
         if (context.ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('经典蓝牙模式不会启动局域网扫描。请用上方「刷新蓝牙设备」和「通过蓝牙发送」。')),
+            SnackBar(content: Text(t.sendTab.btModeHint)),
           );
           return;
         }

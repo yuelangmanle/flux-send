@@ -474,6 +474,13 @@ extension _SettingsTabSections on _SettingsTabState {
         padding: const EdgeInsets.only(bottom: 0),
         children: [
           _ButtonEntry(
+            label: t.settingsTab.other.usageGuide,
+            buttonLabel: t.onboarding.confirm,
+            onTap: () async {
+              await showOnboardingDialog(context);
+            },
+          ),
+          _ButtonEntry(
             label: '检查更新',
             buttonLabel: '检查',
             onTap: () => _checkForUpdates(context),

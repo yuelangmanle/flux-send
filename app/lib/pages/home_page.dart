@@ -14,6 +14,7 @@ import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
+import 'package:localsend_app/widget/dialogs/onboarding_dialog.dart';
 import 'package:localsend_app/widget/responsive_builder.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -72,25 +73,7 @@ class _HomePageState extends State<HomePage> with Refena {
         if (!mounted) {
           return;
         }
-        await showDialog<void>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text(t.onboarding.title),
-            content: Text(
-              [
-                t.onboarding.discover,
-                t.onboarding.privacy,
-                t.onboarding.bluetooth,
-              ].join('\n'),
-            ),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(t.onboarding.confirm),
-              ),
-            ],
-          ),
-        );
+        await showOnboardingDialog(context);
       }
     });
   }

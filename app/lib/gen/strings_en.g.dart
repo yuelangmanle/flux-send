@@ -268,6 +268,9 @@ class TranslationsSendTabEn {
 
   /// en: 'Enter IP manually'
   String get manualIpButton => 'Enter IP manually';
+
+  /// en: 'Classic Bluetooth mode does not start LAN scanning. Use "Refresh Bluetooth devices" and "Send via Bluetooth" above.'
+  String get btModeHint => 'Classic Bluetooth mode does not start LAN scanning. Use "Refresh Bluetooth devices" and "Send via Bluetooth" above.';
 }
 
 // Path: settingsTab
@@ -1332,6 +1335,9 @@ class TranslationsSettingsTabOtherEn {
 
   /// en: 'Terms of Use'
   String get termsOfUse => 'Terms of Use';
+
+  /// en: 'Usage guide'
+  String get usageGuide => 'Usage guide';
 }
 
 // Path: settingsTab.updateCheck

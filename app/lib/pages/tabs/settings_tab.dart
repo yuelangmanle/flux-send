@@ -29,6 +29,7 @@ import 'package:localsend_app/util/native/pick_directory_path.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/widget/custom_dropdown_button.dart';
 import 'package:localsend_app/widget/dialogs/encryption_disabled_notice.dart';
+import 'package:localsend_app/widget/dialogs/onboarding_dialog.dart';
 import 'package:localsend_app/widget/dialogs/pin_dialog.dart';
 import 'package:localsend_app/widget/dialogs/quick_save_from_favorites_notice.dart';
 import 'package:localsend_app/widget/dialogs/quick_save_notice.dart';
