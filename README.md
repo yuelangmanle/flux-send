@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/yuelangmanle/flux-send?display_name=tag)](https://github.com/yuelangmanle/flux-send/releases/latest)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**Flux** 是一个无服务器的本地传输工具，用于在 Android、macOS 与 Windows 设备之间传输文件、文本和剪切板内容。它基于局域网、热点直连或已配对的经典蓝牙工作；不需要账号，不需要云端中转服务器。
+**Flux** 是一个无服务器的本地传输工具，用于在 Android 与 macOS 设备之间传输文件、文本和剪切板内容。它基于局域网、热点直连或已配对的经典蓝牙工作；不需要账号，不需要云端中转服务器。
 
 > Flux 是 [LocalSend](https://github.com/localsend/localsend) 的派生项目，保留 Apache License 2.0 与上游致谢，详见 [NOTICE](NOTICE)。
 
