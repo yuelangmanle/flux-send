@@ -177,6 +177,19 @@ Duration classicBluetoothReconnectDelay(int attempt) {
 /// 继续重连只会无限循环。
 const classicBluetoothHandshakeFailureReconnectLimit = 3;
 
+/// 与原生桥约定的结构化断开代码（Kotlin/Swift 同步维护）。
+const classicBluetoothCodeHandshakeSendFailed = 'HANDSHAKE_SEND_FAILED';
+const classicBluetoothCodeHandshakeAckSendFailed = 'HANDSHAKE_ACK_SEND_FAILED';
+const classicBluetoothCodeHandshakeIncomplete = 'HANDSHAKE_INCOMPLETE';
+const classicBluetoothCodePeerNotFlux = 'PEER_NOT_FLUX';
+
+bool isClassicBluetoothHandshakeFailureCode(String? code) {
+  return code == classicBluetoothCodeHandshakeSendFailed ||
+      code == classicBluetoothCodeHandshakeAckSendFailed ||
+      code == classicBluetoothCodeHandshakeIncomplete ||
+      code == classicBluetoothCodePeerNotFlux;
+}
+
 bool isClassicBluetoothHandshakeFailureMessage(String message) {
   return message.contains('对端不是 Flux') || message.contains('握手未完成') || message.contains('握手发送失败') || message.contains('握手确认发送失败');
 }
@@ -480,6 +493,7 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
     final type = event['type']?.toString();
     final message = event['message']?.toString() ?? '';
     final address = event['address']?.toString();
+    final code = event['code']?.toString();
 
     if (event['type'] == 'clipboard') {
       final text = _extractClipboardText(message);
@@ -532,7 +546,10 @@ class ClassicBluetoothService extends Notifier<ClassicBluetoothState> {
       case 'disconnected':
         _connectionTimeout?.cancel();
         _discardIncomingFiles();
-        if (isClassicBluetoothHandshakeFailureMessage(message)) {
+        // 优先使用结构化代码判断；旧版本对端的纯文案走 message 匹配 fallback。
+        final handshakeFailure = isClassicBluetoothHandshakeFailureCode(code) ||
+            (code == null && isClassicBluetoothHandshakeFailureMessage(message));
+        if (handshakeFailure) {
           _handshakeFailureStreak += 1;
         } else {
           _handshakeFailureStreak = 0;

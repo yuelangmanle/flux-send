@@ -226,6 +226,17 @@ void main() {
     expect(classicBluetoothReconnectDelay(99), const Duration(seconds: 15));
   });
 
+  test('structured disconnect codes identify handshake failures', () {
+    expect(isClassicBluetoothHandshakeFailureCode('HANDSHAKE_SEND_FAILED'), isTrue);
+    expect(isClassicBluetoothHandshakeFailureCode('HANDSHAKE_ACK_SEND_FAILED'), isTrue);
+    expect(isClassicBluetoothHandshakeFailureCode('HANDSHAKE_INCOMPLETE'), isTrue);
+    expect(isClassicBluetoothHandshakeFailureCode('PEER_NOT_FLUX'), isTrue);
+    // 非握手类断开不算失败
+    expect(isClassicBluetoothHandshakeFailureCode('DISCONNECTED'), isFalse);
+    expect(isClassicBluetoothHandshakeFailureCode(null), isFalse);
+    expect(isClassicBluetoothHandshakeFailureCode('SOMETHING_ELSE'), isFalse);
+  });
+
   test('classic Bluetooth auto-reconnect stops after repeated handshake failures', () {
     expect(isClassicBluetoothHandshakeFailureMessage('经典蓝牙连接的对端不是 Flux，已断开'), isTrue);
     expect(isClassicBluetoothHandshakeFailureMessage('经典蓝牙握手未完成，已拒绝未验证数据'), isTrue);

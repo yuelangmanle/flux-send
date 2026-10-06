@@ -30,6 +30,13 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
     private val fluxBluetoothMessage = "flux.bluetooth.message.v1"
     private val fluxBluetoothHello = "flux.bluetooth.hello.v1"
     private val fluxBluetoothHelloAck = "flux.bluetooth.hello.ack.v1"
+
+    // 断开/错误事件的结构化代码：Dart 侧按代码分支，文案仅作展示（i18n 安全）。
+    private val codeDisconnected = "DISCONNECTED"
+    private val codeHandshakeSendFailed = "HANDSHAKE_SEND_FAILED"
+    private val codeHandshakeAckSendFailed = "HANDSHAKE_ACK_SEND_FAILED"
+    private val codeHandshakeIncomplete = "HANDSHAKE_INCOMPLETE"
+    private val codePeerNotFlux = "PEER_NOT_FLUX"
     private val maxWriteChunkSize = 8192
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bluetoothAdapter: BluetoothAdapter?
@@ -205,12 +212,13 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
             readLoop(nextSocket)
         }
         if (!sendHandshake(nextSocket, fluxBluetoothHello)) {
-            closeActiveSocket(nextSocket, "经典蓝牙握手发送失败")
+            closeActiveSocket(nextSocket, "经典蓝牙握手发送失败", codeHandshakeSendFailed)
         }
     }
 
     private fun readLoop(activeSocket: BluetoothSocket) {
         var disconnectMessage = "经典蓝牙连接已断开"
+        var disconnectCode = codeDisconnected
         try {
             val reader = BufferedReader(InputStreamReader(activeSocket.inputStream, Charsets.UTF_8))
             while (socket === activeSocket) {
@@ -221,6 +229,7 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
                         fluxBluetoothHello -> {
                             if (!sendHandshake(activeSocket, fluxBluetoothHelloAck)) {
                                 disconnectMessage = "经典蓝牙握手确认发送失败"
+                                disconnectCode = codeHandshakeAckSendFailed
                                 break
                             }
                             confirmHandshake(activeSocket, activeRole)
@@ -229,6 +238,7 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
                         fluxBluetoothMessage -> {
                             if (!handshakeComplete) {
                                 disconnectMessage = "经典蓝牙握手未完成，已拒绝未验证数据"
+                                disconnectCode = codeHandshakeIncomplete
                                 break
                             }
                             if (socket !== activeSocket) {
@@ -239,6 +249,7 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
                         else -> {
                             if (!handshakeComplete) {
                                 disconnectMessage = "经典蓝牙连接的对端不是 Flux，已断开"
+                                disconnectCode = codePeerNotFlux
                                 break
                             }
                             if (socket !== activeSocket) {
@@ -250,6 +261,7 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
                 } catch (e: Exception) {
                     if (!handshakeComplete) {
                         disconnectMessage = "经典蓝牙连接的对端不是 Flux，已断开"
+                        disconnectCode = codePeerNotFlux
                         break
                     }
                     if (socket !== activeSocket) {
@@ -403,5 +415,9 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
         mainHandler.post {
             eventSink?.success(mapOf("type" to type, "message" to message) + extras)
         }
+    }
+
+    private fun emitDisconnected(message: String, code: String) {
+        emit("disconnected", message, mapOf("code" to code))
     }
 }

@@ -7,6 +7,13 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
     private let fluxBluetoothMessage = "flux.bluetooth.message.v1"
     private let fluxBluetoothHello = "flux.bluetooth.hello.v1"
     private let fluxBluetoothHelloAck = "flux.bluetooth.hello.ack.v1"
+
+    // 断开/错误事件的结构化代码：与 Android 端保持一致，Dart 侧按代码分支。
+    private let codeDisconnected = "DISCONNECTED"
+    private let codeHandshakeSendFailed = "HANDSHAKE_SEND_FAILED"
+    private let codeHandshakeAckSendFailed = "HANDSHAKE_ACK_SEND_FAILED"
+    private let codeHandshakeIncomplete = "HANDSHAKE_INCOMPLETE"
+    private let codePeerNotFlux = "PEER_NOT_FLUX"
     private let maxWriteChunkSize = 8192
     private var eventSink: FlutterEventSink?
     private var channel: IOBluetoothRFCOMMChannel?
@@ -178,7 +185,8 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         emit(type: "status", message: "经典蓝牙通道已打开，正在验证 Flux 对端")
         guard sendHandshake(newChannel, type: fluxBluetoothHello) else {
             newChannel.close()
-            handleChannelClosed(newChannel)
+            handleChannelClosed(newChannel, code: codeHandshakeSendFailed)
+            emit(type: "error", message: "经典蓝牙握手发送失败")
             return
         }
     }
@@ -284,7 +292,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         }
     }
 
-    private func handleChannelClosed(_ rfcommChannel: IOBluetoothRFCOMMChannel) {
+    private func handleChannelClosed(_ rfcommChannel: IOBluetoothRFCOMMChannel, code: String = "DISCONNECTED") {
         guard channel == rfcommChannel else {
             return
         }
@@ -294,7 +302,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         activeRole = ""
         activeAddress = ""
         activeName = ""
-        emit(type: "disconnected", message: "经典蓝牙连接已断开")
+        emit(type: "disconnected", message: "经典蓝牙连接已断开", extras: ["code": code])
     }
 
     private func handleLine(_ line: String, from rfcommChannel: IOBluetoothRFCOMMChannel) {
@@ -304,13 +312,13 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         guard let data = line.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let type = json["type"] as? String else {
-            rejectUnverifiedMessage(line, on: rfcommChannel)
+            rejectUnverifiedMessage(line, code: codePeerNotFlux, on: rfcommChannel)
             return
         }
         switch type {
         case fluxBluetoothHello:
             guard sendHandshake(rfcommChannel, type: fluxBluetoothHelloAck) else {
-                rejectUnverifiedMessage("经典蓝牙握手确认发送失败", on: rfcommChannel)
+                rejectUnverifiedMessage("经典蓝牙握手确认发送失败", code: codeHandshakeAckSendFailed, on: rfcommChannel)
                 return
             }
             confirmHandshake(rfcommChannel)
@@ -318,13 +326,13 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
             confirmHandshake(rfcommChannel)
         case fluxBluetoothMessage:
             guard handshakeComplete else {
-                rejectUnverifiedMessage("经典蓝牙握手未完成，已拒绝未验证数据", on: rfcommChannel)
+                rejectUnverifiedMessage("经典蓝牙握手未完成，已拒绝未验证数据", code: codeHandshakeIncomplete, on: rfcommChannel)
                 return
             }
             emit(type: "clipboard", message: json["text"] as? String ?? "")
         default:
             guard handshakeComplete else {
-                rejectUnverifiedMessage("经典蓝牙连接的对端不是 Flux，已断开", on: rfcommChannel)
+                rejectUnverifiedMessage("经典蓝牙连接的对端不是 Flux，已断开", code: codePeerNotFlux, on: rfcommChannel)
                 return
             }
             emit(type: "message", message: line)
@@ -350,9 +358,10 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         )
     }
 
-    private func rejectUnverifiedMessage(_ message: String, on rejectedChannel: IOBluetoothRFCOMMChannel?) {
+    private func rejectUnverifiedMessage(_ message: String, code: String, on rejectedChannel: IOBluetoothRFCOMMChannel?) {
         emit(type: "error", message: message)
         rejectedChannel?.close()
+        emit(type: "disconnected", message: message, extras: ["code": code])
     }
 
     private func emit(type: String, message: String, extras: [String: String] = [:]) {

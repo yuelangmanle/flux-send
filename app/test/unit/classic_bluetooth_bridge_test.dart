@@ -64,6 +64,8 @@ void main() {
     expect(macos, contains('flux.bluetooth.hello.v1'));
     expect(macos, contains('flux.bluetooth.hello.ack.v1'));
     expect(macos, contains('confirmHandshake'));
+    expect(android, contains('codePeerNotFlux = "PEER_NOT_FLUX"'));
+    expect(macos, contains('codePeerNotFlux = "PEER_NOT_FLUX"'));
   });
 
   test('Android only processes frames from the current RFCOMM socket during handshake', () {
@@ -86,7 +88,7 @@ void main() {
   test('macOS closes the channel that carried an unverified message instead of the active channel', () {
     final macos = File('macos/Runner/ClassicBluetoothBridge.swift').readAsStringSync();
 
-    expect(macos, contains('private func rejectUnverifiedMessage(_ message: String, on rejectedChannel: IOBluetoothRFCOMMChannel?)'));
+    expect(macos, contains('private func rejectUnverifiedMessage(_ message: String, code: String, on rejectedChannel: IOBluetoothRFCOMMChannel?)'));
     expect(macos, contains('handleLine(line, from: rfcommChannel)'));
     expect(macos, contains('rejectedChannel?.close()'));
     expect(macos, isNot(contains('channel?.close()\n    }\n\n    private func emit')));
@@ -268,7 +270,7 @@ void main() {
     final staleDataGuardIndex = source.indexOf('guard channel == rfcommChannel else', handleDataIndex < 0 ? 0 : handleDataIndex);
     final closeCallbackIndex = source.indexOf('func rfcommChannelClosed');
     final closeDispatchIndex = source.indexOf('DispatchQueue.main.async', closeCallbackIndex);
-    final handleCloseIndex = source.indexOf('private func handleChannelClosed(_ rfcommChannel: IOBluetoothRFCOMMChannel)');
+    final handleCloseIndex = source.indexOf('private func handleChannelClosed(_ rfcommChannel: IOBluetoothRFCOMMChannel, code: String = "DISCONNECTED")');
 
     expect(attachOnMainIndex, isNonNegative);
     expect(connectAttachIndex, isNonNegative);
