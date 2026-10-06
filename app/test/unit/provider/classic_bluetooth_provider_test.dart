@@ -321,9 +321,9 @@ void main() {
     final source = File('lib/widget/flux_connection_status_card.dart').readAsStringSync();
 
     expect(source, contains('classicBluetoothProvider'));
-    expect(source, contains('刷新蓝牙设备'));
-    expect(source, contains('连接'));
-    expect(source, contains('经典蓝牙已连接'));
+    expect(source, contains('t.connectionStatusCard.refreshBtDevices'));
+    expect(source, contains('t.connectionStatusCard.statusConnect'));
+    expect(source, contains('t.connectionStatusCard.btConnected'));
   });
 
   test('classic Bluetooth file transfer uses RFCOMM frames and does not fall back to LAN devices', () {
@@ -341,7 +341,7 @@ void main() {
     expect(bridge, contains("const fluxBluetoothFileEnd = 'flux.bluetooth.file.end.v1'"));
     expect(provider, contains('saveFile('));
     expect(bridge, contains('sendClassicBluetoothFrame'));
-    expect(card, contains('通过蓝牙发送'));
+    expect(card, contains('t.connectionStatusCard.btSendFiles'));
     expect(sendVm, contains('connectionModeProvider'));
     expect(sendVm, contains('usingClassicBluetooth ? const <Device>[]'));
     expect(sendVm, contains('FluxConnectionMode.classicBluetooth'));

@@ -72,6 +72,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   late final TranslationsTrayEn tray = TranslationsTrayEn.internal(_root);
   late final TranslationsWebEn web = TranslationsWebEn.internal(_root);
   late final TranslationsAssetPickerEn assetPicker = TranslationsAssetPickerEn.internal(_root);
+  late final TranslationsConnectionStatusCardEn connectionStatusCard = TranslationsConnectionStatusCardEn.internal(_root);
 }
 
 // Path: general
@@ -878,6 +879,134 @@ class TranslationsAssetPickerEn {
 
   /// en: 'count'
   String get sUnitAssetCountLabel => 'count';
+}
+
+// Path: connectionStatusCard
+class TranslationsConnectionStatusCardEn {
+  TranslationsConnectionStatusCardEn.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Flux connection status'
+  String get title => 'Flux connection status';
+
+  /// en: 'Service offline'
+  String get serverOffline => 'Service offline';
+
+  /// en: 'Service online'
+  String get serverOnline => 'Service online';
+
+  /// en: 'Local network'
+  String get modeLan => 'Local network';
+
+  /// en: 'Hotspot'
+  String get modeHotspot => 'Hotspot';
+
+  /// en: 'Bluetooth'
+  String get modeBluetooth => 'Bluetooth';
+
+  /// en: 'Classic Bluetooth connected'
+  String get btConnected => 'Classic Bluetooth connected';
+
+  /// en: 'Bluetooth listening'
+  String get btListening => 'Bluetooth listening';
+
+  /// en: 'Bluetooth not listening'
+  String get btNotListening => 'Bluetooth not listening';
+
+  /// en: 'TCP scanning: {count} subnets'
+  String tcpScanning({required Object count}) => 'TCP scanning: ${count} subnets';
+
+  /// en: 'UDP multicast standby'
+  String get udpStandby => 'UDP multicast standby';
+
+  /// en: '{count} paired'
+  String btPairedCount({required Object count}) => '${count} paired';
+
+  /// en: '{count} sync targets'
+  String syncTargetsCount({required Object count}) => '${count} sync targets';
+
+  /// en: 'Auto sync on copy'
+  String get clipboardAutoSync => 'Auto sync on copy';
+
+  /// en: 'Clipboard sync off'
+  String get clipboardOff => 'Clipboard sync off';
+
+  /// en: 'No IP address'
+  String get noIp => 'No IP address';
+
+  /// en: 'Local HTTP service not running; file and clipboard receiving are unavailable.'
+  String get serverDown => 'Local HTTP service not running; file and clipboard receiving are unavailable.';
+
+  /// en: 'Local service port {port}, protocol {protocol}, alias {alias}.'
+  String serverInfo({required Object port, required Object protocol, required Object alias}) =>
+      'Local service port ${port}, protocol ${protocol}, alias ${alias}.';
+
+  /// en: '{status}; last sync {time}'
+  String clipboardLastSync({required Object status, required Object time}) => '${status}; last sync ${time}';
+
+  /// en: 'Clipboard error: {error}'
+  String clipboardError({required Object error}) => 'Clipboard error: ${error}';
+
+  /// en: 'Classic Bluetooth preparing'
+  String get btPreparing => 'Classic Bluetooth preparing';
+
+  /// en: 'Refresh Bluetooth devices'
+  String get refreshBtDevices => 'Refresh Bluetooth devices';
+
+  /// en: 'Refresh scan'
+  String get refreshScan => 'Refresh scan';
+
+  /// en: 'Open Bluetooth settings'
+  String get openBtSettings => 'Open Bluetooth settings';
+
+  /// en: 'Send {count} files via Bluetooth'
+  String btSendFiles({required Object count}) => 'Send ${count} files via Bluetooth';
+
+  /// en: 'Pause clipboard sync'
+  String get pauseClipboard => 'Pause clipboard sync';
+
+  /// en: 'Enable clipboard sync'
+  String get enableClipboard => 'Enable clipboard sync';
+
+  /// en: 'Mode switch failed; reverted.'
+  String get modeSwitchFailed => 'Mode switch failed; reverted.';
+
+  /// en: 'Switched to Classic Bluetooth: starting the RFCOMM channel and reading paired devices.'
+  String get switchedBluetooth => 'Switched to Classic Bluetooth: starting the RFCOMM channel and reading paired devices.';
+
+  /// en: 'Switched to {mode}: refreshing UDP multicast and TCP scanning.'
+  String switchedNetwork({required Object mode}) => 'Switched to ${mode}: refreshing UDP multicast and TCP scanning.';
+
+  /// en: 'Refreshed Bluetooth devices: only system-paired devices are shown; clipboard uses the RFCOMM channel after connecting.'
+  String get refreshedBtDevices =>
+      'Refreshed Bluetooth devices: only system-paired devices are shown; clipboard uses the RFCOMM channel after connecting.';
+
+  /// en: 'Scan triggered: UDP multicast + TCP subnet scanning are running.'
+  String get refreshedScan => 'Scan triggered: UDP multicast + TCP subnet scanning are running.';
+
+  /// en: 'Attempted to open macOS Bluetooth settings; pair with the Android phone in system settings first.'
+  String get btSettingsOpened => 'Attempted to open macOS Bluetooth settings; pair with the Android phone in system settings first.';
+
+  /// en: 'Opening Bluetooth settings directly is not supported on this platform.'
+  String get btSettingsUnsupported => 'Opening Bluetooth settings directly is not supported on this platform.';
+
+  /// en: 'Reading system-paired Bluetooth devices…'
+  String get readingPairedDevices => 'Reading system-paired Bluetooth devices…';
+
+  /// en: 'No paired devices found. Pair in system Bluetooth settings first, then tap "Refresh Bluetooth devices".'
+  String get noPairedDevices => 'No paired devices found. Pair in system Bluetooth settings first, then tap "Refresh Bluetooth devices".';
+
+  /// en: 'Connected'
+  String get statusConnected => 'Connected';
+
+  /// en: 'Connecting'
+  String get statusConnecting => 'Connecting';
+
+  /// en: 'Connect'
+  String get statusConnect => 'Connect';
 }
 
 // Path: receiveTab.infoBox

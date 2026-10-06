@@ -89,6 +89,8 @@ class TranslationsZhCn extends Translations {
   late final _TranslationsAssetPickerZhCn assetPicker = _TranslationsAssetPickerZhCn._(_root);
   @override
   late final _TranslationsNetworkInterfacesPageZhCn networkInterfacesPage = _TranslationsNetworkInterfacesPageZhCn._(_root);
+  @override
+  late final _TranslationsConnectionStatusCardZhCn connectionStatusCard = _TranslationsConnectionStatusCardZhCn._(_root);
 }
 
 // Path: general
@@ -772,6 +774,93 @@ class _TranslationsNetworkInterfacesPageZhCn extends TranslationsNetworkInterfac
   String get whitelist => '白名单';
   @override
   String get blacklist => '黑名单';
+}
+
+// Path: connectionStatusCard
+class _TranslationsConnectionStatusCardZhCn extends TranslationsConnectionStatusCardEn {
+  _TranslationsConnectionStatusCardZhCn._(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => 'Flux 连接状态';
+  @override
+  String get serverOffline => '服务离线';
+  @override
+  String get serverOnline => '服务在线';
+  @override
+  String get modeLan => '局域网';
+  @override
+  String get modeHotspot => '热点';
+  @override
+  String get modeBluetooth => '蓝牙';
+  @override
+  String get btConnected => '经典蓝牙已连接';
+  @override
+  String get btListening => '蓝牙监听中';
+  @override
+  String get btNotListening => '蓝牙未监听';
+  @override
+  String tcpScanning({required Object count}) => 'TCP 扫描中：${count} 个网段';
+  @override
+  String get udpStandby => 'UDP 多播待命';
+  @override
+  String btPairedCount({required Object count}) => '已配对 ${count} 台';
+  @override
+  String syncTargetsCount({required Object count}) => '可同步设备 ${count} 台';
+  @override
+  String get clipboardAutoSync => '复制后自动同步';
+  @override
+  String get clipboardOff => '剪切板已关闭';
+  @override
+  String get noIp => '未获取到 IP';
+  @override
+  String get serverDown => '本机 HTTP 服务未启动；文件接收和剪切板接收不可用。';
+  @override
+  String serverInfo({required Object port, required Object protocol, required Object alias}) => '本机服务端口 ${port}，协议 ${protocol}，别名 ${alias}。';
+  @override
+  String clipboardLastSync({required Object status, required Object time}) => '${status}；最近同步 ${time}';
+  @override
+  String clipboardError({required Object error}) => '剪切板错误：${error}';
+  @override
+  String get btPreparing => '经典蓝牙准备中';
+  @override
+  String get refreshBtDevices => '刷新蓝牙设备';
+  @override
+  String get refreshScan => '刷新扫描';
+  @override
+  String get openBtSettings => '打开蓝牙设置';
+  @override
+  String btSendFiles({required Object count}) => '通过蓝牙发送 ${count} 个文件';
+  @override
+  String get pauseClipboard => '暂停剪切板';
+  @override
+  String get enableClipboard => '开启剪切板';
+  @override
+  String get modeSwitchFailed => '连接模式切换失败，已回到上一种模式。';
+  @override
+  String get switchedBluetooth => '已切换到经典蓝牙：正在启动 RFCOMM 常驻通道并读取已配对设备。';
+  @override
+  String switchedNetwork({required Object mode}) => '已切换到${mode}：正在刷新 UDP 多播和 TCP 扫描。';
+  @override
+  String get refreshedBtDevices => '已刷新蓝牙设备：只显示系统已配对设备，连接后剪切板走 RFCOMM 常驻通道。';
+  @override
+  String get refreshedScan => '已触发刷新扫描：UDP 多播 + TCP 网段扫描正在运行。';
+  @override
+  String get btSettingsOpened => '已尝试打开 macOS 蓝牙设置；请先与安卓手机完成系统配对。';
+  @override
+  String get btSettingsUnsupported => '当前平台暂不支持从 Flux 直接打开蓝牙设置。';
+  @override
+  String get readingPairedDevices => '正在读取系统已配对蓝牙设备…';
+  @override
+  String get noPairedDevices => '没有读取到已配对蓝牙设备。请先在系统蓝牙设置里完成配对，再点「刷新蓝牙设备」。';
+  @override
+  String get statusConnected => '已连接';
+  @override
+  String get statusConnecting => '连接中';
+  @override
+  String get statusConnect => '连接';
 }
 
 // Path: receiveTab.infoBox

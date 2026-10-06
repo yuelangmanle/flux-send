@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/provider/classic_bluetooth_provider.dart';
 import 'package:localsend_app/provider/clipboard_sync_provider.dart';
 import 'package:localsend_app/provider/connection_mode_provider.dart';
@@ -84,7 +85,7 @@ class FluxConnectionStatusCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Flux 连接状态',
+                        t.connectionStatusCard.title,
                         style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 2),
@@ -97,7 +98,7 @@ class FluxConnectionStatusCard extends StatelessWidget {
                 ),
                 _StatusPill(
                   icon: server == null ? Icons.error_outline_rounded : Icons.check_circle_rounded,
-                  label: server == null ? '服务离线' : '服务在线',
+                  label: server == null ? t.connectionStatusCard.serverOffline : t.connectionStatusCard.serverOnline,
                   color: server == null ? theme.colorScheme.error : theme.colorScheme.primary,
                 ),
               ],
@@ -107,21 +108,21 @@ class FluxConnectionStatusCard extends StatelessWidget {
               showSelectedIcon: false,
               selected: {mode},
               onSelectionChanged: (selection) => _setMode(context, ref, selection.first),
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: FluxConnectionMode.localNetwork,
                   icon: Icon(Icons.router_rounded),
-                  label: Text('局域网'),
+                  label: Text(t.connectionStatusCard.modeLan),
                 ),
                 ButtonSegment(
                   value: FluxConnectionMode.hotspot,
                   icon: Icon(Icons.wifi_tethering_rounded),
-                  label: Text('热点'),
+                  label: Text(t.connectionStatusCard.modeHotspot),
                 ),
                 ButtonSegment(
                   value: FluxConnectionMode.classicBluetooth,
                   icon: Icon(Icons.bluetooth_connected_rounded),
-                  label: Text('蓝牙'),
+                  label: Text(t.connectionStatusCard.modeBluetooth),
                 ),
               ],
             ),
@@ -136,11 +137,11 @@ class FluxConnectionStatusCard extends StatelessWidget {
                       : (scanning ? Icons.sync_rounded : Icons.radar_rounded),
                   label: mode == FluxConnectionMode.classicBluetooth
                       ? (bluetooth?.connected == true
-                            ? '经典蓝牙已连接'
+                            ? t.connectionStatusCard.btConnected
                             : bluetooth?.listening == true
                             ? '蓝牙监听中'
-                            : '蓝牙未监听')
-                      : (scanning ? 'TCP 扫描中：${nearby.runningIps.length} 个网段' : 'UDP 多播待命'),
+                            : t.connectionStatusCard.btNotListening)
+                      : (scanning ? t.connectionStatusCard.tcpScanning(count: nearby.runningIps.length) : t.connectionStatusCard.udpStandby),
                   color: mode == FluxConnectionMode.classicBluetooth
                       ? (bluetooth?.connected == true ? theme.colorScheme.primary : theme.colorScheme.secondary)
                       : (scanning ? theme.colorScheme.tertiary : theme.colorScheme.primary),
@@ -149,19 +150,21 @@ class FluxConnectionStatusCard extends StatelessWidget {
                   icon: mode == FluxConnectionMode.classicBluetooth
                       ? Icons.bluetooth_rounded
                       : (targetCount > 0 ? Icons.devices_rounded : Icons.devices_other_rounded),
-                  label: mode == FluxConnectionMode.classicBluetooth ? '已配对 ${bluetooth?.pairedDevices.length ?? 0} 台' : '可同步设备 $targetCount 台',
+                  label: mode == FluxConnectionMode.classicBluetooth
+                      ? t.connectionStatusCard.btPairedCount(count: bluetooth?.pairedDevices.length ?? 0)
+                      : t.connectionStatusCard.syncTargetsCount(count: targetCount),
                   color: mode == FluxConnectionMode.classicBluetooth
                       ? ((bluetooth?.pairedDevices.isNotEmpty ?? false) ? theme.colorScheme.primary : theme.colorScheme.outline)
                       : (targetCount > 0 ? theme.colorScheme.primary : theme.colorScheme.outline),
                 ),
                 _StatusPill(
                   icon: clipboard.enabled ? Icons.content_paste_go_rounded : Icons.content_paste_off_rounded,
-                  label: clipboard.enabled ? '复制后自动同步' : '剪切板已关闭',
+                  label: clipboard.enabled ? t.connectionStatusCard.clipboardAutoSync : t.connectionStatusCard.clipboardOff,
                   color: clipboard.enabled ? theme.colorScheme.primary : theme.colorScheme.outline,
                 ),
                 _StatusPill(
                   icon: localIpState.localIps.isEmpty ? Icons.wifi_off_rounded : Icons.wifi_rounded,
-                  label: localIpState.localIps.isEmpty ? '未获取到 IP' : localIpState.localIps.take(2).join(' / '),
+                  label: localIpState.localIps.isEmpty ? t.connectionStatusCard.noIp : localIpState.localIps.take(2).join(' / '),
                   color: localIpState.localIps.isEmpty ? theme.colorScheme.error : theme.colorScheme.secondary,
                 ),
               ],
@@ -175,20 +178,20 @@ class FluxConnectionStatusCard extends StatelessWidget {
             _StatusLine(
               icon: Icons.dns_rounded,
               text: server == null
-                  ? '本机 HTTP 服务未启动；文件接收和剪切板接收不可用。'
-                  : '本机服务端口 ${server.port}，协议 ${server.https ? 'HTTPS' : 'HTTP'}，别名 ${server.alias}。',
+                  ? t.connectionStatusCard.serverDown
+                  : t.connectionStatusCard.serverInfo(port: server.port, protocol: server.https ? 'HTTPS' : 'HTTP', alias: server.alias),
             ),
             const SizedBox(height: 8),
             _StatusLine(
               icon: clipboard.lastError == null ? Icons.history_rounded : Icons.warning_amber_rounded,
               text: clipboard.lastError == null
-                  ? '${clipboard.statusMessage}${clipboard.lastSyncTime == null ? '' : '；最近同步 ${_formatTime(clipboard.lastSyncTime!)}'}'
-                  : '剪切板错误：${clipboard.lastError}',
+                  ? clipboard.statusMessage + (clipboard.lastSyncTime == null ? '' : '；最近同步 ${_formatTime(clipboard.lastSyncTime!)}')
+                  : t.connectionStatusCard.clipboardError(error: clipboard.lastError ?? ''),
             ),
             const SizedBox(height: 8),
             _StatusLine(
               icon: Icons.receipt_long_rounded,
-              text: mode == FluxConnectionMode.classicBluetooth ? (bluetooth?.statusMessage ?? '经典蓝牙准备中') : lastDiscoveryLog,
+              text: mode == FluxConnectionMode.classicBluetooth ? (bluetooth?.statusMessage ?? t.connectionStatusCard.btPreparing) : lastDiscoveryLog,
             ),
             if (mode == FluxConnectionMode.classicBluetooth) ...[
               const SizedBox(height: 10),
@@ -203,24 +206,26 @@ class FluxConnectionStatusCard extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: () => _refreshScan(context, ref),
                   icon: Icon(mode == FluxConnectionMode.classicBluetooth ? Icons.bluetooth_searching_rounded : Icons.sync_rounded),
-                  label: Text(mode == FluxConnectionMode.classicBluetooth ? '刷新蓝牙设备' : '刷新扫描'),
+                  label: Text(
+                    mode == FluxConnectionMode.classicBluetooth ? t.connectionStatusCard.refreshBtDevices : t.connectionStatusCard.refreshScan,
+                  ),
                 ),
                 if (mode == FluxConnectionMode.classicBluetooth)
                   OutlinedButton.icon(
                     onPressed: () => _openBluetoothSettings(context),
                     icon: const Icon(Icons.settings_bluetooth_rounded),
-                    label: const Text('打开蓝牙设置'),
+                    label: Text(t.connectionStatusCard.openBtSettings),
                   ),
                 if (mode == FluxConnectionMode.classicBluetooth && selectedFiles.isNotEmpty)
                   FilledButton.icon(
                     onPressed: bluetooth?.connected == true ? () => unawaited(ref.notifier(classicBluetoothProvider).sendFiles(selectedFiles)) : null,
                     icon: const Icon(Icons.send_rounded),
-                    label: Text('通过蓝牙发送 ${selectedFiles.length} 个文件'),
+                    label: Text(t.connectionStatusCard.btSendFiles(count: selectedFiles.length)),
                   ),
                 FilledButton.tonalIcon(
                   onPressed: ref.notifier(clipboardSyncProvider).toggle,
                   icon: Icon(clipboard.enabled ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                  label: Text(clipboard.enabled ? '暂停剪切板' : '开启剪切板'),
+                  label: Text(clipboard.enabled ? t.connectionStatusCard.pauseClipboard : t.connectionStatusCard.enableClipboard),
                 ),
               ],
             ),
@@ -240,14 +245,14 @@ class FluxConnectionStatusCard extends StatelessWidget {
         clipboardEnabled: ref.read(clipboardSyncProvider).enabled,
       ).then((details) {
         if (!details.activationSucceeded) {
-          _showSnackBar(messenger, details.failureMessage ?? '连接模式切换失败，已回到上一种模式。');
+          _showSnackBar(messenger, details.failureMessage ?? t.connectionStatusCard.modeSwitchFailed);
           return;
         }
         if (mode == FluxConnectionMode.classicBluetooth) {
-          _showSnackBar(messenger, '已切换到经典蓝牙：正在启动 RFCOMM 常驻通道并读取已配对设备。');
+          _showSnackBar(messenger, t.connectionStatusCard.switchedBluetooth);
           return;
         }
-        _showSnackBar(messenger, '已切换到${details.title}：正在刷新 UDP 多播和 TCP 扫描。');
+        _showSnackBar(messenger, t.connectionStatusCard.switchedNetwork(mode: details.title));
       }),
     );
   }
@@ -259,13 +264,13 @@ class FluxConnectionStatusCard extends StatelessWidget {
     if (mode == FluxConnectionMode.classicBluetooth) {
       unawaited(ref.notifier(classicBluetoothProvider).startListening());
       unawaited(ref.notifier(classicBluetoothProvider).refreshPairedDevices());
-      _showSnackBar(messenger, '已刷新蓝牙设备：只显示系统已配对设备，连接后剪切板走 RFCOMM 常驻通道。');
+      _showSnackBar(messenger, t.connectionStatusCard.refreshedBtDevices);
       return;
     }
 
     ref.redux(nearbyDevicesProvider).dispatch(ClearFoundDevicesAction());
     unawaited(ref.global.dispatchAsync(StartSmartScan(forceLegacy: true)));
-    _showSnackBar(messenger, '已触发刷新扫描：UDP 多播 + TCP 网段扫描正在运行。');
+    _showSnackBar(messenger, t.connectionStatusCard.refreshedScan);
   }
 
   void _openBluetoothSettings(BuildContext context) {
@@ -278,11 +283,11 @@ class FluxConnectionStatusCard extends StatelessWidget {
 
     if (checkPlatform([TargetPlatform.macOS])) {
       unawaited(Process.run('open', ['x-apple.systempreferences:com.apple.BluetoothSettings']));
-      _showSnackBar(messenger, '已尝试打开 macOS 蓝牙设置；请先与安卓手机完成系统配对。');
+      _showSnackBar(messenger, t.connectionStatusCard.btSettingsOpened);
       return;
     }
 
-    _showSnackBar(messenger, '当前平台暂不支持从 Flux 直接打开蓝牙设置。');
+    _showSnackBar(messenger, t.connectionStatusCard.btSettingsUnsupported);
   }
 
   void _showSnackBar(ScaffoldMessengerState messenger, String text) {
@@ -325,7 +330,7 @@ class _BluetoothDevicesPanel extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Text(
-            state.refreshing ? '正在读取系统已配对蓝牙设备…' : '没有读取到已配对蓝牙设备。请先在系统蓝牙设置里完成配对，再点「刷新蓝牙设备」。',
+            state.refreshing ? t.connectionStatusCard.readingPairedDevices : t.connectionStatusCard.noPairedDevices,
             style: theme.textTheme.bodySmall,
           ),
         ),
@@ -356,10 +361,10 @@ class _BluetoothDevicesPanel extends StatelessWidget {
                   onPressed: state.connecting ? null : () => ref.notifier(classicBluetoothProvider).connect(device),
                   child: Text(
                     state.connectedAddress == device.address && state.connected
-                        ? '已连接'
+                        ? t.connectionStatusCard.statusConnected
                         : state.connectedAddress == device.address && state.connecting
-                        ? '连接中'
-                        : '连接',
+                        ? t.connectionStatusCard.statusConnecting
+                        : t.connectionStatusCard.statusConnect,
                   ),
                 ),
               ),
