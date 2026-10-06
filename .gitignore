@@ -34,3 +34,7 @@
 .v2c/
 .video_agent/
 app/.mimosa/
+
+# video2code hook artifacts
+/out/
+app/android/out/
