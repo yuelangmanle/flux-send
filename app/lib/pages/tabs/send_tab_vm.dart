@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:common/model/device.dart';
 import 'package:common/model/session_status.dart';
 import 'package:flutter/material.dart';
+import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/cross_file.dart';
 import 'package:localsend_app/model/persistence/favorite_device.dart';
 import 'package:localsend_app/model/send_mode.dart';
@@ -71,7 +72,7 @@ final sendTabVmProvider = ViewProvider((ref) {
     favoriteDevices: favoriteDevices,
     onTapAddress: (context) async {
       if (ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
-        context.showSnackBar('经典蓝牙模式不会使用手动 IP。请在上方蓝牙设备列表连接后，使用「通过蓝牙发送」。');
+        context.showSnackBar(t.display.btNoManualIp);
         return;
       }
       final device = await showDialog<Device?>(
@@ -88,12 +89,12 @@ final sendTabVmProvider = ViewProvider((ref) {
               background: false,
             );
       } else if (device != null && context.mounted) {
-        context.showSnackBar('已加入设备，可用于剪切板自动同步；选择文件后也可以直接发送。');
+        context.showSnackBar(t.display.favoriteAdded);
       }
     },
     onTapFavorite: (context) async {
       if (ref.read(connectionModeProvider) == FluxConnectionMode.classicBluetooth) {
-        context.showSnackBar('经典蓝牙模式不会使用收藏的局域网设备。请连接已配对蓝牙设备后再发送。');
+        context.showSnackBar(t.display.btNoFavorites);
         return;
       }
       final device = await showDialog<Device?>(
@@ -103,7 +104,7 @@ final sendTabVmProvider = ViewProvider((ref) {
       if (device != null && context.mounted) {
         final files = ref.read(selectedSendingFilesProvider);
         if (files.isEmpty) {
-          context.showSnackBar('已加入收藏设备，可用于剪切板自动同步；选择文件后也可以直接发送。');
+          context.showSnackBar(t.display.favoriteAddedBt);
           return;
         }
 

@@ -93,6 +93,8 @@ class TranslationsZhCn extends Translations {
   late final _TranslationsConnectionStatusCardZhCn connectionStatusCard = _TranslationsConnectionStatusCardZhCn._(_root);
   @override
   late final _TranslationsOnboardingZhCn onboarding = _TranslationsOnboardingZhCn._(_root);
+  @override
+  late final _TranslationsDisplayZhCn display = _TranslationsDisplayZhCn._(_root);
 }
 
 // Path: general
@@ -906,6 +908,43 @@ class _TranslationsOnboardingZhCn extends TranslationsOnboardingEn {
   String get bluetooth => '• 经典蓝牙：先在系统蓝牙设置中完成配对，无 Wi-Fi 时可用。';
   @override
   String get confirm => '开始使用';
+}
+
+// Path: display
+class _TranslationsDisplayZhCn extends TranslationsDisplayEn {
+  _TranslationsDisplayZhCn._(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get aboutForkNote => 'Flux 基于 LocalSend（Apache License 2.0）修改，感谢上游项目。';
+  @override
+  String get fluxSource => 'Flux 源码 (GitHub)';
+  @override
+  String get upstreamSource => '上游项目 LocalSend (GitHub)';
+  @override
+  String get loading => '加载中…';
+  @override
+  String get btNoManualIp => '经典蓝牙模式不会使用手动 IP。请在上方蓝牙设备列表连接后，使用「通过蓝牙发送」。';
+  @override
+  String get favoriteAdded => '已加入设备，可用于剪切板自动同步；选择文件后也可以直接发送。';
+  @override
+  String get btNoFavorites => '经典蓝牙模式不会使用收藏的局域网设备。请连接已配对蓝牙设备后再发送。';
+  @override
+  String get favoriteAddedBt => '已选择已配对蓝牙设备，连接后即可「通过蓝牙发送」。';
+  @override
+  String copiedToClipboard({required Object name}) => '已复制 ${name} 到剪切板';
+  @override
+  String get enterIpHint => '请输入 IP 地址或识别码';
+  @override
+  String get noLocalIpHint => '未获取到本机 IP，请切换到 IP 模式输入完整地址';
+  @override
+  String get discoveryLogEmpty => '还没有发现日志，点「刷新扫描」会立刻触发 UDP + TCP 扫描。';
+  @override
+  String get btListeningShort => '蓝牙监听中';
+  @override
+  String lastSyncSuffix({required Object time}) => '；最近同步 ${time}';
 }
 
 // Path: receiveTab.infoBox

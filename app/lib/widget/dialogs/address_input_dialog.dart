@@ -58,7 +58,7 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
     final String input = (candidate ?? _input).trim();
     if (input.isEmpty) {
       setState(() {
-        _error = '请输入 IP 地址或识别码';
+        _error = t.display.enterIpHint;
       });
       return;
     }
@@ -70,7 +70,7 @@ class _AddressInputDialogState extends State<AddressInputDialog> with Refena {
     } else {
       if (localIps.isEmpty) {
         setState(() {
-          _error = '未获取到本机 IP，请切换到 IP 模式输入完整地址';
+          _error = t.display.noLocalIpHint;
         });
         return;
       }

@@ -623,5 +623,21 @@
     "privacy": "• 隐私：传输在本地网络内直接完成，不经任何服务器；可在接收设置里开启 PIN 验证。",
     "bluetooth": "• 经典蓝牙：先在系统蓝牙设置中完成配对，无 Wi-Fi 时可用。",
     "confirm": "开始使用"
+  },
+  "display": {
+    "aboutForkNote": "Flux 基于 LocalSend（Apache License 2.0）修改，感谢上游项目。",
+    "fluxSource": "Flux 源码 (GitHub)",
+    "upstreamSource": "上游项目 LocalSend (GitHub)",
+    "loading": "加载中…",
+    "btNoManualIp": "经典蓝牙模式不会使用手动 IP。请在上方蓝牙设备列表连接后，使用「通过蓝牙发送」。",
+    "favoriteAdded": "已加入设备，可用于剪切板自动同步；选择文件后也可以直接发送。",
+    "btNoFavorites": "经典蓝牙模式不会使用收藏的局域网设备。请连接已配对蓝牙设备后再发送。",
+    "favoriteAddedBt": "已选择已配对蓝牙设备，连接后即可「通过蓝牙发送」。",
+    "copiedToClipboard": "已复制 {name} 到剪切板",
+    "enterIpHint": "请输入 IP 地址或识别码",
+    "noLocalIpHint": "未获取到本机 IP，请切换到 IP 模式输入完整地址",
+    "discoveryLogEmpty": "还没有发现日志，点「刷新扫描」会立刻触发 UDP + TCP 扫描。",
+    "btListeningShort": "蓝牙监听中",
+    "lastSyncSuffix": "；最近同步 {time}"
   }
 }

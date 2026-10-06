@@ -35,8 +35,8 @@ class AboutPage extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Flux 基于 LocalSend（Apache License 2.0）修改，感谢上游项目。',
+          Text(
+            t.display.aboutForkNote,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
@@ -148,13 +148,13 @@ class AboutPage extends StatelessWidget {
                 onPressed: () async {
                   await launchUrl(Uri.parse('https://github.com/yueliangmanle/flux-send'), mode: LaunchMode.externalApplication);
                 },
-                child: const Text('Flux 源码 (GitHub)'),
+                child: Text(t.display.fluxSource),
               ),
               TextButton(
                 onPressed: () async {
                   await launchUrl(Uri.parse('https://github.com/localsend/localsend'), mode: LaunchMode.externalApplication);
                 },
-                child: const Text('上游项目 LocalSend (GitHub)'),
+                child: Text(t.display.upstreamSource),
               ),
               TextButton(
                 onPressed: () async {

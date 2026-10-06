@@ -62,7 +62,7 @@ void main() {
     final source = File('lib/widget/dialogs/address_input_dialog.dart').readAsStringSync();
 
     expect(source, contains('input.isEmpty'));
-    expect(source, contains('请输入 IP 地址或识别码'));
+    expect(source, contains('t.display.enterIpHint'));
   });
 
   test('manual address dialog guards duplicate discovery completions', () {

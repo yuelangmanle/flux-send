@@ -66,6 +66,6 @@ class _LanguagePageState extends State<LanguagePage> {
 
 extension AppLocaleExt on AppLocale {
   String get humanName {
-    return LocaleSettings.instance.translationMap[this]?.locale ?? '加载中';
+    return LocaleSettings.instance.translationMap[this]?.locale ?? t.display.loading;
   }
 }

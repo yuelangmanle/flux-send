@@ -624,5 +624,21 @@
     "privacy": "• Privacy: transfers go directly over the local network — no servers involved. Require a PIN before receiving if you like.",
     "bluetooth": "• Classic Bluetooth: pair the devices in system Bluetooth settings first; handy when Wi-Fi is unavailable.",
     "confirm": "Get started"
+  },
+  "display": {
+    "aboutForkNote": "Flux is based on LocalSend (Apache License 2.0) with thanks to the upstream project.",
+    "fluxSource": "Flux source (GitHub)",
+    "upstreamSource": "Upstream project LocalSend (GitHub)",
+    "loading": "Loading…",
+    "btNoManualIp": "Classic Bluetooth mode does not use manual IP. Connect via the Bluetooth device list above, then use \"Send via Bluetooth\".",
+    "favoriteAdded": "Device added; it can auto-sync the clipboard, and you can send files to it directly.",
+    "btNoFavorites": "Classic Bluetooth mode does not use favorite LAN devices. Connect a paired Bluetooth device before sending.",
+    "favoriteAddedBt": "Paired Bluetooth device selected; connect it, then use \"Send via Bluetooth\".",
+    "copiedToClipboard": "Copied {name} to clipboard",
+    "enterIpHint": "Enter an IP address or identifier",
+    "noLocalIpHint": "Local IP unavailable — switch to IP mode and enter the full address",
+    "discoveryLogEmpty": "No discovery logs yet. Tap \"Refresh scan\" to trigger UDP + TCP scanning.",
+    "btListeningShort": "Bluetooth listening",
+    "lastSyncSuffix": "; last sync {time}"
   }
 }

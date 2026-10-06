@@ -50,7 +50,7 @@ class FluxConnectionStatusCard extends StatelessWidget {
       clipboardEnabled: clipboard.enabled,
     );
     final scanning = nearby.runningFavoriteScan || nearby.runningIps.isNotEmpty;
-    final lastDiscoveryLog = discoveryLogs.isEmpty ? '还没有发现日志，点「刷新扫描」会立刻触发 UDP + TCP 扫描。' : discoveryLogs.last.log;
+    final lastDiscoveryLog = discoveryLogs.isEmpty ? t.display.discoveryLogEmpty : discoveryLogs.last.log;
 
     return Card(
       elevation: 0,
@@ -142,7 +142,7 @@ class FluxConnectionStatusCard extends StatelessWidget {
                       ? (bluetooth?.connected == true
                             ? t.connectionStatusCard.btConnected
                             : bluetooth?.listening == true
-                            ? '蓝牙监听中'
+                            ? t.display.btListeningShort
                             : t.connectionStatusCard.btNotListening)
                       : (scanning ? t.connectionStatusCard.tcpScanning(count: nearby.runningIps.length) : t.connectionStatusCard.udpStandby),
                   color: mode == FluxConnectionMode.classicBluetooth
@@ -188,7 +188,8 @@ class FluxConnectionStatusCard extends StatelessWidget {
             _StatusLine(
               icon: clipboard.lastError == null ? Icons.history_rounded : Icons.warning_amber_rounded,
               text: clipboard.lastError == null
-                  ? clipboard.statusMessage + (clipboard.lastSyncTime == null ? '' : '；最近同步 ${_formatTime(clipboard.lastSyncTime!)}')
+                  ? clipboard.statusMessage +
+                        (clipboard.lastSyncTime == null ? '' : t.display.lastSyncSuffix(time: _formatTime(clipboard.lastSyncTime!)))
                   : t.connectionStatusCard.clipboardError(error: clipboard.lastError ?? ''),
             ),
             const SizedBox(height: 8),

@@ -74,6 +74,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   late final TranslationsAssetPickerEn assetPicker = TranslationsAssetPickerEn.internal(_root);
   late final TranslationsConnectionStatusCardEn connectionStatusCard = TranslationsConnectionStatusCardEn.internal(_root);
   late final TranslationsOnboardingEn onboarding = TranslationsOnboardingEn.internal(_root);
+  late final TranslationsDisplayEn display = TranslationsDisplayEn.internal(_root);
 }
 
 // Path: general
@@ -1061,6 +1062,58 @@ class TranslationsOnboardingEn {
 
   /// en: 'Get started'
   String get confirm => 'Get started';
+}
+
+// Path: display
+class TranslationsDisplayEn {
+  TranslationsDisplayEn.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Flux is based on LocalSend (Apache License 2.0) with thanks to the upstream project.'
+  String get aboutForkNote => 'Flux is based on LocalSend (Apache License 2.0) with thanks to the upstream project.';
+
+  /// en: 'Flux source (GitHub)'
+  String get fluxSource => 'Flux source (GitHub)';
+
+  /// en: 'Upstream project LocalSend (GitHub)'
+  String get upstreamSource => 'Upstream project LocalSend (GitHub)';
+
+  /// en: 'Loading…'
+  String get loading => 'Loading…';
+
+  /// en: 'Classic Bluetooth mode does not use manual IP. Connect via the Bluetooth device list above, then use "Send via Bluetooth".'
+  String get btNoManualIp =>
+      'Classic Bluetooth mode does not use manual IP. Connect via the Bluetooth device list above, then use "Send via Bluetooth".';
+
+  /// en: 'Device added; it can auto-sync the clipboard, and you can send files to it directly.'
+  String get favoriteAdded => 'Device added; it can auto-sync the clipboard, and you can send files to it directly.';
+
+  /// en: 'Classic Bluetooth mode does not use favorite LAN devices. Connect a paired Bluetooth device before sending.'
+  String get btNoFavorites => 'Classic Bluetooth mode does not use favorite LAN devices. Connect a paired Bluetooth device before sending.';
+
+  /// en: 'Paired Bluetooth device selected; connect it, then use "Send via Bluetooth".'
+  String get favoriteAddedBt => 'Paired Bluetooth device selected; connect it, then use "Send via Bluetooth".';
+
+  /// en: 'Copied {name} to clipboard'
+  String copiedToClipboard({required Object name}) => 'Copied ${name} to clipboard';
+
+  /// en: 'Enter an IP address or identifier'
+  String get enterIpHint => 'Enter an IP address or identifier';
+
+  /// en: 'Local IP unavailable — switch to IP mode and enter the full address'
+  String get noLocalIpHint => 'Local IP unavailable — switch to IP mode and enter the full address';
+
+  /// en: 'No discovery logs yet. Tap "Refresh scan" to trigger UDP + TCP scanning.'
+  String get discoveryLogEmpty => 'No discovery logs yet. Tap "Refresh scan" to trigger UDP + TCP scanning.';
+
+  /// en: 'Bluetooth listening'
+  String get btListeningShort => 'Bluetooth listening';
+
+  /// en: '; last sync {time}'
+  String lastSyncSuffix({required Object time}) => '; last sync ${time}';
 }
 
 // Path: receiveTab.infoBox

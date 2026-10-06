@@ -346,8 +346,8 @@ void main() {
     expect(sendVm, contains('usingClassicBluetooth ? const <Device>[]'));
     expect(sendVm, contains('FluxConnectionMode.classicBluetooth'));
     expect(sendVm, contains('const <FavoriteDevice>[]'));
-    expect(sendVm, contains('经典蓝牙模式不会使用手动 IP'));
-    expect(sendVm, contains('经典蓝牙模式不会使用收藏的局域网设备'));
+    expect(sendVm, contains('t.display.btNoManualIp'));
+    expect(sendVm, contains('t.display.btNoFavorites'));
     expect(sendVm, contains('SendTabInitAction'));
     expect(sendVm, contains('return;'));
   });
