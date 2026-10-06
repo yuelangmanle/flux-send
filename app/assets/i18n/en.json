@@ -613,5 +613,12 @@
     "statusConnected": "Connected",
     "statusConnecting": "Connecting",
     "statusConnect": "Connect"
+  },
+  "onboarding": {
+    "title": "Welcome to Flux",
+    "discover": "• Discovery: keep both devices on the same Wi-Fi/hotspot and keep Flux open on the receiver.",
+    "privacy": "• Privacy: transfers go directly over the local network — no servers involved. Require a PIN before receiving if you like.",
+    "bluetooth": "• Classic Bluetooth: pair the devices in system Bluetooth settings first; handy when Wi-Fi is unavailable.",
+    "confirm": "Get started"
   }
 }

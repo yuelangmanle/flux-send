@@ -10,6 +10,7 @@ import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/pages/tabs/receive_tab.dart';
 import 'package:localsend_app/pages/tabs/send_tab.dart';
 import 'package:localsend_app/pages/tabs/settings_tab.dart';
+import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
@@ -64,6 +65,33 @@ class _HomePageState extends State<HomePage> with Refena {
     ensureRef((ref) async {
       ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(widget.initialTab));
       await postInit(context, ref, widget.appStart);
+
+      // 首次启动：一次性展示快速上手说明（发现条件 / 隐私模型 / 蓝牙配对）。
+      if (widget.appStart && !ref.read(persistenceProvider).isOnboardingShown()) {
+        await ref.read(persistenceProvider).setOnboardingShown();
+        if (!mounted) {
+          return;
+        }
+        await showDialog<void>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text(t.onboarding.title),
+            content: Text(
+              [
+                t.onboarding.discover,
+                t.onboarding.privacy,
+                t.onboarding.bluetooth,
+              ].join('\n'),
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(t.onboarding.confirm),
+              ),
+            ],
+          ),
+        );
+      }
     });
   }
 

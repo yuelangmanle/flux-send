@@ -73,6 +73,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   late final TranslationsWebEn web = TranslationsWebEn.internal(_root);
   late final TranslationsAssetPickerEn assetPicker = TranslationsAssetPickerEn.internal(_root);
   late final TranslationsConnectionStatusCardEn connectionStatusCard = TranslationsConnectionStatusCardEn.internal(_root);
+  late final TranslationsOnboardingEn onboarding = TranslationsOnboardingEn.internal(_root);
 }
 
 // Path: general
@@ -1027,6 +1028,30 @@ class TranslationsConnectionStatusCardEn {
 
   /// en: 'Connect'
   String get statusConnect => 'Connect';
+}
+
+// Path: onboarding
+class TranslationsOnboardingEn {
+  TranslationsOnboardingEn.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Welcome to Flux'
+  String get title => 'Welcome to Flux';
+
+  /// en: '• Discovery: keep both devices on the same Wi-Fi/hotspot and keep Flux open on the receiver.'
+  String get discover => '• Discovery: keep both devices on the same Wi-Fi/hotspot and keep Flux open on the receiver.';
+
+  /// en: '• Privacy: transfers go directly over the local network — no servers involved. Require a PIN before receiving if you like.'
+  String get privacy => '• Privacy: transfers go directly over the local network — no servers involved. Require a PIN before receiving if you like.';
+
+  /// en: '• Classic Bluetooth: pair the devices in system Bluetooth settings first; handy when Wi-Fi is unavailable.'
+  String get bluetooth => '• Classic Bluetooth: pair the devices in system Bluetooth settings first; handy when Wi-Fi is unavailable.';
+
+  /// en: 'Get started'
+  String get confirm => 'Get started';
 }
 
 // Path: receiveTab.infoBox

@@ -91,6 +91,8 @@ class TranslationsZhCn extends Translations {
   late final _TranslationsNetworkInterfacesPageZhCn networkInterfacesPage = _TranslationsNetworkInterfacesPageZhCn._(_root);
   @override
   late final _TranslationsConnectionStatusCardZhCn connectionStatusCard = _TranslationsConnectionStatusCardZhCn._(_root);
+  @override
+  late final _TranslationsOnboardingZhCn onboarding = _TranslationsOnboardingZhCn._(_root);
 }
 
 // Path: general
@@ -879,6 +881,25 @@ class _TranslationsConnectionStatusCardZhCn extends TranslationsConnectionStatus
   String get statusConnecting => '连接中';
   @override
   String get statusConnect => '连接';
+}
+
+// Path: onboarding
+class _TranslationsOnboardingZhCn extends TranslationsOnboardingEn {
+  _TranslationsOnboardingZhCn._(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '欢迎使用 Flux';
+  @override
+  String get discover => '• 发现设备：两台设备需在同一 Wi-Fi/热点下，接收端保持 Flux 打开。';
+  @override
+  String get privacy => '• 隐私：传输在本地网络内直接完成，不经任何服务器；可在接收设置里开启 PIN 验证。';
+  @override
+  String get bluetooth => '• 经典蓝牙：先在系统蓝牙设置中完成配对，无 Wi-Fi 时可用。';
+  @override
+  String get confirm => '开始使用';
 }
 
 // Path: receiveTab.infoBox

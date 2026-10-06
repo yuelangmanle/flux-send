@@ -92,6 +92,7 @@ const _shareViaLinkAutoAccept = 'ls_share_via_link_auto_accept';
 const _advancedSettingsKey = 'ls_advanced_settings';
 const _fluxConnectionModeKey = 'flux_connection_mode';
 const _clipboardSyncEnabled = 'ls_clipboard_sync_enabled';
+const _onboardingShown = 'ls_onboarding_shown';
 
 final persistenceProvider = Provider<PersistenceService>((ref) {
   throw Exception('persistenceProvider not initialized');
@@ -491,6 +492,15 @@ class PersistenceService {
 
   Future<void> setClipboardSyncEnabled(bool enabled) async {
     await _prefs.setBool(_clipboardSyncEnabled, enabled);
+  }
+
+  /// 首次启动引导是否已展示过。
+  bool isOnboardingShown() {
+    return _prefs.getBool(_onboardingShown) ?? false;
+  }
+
+  Future<void> setOnboardingShown() async {
+    await _prefs.setBool(_onboardingShown, true);
   }
 
   Future<void> setWindowOffsetX(double x) async {
