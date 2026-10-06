@@ -59,6 +59,12 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _openFile(
     BuildContext context,
     ReceiveHistoryEntry entry,
@@ -335,10 +341,4 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
       ),
     );
   }
-}
-
-@override
-void dispose() {
-  _searchController.dispose();
-  super.dispose();
 }
