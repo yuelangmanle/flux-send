@@ -6,6 +6,7 @@ import 'package:common/model/device.dart';
 import 'package:flutter/services.dart';
 import 'package:localsend_app/model/state/nearby_devices_state.dart';
 import 'package:localsend_app/provider/classic_bluetooth_provider.dart';
+import 'package:localsend_app/provider/clipboard_timeline_provider.dart';
 import 'package:localsend_app/provider/connection_mode_provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
@@ -553,6 +554,7 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
             statusMessage: '已通过经典蓝牙同步到已连接设备',
             lastError: null,
           );
+          unawaited(_ref.notifier(clipboardTimelineProvider).add(text: text, sent: true, peerAlias: '经典蓝牙'));
         } else {
           state = state.copyWith(
             onlineDeviceCount: _ref.read(classicBluetoothProvider).connected ? 1 : 0,
@@ -622,6 +624,7 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
           statusMessage: successCount == devices.length ? '已同步到 $successCount 台设备' : '已同步到 $successCount/${devices.length} 台设备，失败设备稍后自动重试',
           lastError: failures.isEmpty ? null : describeClipboardSyncFailureSummary(failures),
         );
+        unawaited(_ref.notifier(clipboardTimelineProvider).add(text: text, sent: true, peerAlias: '$successCount 台设备'));
         _logger.info('Clipboard synced to $successCount device(s)');
       } else {
         final failureSummary = describeClipboardSyncFailureSummary(failures);
@@ -718,6 +721,9 @@ class ClipboardSyncService extends Notifier<ClipboardSyncState> {
         syncCount: state.syncCount + 1,
         statusMessage: describeIncomingClipboardStatus(text),
         lastError: null,
+      );
+      unawaited(
+        _ref.notifier(clipboardTimelineProvider).add(text: text, sent: false, peerAlias: '远端设备'),
       );
       return true;
     } catch (e) {

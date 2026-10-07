@@ -93,6 +93,7 @@ const _advancedSettingsKey = 'ls_advanced_settings';
 const _fluxConnectionModeKey = 'flux_connection_mode';
 const _clipboardSyncEnabled = 'ls_clipboard_sync_enabled';
 const _onboardingShown = 'ls_onboarding_shown';
+const _clipboardTimeline = 'ls_clipboard_timeline';
 
 final persistenceProvider = Provider<PersistenceService>((ref) {
   throw Exception('persistenceProvider not initialized');
@@ -501,6 +502,25 @@ class PersistenceService {
 
   Future<void> setOnboardingShown() async {
     await _prefs.setBool(_onboardingShown, true);
+  }
+
+  /// 剪贴板时间线（最近 50 条，JSON 数组，由调用方负责裁剪）。
+  List<Map<String, dynamic>> getClipboardTimeline() {
+    final raw = _prefs.getString(_clipboardTimeline);
+    if (raw == null || raw.isEmpty) {
+      return const [];
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded.whereType<Map<String, dynamic>>().toList();
+      }
+    } catch (_) {}
+    return const [];
+  }
+
+  Future<void> setClipboardTimeline(List<Map<String, dynamic>> entries) async {
+    await _prefs.setString(_clipboardTimeline, jsonEncode(entries));
   }
 
   Future<void> setWindowOffsetX(double x) async {
