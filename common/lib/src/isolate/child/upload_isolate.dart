@@ -125,10 +125,14 @@ Future<void> setupHttpUploadIsolate(
           totalToSend = uploadTask.fileSize - resumeOffset;
         }
 
+        var sendStream = streamController?.stream ?? Stream.fromIterable([uploadTask.fileBytes!]);
+        if (resumeOffset > 0) {
+          // 按字节跳过已发送部分（Stream.skip 会按块跳过，语义错误）。
+          sendStream = skipBytes(sendStream, resumeOffset);
+        }
+
         await ref.read(httpUploadProvider).upload(
-              stream: resumeOffset > 0
-                  ? (streamController?.stream ?? Stream.fromIterable([uploadTask.fileBytes!])).skip(resumeOffset)
-                  : streamController?.stream ?? Stream.fromIterable([uploadTask.fileBytes!]),
+              stream: sendStream,
               contentLength: totalToSend,
               contentType: uploadTask.mime,
               target: uploadTask.device,

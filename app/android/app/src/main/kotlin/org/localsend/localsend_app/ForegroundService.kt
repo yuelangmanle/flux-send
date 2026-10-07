@@ -31,7 +31,8 @@ class ForegroundService : Service() {
         }
 
         fun stop(context: Context) {
-            context.startService(Intent(context, ForegroundService::class.java).setAction(ACTION_STOP))
+            // 应用退后台时 startService 会抛 IllegalStateException，stopService 无此限制。
+            context.stopService(Intent(context, ForegroundService::class.java))
         }
     }
 
@@ -50,7 +51,7 @@ class ForegroundService : Service() {
             return START_NOT_STICKY
         }
         startForeground(NOTIFICATION_ID, buildNotification())
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun buildNotification(): Notification {

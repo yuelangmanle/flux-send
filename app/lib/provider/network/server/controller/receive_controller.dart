@@ -520,29 +520,38 @@ class ReceiveController {
     try {
       _logger.info('Saving ${receivingFile.file.fileName}');
 
-      // body → 暂存 .part（追加或重写）
+      // body → 暂存 .part（追加或重写）；无论成功或对端断开都关闭句柄，暂存文件保留以支持续传
       final stagedSink = stagedFile.openWrite(mode: resumeOffset > 0 ? FileMode.append : FileMode.write);
       var appended = 0;
-      await request
-          .cast<Uint8List>()
-          .map((chunk) {
-            appended += chunk.length;
-            if (receivingFile.file.size != 0) {
-              server.ref
-                  .notifier(progressProvider)
-                  .setProgress(
-                    sessionId: receiveState.sessionId,
-                    fileId: fileId,
-                    progress: ((resumeOffset + appended) / receivingFile.file.size).clamp(0.0, 1.0),
-                  );
-            }
-            return chunk;
-          })
-          .pipe(stagedSink as StreamConsumer<Uint8List>);
-      await stagedSink.flush();
-      await stagedSink.close();
-      if (!stagedFile.existsSync() || stagedFile.lengthSync() < resumeOffset) {
+      try {
+        await request
+            .cast<List<int>>()
+            .map((chunk) {
+              appended += chunk.length;
+              if (receivingFile.file.size != 0) {
+                server.ref
+                    .notifier(progressProvider)
+                    .setProgress(
+                      sessionId: receiveState.sessionId,
+                      fileId: fileId,
+                      progress: ((resumeOffset + appended) / receivingFile.file.size).clamp(0.0, 1.0),
+                    );
+              }
+              return chunk;
+            })
+            .pipe(stagedSink);
+      } finally {
+        await stagedSink.flush();
+        await stagedSink.close();
+      }
+      final stagedLength = stagedFile.existsSync() ? stagedFile.lengthSync() : 0;
+      if (stagedLength < resumeOffset) {
         return await request.respondJson(500, message: 'Staged file missing');
+      }
+      if (receivingFile.file.size > 0 && stagedLength > receivingFile.file.size) {
+        // 超过声明大小：内容不可信，删除暂存要求全量重传。
+        unawaited(stagedFile.delete().then<void>((_) {}, onError: (Object _) {}));
+        return await request.respondJson(500, message: 'Staged size exceeds declared size');
       }
 
       (savedToGallery, filePath) = await saveFile(
@@ -873,6 +882,10 @@ class ReceiveController {
   }
 
   void closeSession() {
+    deleteStagingForSession(
+      destinationDirectory: server.getStateOrNull()?.session?.destinationDirectory,
+      sessionId: server.getStateOrNull()?.session?.sessionId,
+    );
     final sessionId = server.getStateOrNull()?.session?.sessionId;
     if (sessionId == null) {
       return;
@@ -943,4 +956,26 @@ String getStagingPath({
     stagingDir.createSync(recursive: true);
   }
   return '${stagingDir.path}${Platform.pathSeparator}$sessionId-$fileId.part';
+}
+
+/// 断点续传暂存文件路径（按 会话+文件 隔离，位于目标目录的隐藏暂存子目录）。
+
+/// 会话结束时清理该会话的全部暂存 .part 文件。
+void deleteStagingForSession({String? destinationDirectory, String? sessionId}) {
+  if (destinationDirectory == null || sessionId == null) {
+    return;
+  }
+  try {
+    final dir = Directory('$destinationDirectory/.flux_staging');
+    if (!dir.existsSync()) {
+      return;
+    }
+    for (final entity in dir.listSync()) {
+      if (entity is File && entity.path.contains(sessionId)) {
+        entity.deleteSync();
+      }
+    }
+  } catch (e) {
+    _logger.warning('Cleaning staging files failed', e);
+  }
 }

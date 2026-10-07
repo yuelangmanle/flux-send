@@ -190,8 +190,31 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
                   ),
                   FilledButton.icon(
                     onPressed: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: Text(t.receiveHistoryPage.deleteSelected),
+                          content: Text(t.receiveHistoryPage.selectedCount(count: _selectedEntryIds.length)),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text(t.general.cancel),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: Text(t.receiveHistoryPage.deleteSelected),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmed != true || !context.mounted) {
+                        return;
+                      }
                       final ids = Set<String>.from(_selectedEntryIds);
                       await context.redux(receiveHistoryProvider).dispatchAsync(RemoveHistoryEntriesAction(ids));
+                      if (!context.mounted) {
+                        return;
+                      }
                       setState(() {
                         _selectedEntryIds.clear();
                         _selectionMode = false;

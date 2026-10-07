@@ -65,6 +65,7 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
 
   // 传输速度曲线：500ms 采样一次累计字节，保留最近 60 个点。
   final TransferSpeedSampler _speedSampler = TransferSpeedSampler();
+  bool _retryingAll = false;
   final ValueNotifier<List<double>> _speedSamples = ValueNotifier(const []);
   Timer? _speedTimer;
 
@@ -290,21 +291,23 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                   children: [
                     const Spacer(),
                     FilledButton.tonalIcon(
-                      onPressed: () async {
-                        unawaited(HapticFeedback.mediumImpact());
-                        for (final entry in sendSession.files.values) {
-                          if (entry.status == FileStatus.failed) {
-                            await ref
-                                .notifier(sendProvider)
-                                .sendFile(
-                                  sessionId: widget.sessionId,
-                                  isolateIndex: 0,
-                                  file: entry,
-                                  isRetry: true,
-                                );
-                          }
-                        }
-                      },
+                      onPressed: _retryingAll
+                          ? null
+                          : () async {
+                              setState(() => _retryingAll = true);
+                              for (final entry in sendSession.files.values) {
+                                if (entry.status == FileStatus.failed) {
+                                  await ref
+                                      .notifier(sendProvider)
+                                      .sendFile(
+                                        sessionId: widget.sessionId,
+                                        isolateIndex: 0,
+                                        file: entry,
+                                        isRetry: true,
+                                      );
+                                }
+                              }
+                            },
                       icon: const Icon(Icons.refresh_rounded),
                       label: Text(t.progressPage.retryAllFailed),
                     ),
