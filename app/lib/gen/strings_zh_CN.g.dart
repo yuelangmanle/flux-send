@@ -95,6 +95,8 @@ class TranslationsZhCn extends Translations {
   late final _TranslationsOnboardingZhCn onboarding = _TranslationsOnboardingZhCn._(_root);
   @override
   late final _TranslationsDisplayZhCn display = _TranslationsDisplayZhCn._(_root);
+  @override
+  late final _TranslationsClipboardTimelinePageZhCn clipboardTimelinePage = _TranslationsClipboardTimelinePageZhCn._(_root);
 }
 
 // Path: general
@@ -947,6 +949,31 @@ class _TranslationsDisplayZhCn extends TranslationsDisplayEn {
   String get btListeningShort => '蓝牙监听中';
   @override
   String lastSyncSuffix({required Object time}) => '；最近同步 ${time}';
+}
+
+// Path: clipboardTimelinePage
+class _TranslationsClipboardTimelinePageZhCn extends TranslationsClipboardTimelinePageEn {
+  _TranslationsClipboardTimelinePageZhCn._(TranslationsZhCn root) : this._root = root, super.internal(root);
+
+  final TranslationsZhCn _root; // ignore: unused_field
+
+  // Translations
+  @override
+  String get title => '剪贴板时间线';
+  @override
+  String get empty => '还没有剪贴板同步记录。\n复制一些内容即可开始记录。';
+  @override
+  String get clear => '清空时间线';
+  @override
+  String get clearConfirm => '确定删除全部时间线记录？';
+  @override
+  String get sent => '发出';
+  @override
+  String get received => '接收';
+  @override
+  String get copyBack => '复制回剪贴板';
+  @override
+  String get copiedBack => '已复制到剪贴板';
 }
 
 // Path: receiveTab.infoBox

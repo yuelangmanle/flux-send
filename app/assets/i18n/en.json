@@ -641,5 +641,15 @@
     "discoveryLogEmpty": "No discovery logs yet. Tap \"Refresh scan\" to trigger UDP + TCP scanning.",
     "btListeningShort": "Bluetooth listening",
     "lastSyncSuffix": "; last sync {time}"
+  },
+  "clipboardTimelinePage": {
+    "title": "Clipboard timeline",
+    "empty": "No clipboard sync yet.\nCopy something to start the timeline.",
+    "clear": "Clear timeline",
+    "clearConfirm": "Delete all timeline entries?",
+    "sent": "Sent",
+    "received": "Received",
+    "copyBack": "Copy back",
+    "copiedBack": "Copied to clipboard"
   }
 }

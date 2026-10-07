@@ -640,5 +640,15 @@
     "discoveryLogEmpty": "还没有发现日志，点「刷新扫描」会立刻触发 UDP + TCP 扫描。",
     "btListeningShort": "蓝牙监听中",
     "lastSyncSuffix": "；最近同步 {time}"
+  },
+  "clipboardTimelinePage": {
+    "title": "剪贴板时间线",
+    "empty": "还没有剪贴板同步记录。\n复制一些内容即可开始记录。",
+    "clear": "清空时间线",
+    "clearConfirm": "确定删除全部时间线记录？",
+    "sent": "发出",
+    "received": "接收",
+    "copyBack": "复制回剪贴板",
+    "copiedBack": "已复制到剪贴板"
   }
 }

@@ -75,6 +75,7 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   late final TranslationsConnectionStatusCardEn connectionStatusCard = TranslationsConnectionStatusCardEn.internal(_root);
   late final TranslationsOnboardingEn onboarding = TranslationsOnboardingEn.internal(_root);
   late final TranslationsDisplayEn display = TranslationsDisplayEn.internal(_root);
+  late final TranslationsClipboardTimelinePageEn clipboardTimelinePage = TranslationsClipboardTimelinePageEn.internal(_root);
 }
 
 // Path: general
@@ -1117,6 +1118,39 @@ class TranslationsDisplayEn {
 
   /// en: '; last sync {time}'
   String lastSyncSuffix({required Object time}) => '; last sync ${time}';
+}
+
+// Path: clipboardTimelinePage
+class TranslationsClipboardTimelinePageEn {
+  TranslationsClipboardTimelinePageEn.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Clipboard timeline'
+  String get title => 'Clipboard timeline';
+
+  /// en: 'No clipboard sync yet. Copy something to start the timeline.'
+  String get empty => 'No clipboard sync yet.\nCopy something to start the timeline.';
+
+  /// en: 'Clear timeline'
+  String get clear => 'Clear timeline';
+
+  /// en: 'Delete all timeline entries?'
+  String get clearConfirm => 'Delete all timeline entries?';
+
+  /// en: 'Sent'
+  String get sent => 'Sent';
+
+  /// en: 'Received'
+  String get received => 'Received';
+
+  /// en: 'Copy back'
+  String get copyBack => 'Copy back';
+
+  /// en: 'Copied to clipboard'
+  String get copiedBack => 'Copied to clipboard';
 }
 
 // Path: receiveTab.infoBox
