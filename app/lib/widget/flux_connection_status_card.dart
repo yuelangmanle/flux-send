@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/pages/clipboard_timeline_page.dart';
 import 'package:localsend_app/provider/classic_bluetooth_provider.dart';
 import 'package:localsend_app/provider/clipboard_sync_provider.dart';
 import 'package:localsend_app/provider/connection_mode_provider.dart';
@@ -16,6 +17,7 @@ import 'package:localsend_app/provider/security_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+import 'package:routerino/routerino.dart';
 import 'package:system_settings_2/system_settings_2.dart';
 
 class FluxConnectionStatusCard extends StatelessWidget {
@@ -235,6 +237,11 @@ class FluxConnectionStatusCard extends StatelessWidget {
                   onPressed: ref.notifier(clipboardSyncProvider).toggle,
                   icon: Icon(clipboard.enabled ? Icons.pause_rounded : Icons.play_arrow_rounded),
                   label: Text(clipboard.enabled ? t.connectionStatusCard.pauseClipboard : t.connectionStatusCard.enableClipboard),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => unawaited(context.push(() => const ClipboardTimelinePage())),
+                  icon: const Icon(Icons.history_rounded),
+                  label: Text(t.connectionStatusCard.timeline),
                 ),
               ],
             ),

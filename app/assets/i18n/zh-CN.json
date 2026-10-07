@@ -616,7 +616,8 @@
     "noPairedDevices": "没有读取到已配对蓝牙设备。请先在系统蓝牙设置里完成配对，再点「刷新蓝牙设备」。",
     "statusConnected": "已连接",
     "statusConnecting": "连接中",
-    "statusConnect": "连接"
+    "statusConnect": "连接",
+    "timeline": "剪贴板时间线"
   },
   "onboarding": {
     "title": "欢迎使用 Flux",

@@ -1042,6 +1042,9 @@ class TranslationsConnectionStatusCardEn {
 
   /// en: 'Connect'
   String get statusConnect => 'Connect';
+
+  /// en: 'Clipboard timeline'
+  String get timeline => 'Clipboard timeline';
 }
 
 // Path: onboarding

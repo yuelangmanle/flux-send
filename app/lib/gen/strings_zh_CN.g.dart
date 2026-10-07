@@ -893,6 +893,8 @@ class _TranslationsConnectionStatusCardZhCn extends TranslationsConnectionStatus
   String get statusConnecting => '连接中';
   @override
   String get statusConnect => '连接';
+  @override
+  String get timeline => '剪贴板时间线';
 }
 
 // Path: onboarding

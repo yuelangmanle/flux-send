@@ -617,7 +617,8 @@
     "noPairedDevices": "No paired devices found. Pair in system Bluetooth settings first, then tap \"Refresh Bluetooth devices\".",
     "statusConnected": "Connected",
     "statusConnecting": "Connecting",
-    "statusConnect": "Connect"
+    "statusConnect": "Connect",
+    "timeline": "Clipboard timeline"
   },
   "onboarding": {
     "title": "Welcome to Flux",
