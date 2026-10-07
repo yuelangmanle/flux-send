@@ -431,6 +431,8 @@ class _TranslationsProgressPageZhCn extends TranslationsProgressPageEn {
   late final _TranslationsProgressPageTotalZhCn total = _TranslationsProgressPageTotalZhCn._(_root);
   @override
   late final _TranslationsProgressPageRemainingTimeZhCn remainingTime = _TranslationsProgressPageRemainingTimeZhCn._(_root);
+  @override
+  String get retryAllFailed => '重试全部失败项';
 }
 
 // Path: webSharePage

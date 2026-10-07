@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:common/model/dto/file_dto.dart';
@@ -7,6 +6,7 @@ import 'package:common/model/file_status.dart';
 import 'package:common/model/session_status.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/state/server/receive_session_state.dart';
@@ -279,6 +279,38 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                 },
               ),
             ),
+            if (sendSession != null && sendSession.files.values.where((f) => f.status == FileStatus.failed).length > 1)
+              Padding(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 64,
+                  left: 15,
+                  right: 30,
+                ),
+                child: Row(
+                  children: [
+                    const Spacer(),
+                    FilledButton.tonalIcon(
+                      onPressed: () async {
+                        HapticFeedback.mediumImpact();
+                        for (final entry in sendSession.files.values) {
+                          if (entry.status == FileStatus.failed) {
+                            await ref
+                                .notifier(sendProvider)
+                                .sendFile(
+                                  sessionId: widget.sessionId,
+                                  isolateIndex: 0,
+                                  file: entry,
+                                  isRetry: true,
+                                );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: Text(t.progressPage.retryAllFailed),
+                    ),
+                  ],
+                ),
+              ),
             ListView.builder(
               padding: EdgeInsets.only(
                 top: MediaQuery.of(context).padding.top + 20,

@@ -285,7 +285,8 @@
       "@days": "使用'd'作为天缩写，使用'h'作为小时缩写，使用'm'作为分钟缩写",
       "seconds": "{n}:{ss}",
       "minutes": "{n}:{ss}"
-    }
+    },
+    "retryAllFailed": "重试全部失败项"
   },
   "webSharePage": {
     "title": "分享为链接",

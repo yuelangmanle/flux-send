@@ -516,6 +516,9 @@ class TranslationsProgressPageEn {
 
   late final TranslationsProgressPageTotalEn total = TranslationsProgressPageTotalEn.internal(_root);
   late final TranslationsProgressPageRemainingTimeEn remainingTime = TranslationsProgressPageRemainingTimeEn.internal(_root);
+
+  /// en: 'Retry failed items'
+  String get retryAllFailed => 'Retry failed items';
 }
 
 // Path: webSharePage
