@@ -291,7 +291,7 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                     const Spacer(),
                     FilledButton.tonalIcon(
                       onPressed: () async {
-                        HapticFeedback.mediumImpact();
+                        unawaited(HapticFeedback.mediumImpact());
                         for (final entry in sendSession.files.values) {
                           if (entry.status == FileStatus.failed) {
                             await ref
