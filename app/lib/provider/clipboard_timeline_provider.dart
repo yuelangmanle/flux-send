@@ -1,5 +1,8 @@
 import 'package:localsend_app/provider/persistence_provider.dart';
+import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+
+final _logger = Logger('ClipboardTimeline');
 
 /// 剪贴板时间线条目。
 class ClipboardTimelineEntry {
@@ -49,8 +52,24 @@ class ClipboardTimelineService extends Notifier<List<ClipboardTimelineEntry>> {
     return raw.map(ClipboardTimelineEntry.fromMap).toList();
   }
 
+  /// 串行化队列：并发钩子（发送与接收同时成功）依次执行，避免丢更新。
+  Future<void> _queue = Future.value();
+
   /// 记录一条剪贴板同步；与上一条内容相同则去重；超过 50 条裁剪。
   Future<void> add({
+    required String text,
+    required bool sent,
+    required String peerAlias,
+  }) {
+    final run = _queue.then((_) => _addInternal(text: text, sent: sent, peerAlias: peerAlias));
+    // 吞掉错误避免毒化队列；后续条目仍可正常记录。
+    _queue = run.catchError((Object e, StackTrace st) {
+      _logger.warning('Timeline add failed', e, st);
+    });
+    return run;
+  }
+
+  Future<void> _addInternal({
     required String text,
     required bool sent,
     required String peerAlias,
@@ -73,8 +92,14 @@ class ClipboardTimelineService extends Notifier<List<ClipboardTimelineEntry>> {
     state = updated;
   }
 
-  Future<void> clear() async {
-    await _persistence.setClipboardTimeline(const []);
-    state = const [];
+  Future<void> clear() {
+    final run = _queue.then((_) async {
+      await _persistence.setClipboardTimeline(const []);
+      state = const [];
+    });
+    _queue = run.catchError((Object e, StackTrace st) {
+      _logger.warning('Timeline clear failed', e, st);
+    });
+    return run;
   }
 }

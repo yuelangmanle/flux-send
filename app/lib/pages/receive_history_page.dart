@@ -78,7 +78,12 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
         context,
         entry.fileType,
         entry.path!,
-        onDeleteTap: () => dispatcher.dispatchAsync(RemoveHistoryEntryAction(entry.id)),
+        onDeleteTap: () async {
+          await dispatcher.dispatchAsync(RemoveHistoryEntryAction(entry.id));
+          if (mounted) {
+            setState(() => _selectedEntryIds.remove(entry.id));
+          }
+        },
       );
     }
   }
@@ -132,6 +137,12 @@ class _ReceiveHistoryPageState extends State<ReceiveHistoryPage> {
 
                           if (context.mounted && result == true) {
                             await context.redux(receiveHistoryProvider).dispatchAsync(RemoveAllHistoryEntriesAction());
+                            if (mounted) {
+                              setState(() {
+                                _selectedEntryIds.clear();
+                                _selectionMode = false;
+                              });
+                            }
                           }
                         },
                   icon: const Icon(Icons.delete),

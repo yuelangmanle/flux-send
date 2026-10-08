@@ -21,7 +21,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
     private var notification: IOBluetoothUserNotification?
     private var serviceRecord: IOBluetoothSDPServiceRecord?
     private var serviceChannelID = BluetoothRFCOMMChannelID(1)
-    private var receiveBuffer = ""
+    private var receiveData = Data()
     private var connectionGeneration = 0
     private var handshakeComplete = false
     private var activeRole = ""
@@ -176,7 +176,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         let previousChannel = channel
         channel = newChannel
         previousChannel?.close()
-        receiveBuffer = ""
+        receiveData = Data()
         handshakeComplete = false
         activeRole = role
         newChannel.setDelegate(self)
@@ -256,7 +256,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         serviceRecord = nil
         channel?.close()
         channel = nil
-        receiveBuffer = ""
+        receiveData = Data()
         handshakeComplete = false
         activeRole = ""
         activeAddress = ""
@@ -275,14 +275,14 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
         guard channel == rfcommChannel else {
             return
         }
-        guard let chunk = String(data: data, encoding: .utf8) else {
-            emit(type: "message", message: "")
-            return
-        }
-        receiveBuffer += chunk
-        while let newlineRange = receiveBuffer.range(of: "\n") {
-            let line = String(receiveBuffer[..<newlineRange.lowerBound])
-            receiveBuffer.removeSubrange(...newlineRange.lowerBound)
+        // 以原始字节缓冲，避免多字节 UTF-8 被分块切断后整块丢弃。
+        receiveData.append(data)
+        while let newlineIndex = receiveData.firstIndex(of: UInt8(ascii: "\n")) {
+            let lineData = receiveData[receiveData.startIndex..<newlineIndex]
+            receiveData.removeSubrange(receiveData.startIndex...newlineIndex)
+            guard let line = String(data: Data(lineData), encoding: .utf8) else {
+                continue
+            }
             handleLine(line, from: rfcommChannel)
         }
     }
@@ -298,7 +298,7 @@ final class ClassicBluetoothBridge: NSObject, FlutterStreamHandler, IOBluetoothR
             return
         }
         channel = nil
-        receiveBuffer = ""
+        receiveData = Data()
         handshakeComplete = false
         activeRole = ""
         activeAddress = ""

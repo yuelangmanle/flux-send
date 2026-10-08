@@ -17,9 +17,7 @@ sealed class BaseHttpUploadTask {}
 class HttpUploadSetContentStreamResolverTask implements BaseHttpUploadTask {
   final UriContentStreamResolver resolver;
 
-  HttpUploadSetContentStreamResolverTask({
-    required this.resolver,
-  });
+  HttpUploadSetContentStreamResolverTask({required this.resolver});
 }
 
 class HttpUploadTask implements BaseHttpUploadTask {
@@ -85,9 +83,7 @@ Future<void> setupHttpUploadIsolate(
       switch (task.data) {
         case HttpUploadSetContentStreamResolverTask task:
           final rootIsolateToken = ref.read(syncProvider).rootIsolateToken;
-          task.resolver.init(
-            rootIsolateToken: rootIsolateToken,
-          );
+          task.resolver.init(rootIsolateToken: rootIsolateToken);
           _uriContentStreamResolver = task.resolver;
           return;
         case HttpUploadTask task:
@@ -101,12 +97,16 @@ Future<void> setupHttpUploadIsolate(
       }
 
       final Stream<List<int>>? fileStream = uploadTask.filePath != null
-          ? _uriContentStreamResolver != null && uploadTask.filePath!.startsWith('content://')
-              ? _uriContentStreamResolver!.resolve(Uri.parse(uploadTask.filePath!))
-              : File(uploadTask.filePath!).openRead()
+          ? _uriContentStreamResolver != null &&
+                    uploadTask.filePath!.startsWith('content://')
+                ? _uriContentStreamResolver!.resolve(
+                    Uri.parse(uploadTask.filePath!),
+                  )
+                : File(uploadTask.filePath!).openRead()
           : null;
 
-      final (streamController, subscription) = fileStream?.digested() ?? (null, null);
+      final (streamController, subscription) =
+          fileStream?.digested() ?? (null, null);
 
       try {
         final cancelToken = CustomCancelToken();
@@ -116,22 +116,32 @@ Future<void> setupHttpUploadIsolate(
         var resumeOffset = 0;
         var totalToSend = uploadTask.fileSize;
         if (uploadTask.resume) {
-          resumeOffset = await ref.read(httpUploadProvider).probeResumeOffset(
+          resumeOffset = await ref
+              .read(httpUploadProvider)
+              .probeResumeOffset(
                 target: uploadTask.device,
                 remoteSessionId: uploadTask.remoteSessionId,
                 fileId: uploadTask.fileId,
                 token: uploadTask.remoteFileToken,
               );
+          // 对端偏移越过本文件末尾（残留/被替换）时放弃续传，按全量重发。
+          if (resumeOffset > uploadTask.fileSize) {
+            resumeOffset = 0;
+          }
           totalToSend = uploadTask.fileSize - resumeOffset;
         }
 
-        var sendStream = streamController?.stream ?? Stream.fromIterable([uploadTask.fileBytes!]);
+        var sendStream =
+            streamController?.stream ??
+            Stream.fromIterable([uploadTask.fileBytes!]);
         if (resumeOffset > 0) {
           // 按字节跳过已发送部分（Stream.skip 会按块跳过，语义错误）。
           sendStream = skipBytes(sendStream, resumeOffset);
         }
 
-        await ref.read(httpUploadProvider).upload(
+        await ref
+            .read(httpUploadProvider)
+            .upload(
               stream: sendStream,
               contentLength: totalToSend,
               contentType: uploadTask.mime,
@@ -142,23 +152,24 @@ Future<void> setupHttpUploadIsolate(
               resumeOffset: resumeOffset,
               onSendProgress: (progress) {
                 // 汇报的是“本次发送”的进度；换算成整文件的含偏移进度。
-                final adjusted = (resumeOffset + progress * totalToSend) / (uploadTask.fileSize == 0 ? 1 : uploadTask.fileSize);
-                sendToMain(IsolateTaskStreamResult.event(
-                  id: task.id,
-                  data: adjusted.clamp(0.0, 1.0),
-                ));
+                final adjusted =
+                    (resumeOffset + progress * totalToSend) /
+                    (uploadTask.fileSize == 0 ? 1 : uploadTask.fileSize);
+                sendToMain(
+                  IsolateTaskStreamResult.event(
+                    id: task.id,
+                    data: adjusted.clamp(0.0, 1.0),
+                  ),
+                );
               },
               cancelToken: cancelToken,
             );
 
-        sendToMain(IsolateTaskStreamResult.done(
-          id: task.id,
-        ));
+        sendToMain(IsolateTaskStreamResult.done(id: task.id));
       } catch (e) {
-        sendToMain(IsolateTaskStreamResult.error(
-          id: task.id,
-          error: e.toString(),
-        ));
+        sendToMain(
+          IsolateTaskStreamResult.error(id: task.id, error: e.toString()),
+        );
       } finally {
         // Close the stream if it is still open
         // ignore: unawaited_futures

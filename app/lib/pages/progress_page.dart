@@ -295,16 +295,23 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                           ? null
                           : () async {
                               setState(() => _retryingAll = true);
-                              for (final entry in sendSession.files.values) {
-                                if (entry.status == FileStatus.failed) {
-                                  await ref
-                                      .notifier(sendProvider)
-                                      .sendFile(
-                                        sessionId: widget.sessionId,
-                                        isolateIndex: 0,
-                                        file: entry,
-                                        isRetry: true,
-                                      );
+                              unawaited(HapticFeedback.mediumImpact());
+                              try {
+                                for (final entry in sendSession.files.values) {
+                                  if (entry.status == FileStatus.failed) {
+                                    await ref
+                                        .notifier(sendProvider)
+                                        .sendFile(
+                                          sessionId: widget.sessionId,
+                                          isolateIndex: 0,
+                                          file: entry,
+                                          isRetry: true,
+                                        );
+                                  }
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _retryingAll = false);
                                 }
                               }
                             },

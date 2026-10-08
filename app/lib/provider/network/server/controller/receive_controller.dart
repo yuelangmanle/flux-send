@@ -428,6 +428,25 @@ class ReceiveController {
     return await request.respondJson(200, body: files);
   }
 
+  /// 将会话中的文件标记为失败并同步进度，避免卡在 sending。
+  void _markFileFailed({
+    required ServerUtils server,
+    required ReceiveSessionState receiveState,
+    required String fileId,
+  }) {
+    server.setState(
+      (oldState) => oldState?.copyWith(
+        session: oldState.session?.fileFinished(
+          fileId: fileId,
+          status: FileStatus.failed,
+          path: null,
+          savedToGallery: false,
+          errorMessage: 'Transfer failed',
+        ),
+      ),
+    );
+  }
+
   Future<void> _uploadHandler({
     required HttpRequest request,
     required bool v2,
@@ -507,8 +526,9 @@ class ReceiveController {
     if (resumeOffsetHeader != null) {
       resumeOffset = int.tryParse(resumeOffsetHeader) ?? -1;
       if (resumeOffset < 0 || resumeOffset > stagedBytes) {
-        // 发送端偏移与暂存不符：返回真实偏移，让发送端重新对齐。
-        return await request.respondJson(409, body: {'offset': stagedBytes}, message: 'Offset mismatch');
+        // 发送端偏移与暂存不符：标失败并返回真实偏移（发送端下轮探询会对齐）。
+        _markFileFailed(server: server, receiveState: receiveState, fileId: fileId);
+        return await request.respondJson(409, body: {'offset': stagedBytes});
       }
     }
 
@@ -546,12 +566,18 @@ class ReceiveController {
       }
       final stagedLength = stagedFile.existsSync() ? stagedFile.lengthSync() : 0;
       if (stagedLength < resumeOffset) {
+        _markFileFailed(server: server, receiveState: receiveState, fileId: fileId);
         return await request.respondJson(500, message: 'Staged file missing');
       }
-      if (receivingFile.file.size > 0 && stagedLength > receivingFile.file.size) {
-        // 超过声明大小：内容不可信，删除暂存要求全量重传。
-        unawaited(stagedFile.delete().then<void>((_) {}, onError: (Object _) {}));
-        return await request.respondJson(500, message: 'Staged size exceeds declared size');
+      if (receivingFile.file.size > 0 && stagedLength != receivingFile.file.size) {
+        // 与声明大小不符：短传保留暂存供续传；超传内容不可信直接删。
+        if (stagedLength > receivingFile.file.size) {
+          unawaited(stagedFile.delete().then<void>((_) {}, onError: (Object _) {}));
+        }
+        _markFileFailed(server: server, receiveState: receiveState, fileId: fileId);
+        return await request.respondJson(500,
+            body: {'offset': stagedLength < receivingFile.file.size ? stagedLength : 0},
+            message: 'Incomplete upload');
       }
 
       (savedToGallery, filePath) = await saveFile(
@@ -951,7 +977,9 @@ String getStagingPath({
   required String sessionId,
   required String fileId,
 }) {
-  final stagingDir = Directory('$destinationDirectory/.flux_staging');
+  // 用应用临时目录而非目标目录：目标目录可能是 Android SAF 的 content:// 树
+  // （Directory 无法直接访问），而暂存文件最后经 saveFile 流式写入真实目标。
+  final stagingDir = Directory('${Directory.systemTemp.path}/.flux_staging');
   if (!stagingDir.existsSync()) {
     stagingDir.createSync(recursive: true);
   }
@@ -962,16 +990,20 @@ String getStagingPath({
 
 /// 会话结束时清理该会话的全部暂存 .part 文件。
 void deleteStagingForSession({String? destinationDirectory, String? sessionId}) {
-  if (destinationDirectory == null || sessionId == null) {
+  if (sessionId == null) {
     return;
   }
   try {
-    final dir = Directory('$destinationDirectory/.flux_staging');
+    final dir = Directory('${Directory.systemTemp.path}/.flux_staging');
     if (!dir.existsSync()) {
       return;
     }
     for (final entity in dir.listSync()) {
-      if (entity is File && entity.path.contains(sessionId)) {
+      if (entity is! File) {
+        continue;
+      }
+      final base = entity.uri.pathSegments.last;
+      if (base.startsWith('$sessionId-')) {
         entity.deleteSync();
       }
     }

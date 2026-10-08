@@ -157,7 +157,8 @@ class ClassicBluetoothBridge(private val context: Context) : EventChannel.Stream
                 emit("listening", "经典蓝牙 RFCOMM 正在等待配对设备连接")
                 while (running) {
                     val accepted = nextServerSocket.accept() ?: break
-                    attachSocket(accepted, "server", generation)
+                    // 取当前 generation：此后若有 client 连接递增代数，此处仍可被入站连接复用
+                    attachSocket(accepted, "server", connectionGeneration.get())
                 }
             } catch (e: Exception) {
                 if (running) {
