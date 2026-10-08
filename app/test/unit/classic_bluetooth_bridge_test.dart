@@ -47,8 +47,8 @@ void main() {
     expect(source, contains('openRFCOMMChannelSync'));
     expect(source, contains('rfcommChannelData'));
     expect(source, contains('sendClipboard'));
-    expect(source, contains('private var receiveBuffer = ""'));
-    expect(source, contains('while let newlineRange = receiveBuffer.range(of: "\\n")'));
+    expect(source, contains('private var receiveData = Data()'));
+    expect(source, contains('while let newlineIndex = receiveData.firstIndex(of: UInt8(ascii: "\\n"))'));
     expect(source, contains('private func handleLine(_ line: String, from rfcommChannel: IOBluetoothRFCOMMChannel)'));
     expect(source, contains('private func sendClipboard(_ text: String) -> Bool'));
     expect(source, contains('fluxBluetoothMessage'));
@@ -186,7 +186,7 @@ void main() {
       'val generation = connectionGeneration.incrementAndGet()',
       startServerIndex < 0 ? 0 : startServerIndex,
     );
-    final serverAttachIndex = source.indexOf('attachSocket(accepted, "server", generation)', startGenerationIndex < 0 ? 0 : startGenerationIndex);
+    final serverAttachIndex = source.indexOf('attachSocket(accepted, "server", connectionGeneration.get())', startGenerationIndex < 0 ? 0 : startGenerationIndex);
     final connectIndex = source.indexOf('private fun connect(address: String)');
     final connectGenerationIndex = source.indexOf('val generation = connectionGeneration.incrementAndGet()', connectIndex < 0 ? 0 : connectIndex);
     final clientAttachIndex = source.indexOf(
