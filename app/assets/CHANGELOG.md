@@ -1,3 +1,17 @@
+## Flux 2.1.1 (2026-10-07)
+
+v2.1.0 当日热修：修复全仓审查发现的接收回归与健壮性问题，并新增剪贴板时间线等功能。
+
+- fix(receive) **P0**：`.part` 暂存目录改用应用临时目录——目标目录为 Android SAF `content://` 树时 `Directory()` 必抛异常，曾导致 SAF 用户的全部 HTTP 接收 500。
+- fix(receive): 偏移/大小不符时将文件标记为 failed（此前卡在 sending，会话无法收尾）；补齐 `staged == size` 完整性校验，短传不再被标 finished。
+- fix(resume): 发送端对越界偏移量钳制为 0 全量重发；skip 助手按字节跳过（此前按块跳过语义错误）；timeline 队列串行化并吞错防毒化。
+- fix(android): 服务器 accept 循环读取当前 connectionGeneration——一次主动外连后不再拒绝所有入站连接。
+- fix(macos): RFCOMM 接收缓冲改原始字节、只在完整行上解码，多字节 UTF-8 跨块不再丢帧。
+- fix(android): 前台服务 stop 改 `stopService`（后台调用 startService 会抛异常）；`START_NOT_STICKY` 防僵尸通知。
+- feat(ui): 接收历史搜索、长按多选批量删除（带确认）；重试全部失败项按钮（带重入守卫）；手动 IP 弹窗本机二维码；剪贴板时间线页（状态卡入口）。
+- chore(deps): flutter_markdown（停维护）→ flutter_markdown_plus；新增 qr_flutter。
+- chore(release): 版本升至 `2.1.1+221`，保持 Android applicationId 与既有签名密钥不变。macOS 仍为 arm64 单架构。
+
 ## Flux 2.1.0 (2026-10-07)
 
 v2.0.x 之后的第二个功能版本：断点续传、蓝牙协议 v2、Android 保活、二维码配对与依赖升级。完整路线图见 `docs/ROADMAP-2.0.md`。

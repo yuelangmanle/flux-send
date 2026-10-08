@@ -3,7 +3,7 @@ description: Flux — 无服务器的本地传输工具，基于 LocalSend 修�
 homepage: https://github.com/yueliangmanle/flux-send
 publish_to: "none"
 
-version: 2.1.0+220
+version: 2.1.1+221
 
 environment:
   flutter: ^3.25.0

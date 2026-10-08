@@ -575,9 +575,11 @@ class ReceiveController {
           unawaited(stagedFile.delete().then<void>((_) {}, onError: (Object _) {}));
         }
         _markFileFailed(server: server, receiveState: receiveState, fileId: fileId);
-        return await request.respondJson(500,
-            body: {'offset': stagedLength < receivingFile.file.size ? stagedLength : 0},
-            message: 'Incomplete upload');
+        return await request.respondJson(
+          500,
+          body: {'offset': stagedLength < receivingFile.file.size ? stagedLength : 0},
+          message: 'Incomplete upload',
+        );
       }
 
       (savedToGallery, filePath) = await saveFile(
