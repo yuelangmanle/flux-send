@@ -7,11 +7,11 @@
 | 项目 | 状态 |
 |------|------|
 | 应用名 | Flux |
-| 当前版本 | 2.1.0+220 |
+| 当前版本 | 2.1.1+221 |
 | Android applicationId | `org.localsend.localsend_app`（必须保持不变，保证覆盖安装） |
 | Android 签名 | 既有私有 JKS；文件、别名和密码仅存于密码管理器与离线备份，绝不进入公开仓库 |
 | macOS 应用名 | `Flux.app` |
-| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v2.1.0/Flux-v2.1.0-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v2.1.0/Flux-v2.1.0-macOS.dmg` |
+| 目标产物 | `/Users/yueliangmanle/flux-send/releases/history/v2.1.1/Flux-v2.1.1-android.apk`、`/Users/yueliangmanle/flux-send/releases/history/v2.1.1/Flux-v2.1.1-macOS.dmg` |
 
 ## 本轮目标
 
@@ -51,6 +51,13 @@
 - 循环 18（测试）：`limitBytes` 流转换器 2 条单测（正常透传 / 超限抛 BytesLimitExceededException）。
 - 安全扫描：Mimosa normal 静态扫描完成（563 包），代码发现 0 条；离线 advisory 匹配 3 包 9 条（离线库比对，待联网核对）。`dart pub outdated` 快照记入依赖升级债（flutter_markdown 停维护、若干包落后一个大版本，不在夜间盲目升级）。
 - 文档：README 平台宣称修正为 Android 与 macOS（Windows 线未维护）；ROADMAP-2.0 标注执行状态。
+- 产物与校验（`releases/history/v2.1.1/`）：
+  - `Flux-v2.1.1-android.apk`（133M）SHA-256 `d2a05e0cd7ddb1c2c5961fa25ea0ce504ce5004a7d4ee56aedaaa7687c8bd7ea`；aapt 校验 `org.localsend.localsend_app`、`versionName=2.1.1`、`versionCode=221`；apksigner 证书 SHA-256 保持 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
+  - `Flux-v2.1.1-macOS.dmg`（arm64）SHA-256 `4b9320a59bb43251c27f74193a867447257b7391d5a4f48b8e48f303bf79e597`；`hdiutil verify` 通过；挂载后 `Flux.app` 为 `2.1.1 (221)`，`codesign --verify --deep --strict` 通过。
+  - 同目录 `SHA256SUMS.txt` 已生成。
+- 发布状态：已发布 GitHub Release v2.1.1（Latest）。真机验收仍为发布后事项。
+
+
 - 产物与校验（`releases/history/v2.1.0/`）：
   - `Flux-v2.1.0-android.apk`（133M）SHA-256 `f0b9d61d3dbaacfe5354daa87654fe4c70440d3fe453e4ca60be471e47912a94`；aapt 校验 `org.localsend.localsend_app`、`versionName=2.1.0`、`versionCode=220`；apksigner 证书 SHA-256 保持 `b20954002f018b6628dcddf20e6c37ffb97e7c32bb5695e1d0e60fbc61bb6c66`。
   - `Flux-v2.1.0-macOS.dmg`（arm64）SHA-256 `b2d2d7eb82432a8cf4f9b9a9a8eeeea3f6aabe446571ac648cd6c3d3abd67c13`；`hdiutil verify` 通过；挂载后 `Flux.app` 为 `2.1.0 (220)`，`codesign --verify --deep --strict` 通过。
