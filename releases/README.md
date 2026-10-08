@@ -12,14 +12,10 @@
 
 ## 归档列表
 
-- `releases/history/v1.1.55/Flux-v1.1.55-android.apk`（134M）
-- `releases/history/v1.1.55/Flux-v1.1.55-macOS.dmg`（62M）
-- `releases/history/v1.1.55/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.52/Flux-v1.1.52-android.apk`（128M）
-- `releases/history/v1.1.52/Flux-v1.1.52-macOS.dmg`（61M）
-- `releases/history/v1.1.52/SHA256SUMS.txt`（180B）
-- `releases/history/v1.1.53/Flux-v1.1.53-android.apk`（128M）
-- `releases/history/v1.1.53/Flux-v1.1.53-macOS.dmg`（61M）
-- `releases/history/v1.1.53/SHA256SUMS.txt`（180B）
+- `releases/history/v2.1.1/Flux-v2.1.1-android.apk`（133M）
+- `releases/history/v2.1.1/Flux-v2.1.1-macOS.dmg`（62M）
+- `releases/history/v2.1.1/SHA256SUMS.txt`
 
-> 2026-09-30 空间清理：v1.0.0～v1.1.51 及 v1.1.54 的本地归档已删除（这些版本未发布到 GitHub Releases，无法从远端恢复）；v1.1.52、v1.1.53 本地与 GitHub Releases 双备份保留，最新版本 v1.1.55 以 GitHub Releases 为准。
+> 2026-10-07 磁盘清理：本地仅保留最新版本 v2.1.1；**v1.1.52、v1.1.53、v2.0.0、v2.0.1、v2.1.0 的本地副本已删除**——这些版本均已发布到 GitHub Releases，可随时从远端重新下载；v1.0.0～v1.1.51 与 v1.1.54 从未发布到 GitHub，本地副本早已清理，不再保留。
+>
+> 历史版本变更说明见 `app/assets/CHANGELOG.md`。
